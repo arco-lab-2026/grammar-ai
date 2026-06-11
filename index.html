@@ -1231,15 +1231,7 @@ function sentFeedback(phrases,sentType,text){
 }
 
 // Override addSent to include feedback + reading ease display
-// Flesch is now called inside analyze directly
-font-weight:500">${label}</span>
-        <span style="font-size:12px;color:var(--gr)">（0=最難 / 100=最易）</span>
-      </div>
-      <div class="re-bar"><div class="re-fill" style="width:${score}%;background:${color}"></div></div>`;
-    const resultArea=document.getElementById('resultArea');
-    resultArea.parentNode.insertBefore(card,resultArea);
-  }
-};
+// Flesch score is called inside analyze()
 
 // Sentence feedback is now built into addSent
 
