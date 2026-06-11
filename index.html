@@ -7,141 +7,105 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="GrammarAI">
 <meta name="theme-color" content="#1D9E75">
-<title>English Grammar Analyzer</title>
-<link rel="manifest" href="/manifest.json">
-<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="description" content="英文SVOC分析・単語帳・AWLハイライト・CEFR推定・PDF対応の完全無料英語学習ツール">
+<title>GrammarAI — 英文法アナライザー</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<!-- Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<!-- pdf.js -->
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--green:#1D9E75;--green-dark:#0F6E56;--green-light:#E1F5EE;--red:#dc2626;--gray:#6b7280;--border:#e5e7eb;--bg:#f7f8fa;--safe-bottom:env(safe-area-inset-bottom,0px)}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:#1a1a1a;min-height:100vh;-webkit-tap-highlight-color:transparent}
-
-/* SCREENS */
-.screen{display:none;min-height:100vh}
-.screen.active{display:flex;flex-direction:column}
-
-/* LOADING */
-#screen-loading{align-items:center;justify-content:center;background:#fff}
-.spinner{width:40px;height:40px;border:3px solid var(--green-light);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* AUTH */
-#screen-auth{align-items:center;justify-content:center;padding:2rem 1.25rem;background:#fff}
-.auth-card{width:100%;max-width:400px}
-.auth-logo{font-size:52px;text-align:center;margin-bottom:1rem}
-.auth-title{font-size:22px;font-weight:700;text-align:center;margin-bottom:.25rem}
-.auth-sub{font-size:14px;color:var(--gray);text-align:center;margin-bottom:2rem;line-height:1.6}
-.auth-tabs{display:flex;border:1px solid var(--border);border-radius:10px;margin-bottom:1.25rem;overflow:hidden}
-.auth-tab{flex:1;padding:9px;font-size:14px;font-weight:500;cursor:pointer;background:#fff;border:none;font-family:inherit;color:var(--gray);transition:all .15s}
-.auth-tab.active{background:var(--green);color:#fff}
-.field{margin-bottom:.875rem}
-.field label{display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:.375rem}
-.field input{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:9px;font-size:15px;font-family:inherit;outline:none;transition:border-color .15s;color:#1a1a1a;background:#fff;-webkit-appearance:none}
-.field input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.1)}
-.auth-msg{font-size:13px;min-height:18px;margin:.375rem 0 .875rem;text-align:center}
-.auth-msg.err{color:var(--red)}.auth-msg.ok{color:var(--green)}
-.divider{display:flex;align-items:center;gap:.75rem;margin:.875rem 0;color:var(--gray);font-size:13px}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
-.google-btn{width:100%;padding:11px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s}
-.google-btn:hover{background:var(--bg)}
-.google-logo{width:18px;height:18px}
-
-/* PAYWALL */
-#screen-paywall{padding:1.5rem 1.25rem;background:#fff;overflow-y:auto}
-.pw-header{text-align:center;padding:1.5rem 0 1rem}
-.pw-badge{display:inline-block;background:var(--green-light);color:var(--green-dark);font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;margin-bottom:1rem}
-.pw-title{font-size:24px;font-weight:700;margin-bottom:.5rem}
-.pw-sub{font-size:14px;color:var(--gray);line-height:1.7}
-.plan-card{border:2px solid var(--green);border-radius:14px;padding:1.25rem 1.5rem;margin:1.25rem 0;background:#fff;position:relative}
-.plan-popular{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;font-size:11px;font-weight:600;padding:3px 14px;border-radius:20px;white-space:nowrap}
-.plan-name{font-size:14px;font-weight:600;color:var(--gray);margin-bottom:.25rem}
-.plan-price{font-size:32px;font-weight:700;color:#1a1a1a}
-.plan-price span{font-size:14px;font-weight:400;color:var(--gray)}
-.plan-trial{font-size:13px;color:var(--green);font-weight:500;margin:.25rem 0 .875rem}
-.features{list-style:none;display:flex;flex-direction:column;gap:.5rem}
-.features li{display:flex;align-items:center;gap:.5rem;font-size:14px;color:#374151}
-.features li i{color:var(--green);font-size:16px;flex-shrink:0}
-.pw-note{font-size:12px;color:var(--gray);text-align:center;margin-top:.75rem;line-height:1.6}
-.pw-logout{font-size:13px;color:var(--gray);text-align:center;margin-top:1rem;cursor:pointer;text-decoration:underline;background:none;border:none;font-family:inherit;display:block;width:100%}
-
-/* MAIN APP */
-#screen-app{padding-bottom:calc(60px + var(--safe-bottom));overflow:hidden}
-.app-header{background:#fff;border-bottom:1px solid var(--border);padding:.875rem 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
-.app-title{font-size:16px;font-weight:700}
-.header-user{font-size:12px;color:var(--gray);display:flex;align-items:center;gap:6px}
-.user-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
-.app-body{overflow-y:auto;height:calc(100vh - 108px);padding:1rem 1.25rem}
-
-/* BOTTOM NAV */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-bottom);z-index:50}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.625rem .5rem;gap:3px;background:none;border:none;cursor:pointer;font-family:inherit;color:var(--gray);font-size:10px;font-weight:500;transition:color .15s;position:relative}
-.nav-btn.active{color:var(--green)}
-.nav-btn i{font-size:22px}
-.nav-badge{position:absolute;top:6px;right:calc(50% - 16px);background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:0 5px;border-radius:8px;min-width:16px;text-align:center;line-height:16px}
-
-/* PANELS */
+:root{--g:#1D9E75;--gd:#0F6E56;--gl:#E1F5EE;--bd:#e5e7eb;--bg:#f7f8fa;--tx:#1a1a1a;--gr:#6b7280;--sb:env(safe-area-inset-bottom,0px)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;-webkit-tap-highlight-color:transparent}
+.hdr{background:#fff;border-bottom:1px solid var(--bd);padding:.875rem 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.hdr-t{font-size:17px;font-weight:700}.hdr-s{font-size:11px;color:var(--gr);margin-top:1px}
+.free-b{font-size:10px;background:var(--gl);color:var(--gd);padding:2px 8px;border-radius:10px;font-weight:600}
+.tabs{display:flex;border-bottom:1px solid var(--bd);background:#fff}
+.tab{flex:1;padding:10px 4px;font-size:12px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--gr);background:none;border-top:none;border-left:none;border-right:none;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:inherit}
+.tab i{font-size:20px}.tab.active{color:var(--g);border-bottom-color:var(--g)}
+.tbadge{background:#ef4444;color:#fff;font-size:9px;font-weight:700;padding:0 5px;border-radius:8px;min-width:16px;text-align:center;line-height:15px}
 .panel{display:none}.panel.active{display:block}
-
-/* CARDS & BUTTONS */
-.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;margin-bottom:.875rem}
-button,input,textarea,select{font-family:inherit}
-.btn{padding:8px 16px;border:1px solid var(--border);border-radius:9px;background:#fff;color:#1a1a1a;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s;-webkit-appearance:none}
-.btn:hover{background:var(--bg)}.btn:active{transform:scale(.98)}
-.btn-p{background:var(--green);color:#fff;border-color:var(--green-dark);font-weight:500}.btn-p:hover{background:var(--green-dark);color:#fff}
+.body{padding:1rem 1.25rem 5rem;max-width:800px;margin:0 auto}
+@media(min-width:768px){
+  body{background:#f0f2f5}
+  .hdr{padding:.875rem 2rem}
+  .hdr-t{font-size:20px}.hdr-s{font-size:13px}
+  .free-b{font-size:12px;padding:3px 12px}
+  .app-layout{display:flex;min-height:calc(100vh - 57px)}
+  /* サイドバーナビ */
+  .tabs{flex-direction:column;border-bottom:none;border-right:1px solid var(--bd);width:220px;flex-shrink:0;position:sticky;top:57px;height:calc(100vh - 57px);overflow-y:auto;padding:1.5rem 1rem;gap:2px;align-items:stretch;background:#fff}
+  .tab{flex:none;padding:10px 14px;font-size:14px;border-bottom:none;border-radius:9px;flex-direction:row;align-items:center;justify-content:flex-start;gap:10px;margin-bottom:0;text-align:left}
+  .tab i{font-size:18px}
+  .tab.active{background:var(--gl);color:var(--g);border-bottom:none}
+  .tab:hover:not(.active){background:#f3f4f6;color:var(--tx)}
+  .tbadge{margin-left:auto}
+  /* メインコンテンツ */
+  .panels-wrap{flex:1;overflow-y:auto;background:var(--bg)}
+  .body{padding:2rem 2.5rem 3rem;max-width:900px}
+  textarea{min-height:140px;font-size:16px;line-height:1.8}
+  .stats{grid-template-columns:repeat(6,1fr)}
+  .tg{grid-template-columns:repeat(4,1fr)}
+  .sent-r{font-size:17px;line-height:3.2}
+  /* PCではポップアップをモーダルに */
+  .pop-sh,.hist-sh{position:fixed;bottom:auto;left:50%;top:50%;transform:translate(-50%,-50%) scale(.96);border-radius:16px;max-height:80vh;padding:1.75rem;transition:transform .2s cubic-bezier(.32,.72,0,1),opacity .2s;opacity:0}
+  .pop-sh{width:460px}.hist-sh{width:540px}
+  .pop-sh.show,.hist-sh.show{transform:translate(-50%,-50%) scale(1);opacity:1}
+  .pop-bd.show{backdrop-filter:blur(4px)}
+  .pop-h{display:none}
+  .pop-w{font-size:24px}
+  .pop-v{font-size:16px}
+  .pop-e{font-size:14px}
+  /* テーブル */
+  .ab-tb td,.ab-tb th{padding:8px 12px;font-size:14px}
+  .card{border-radius:14px}
+  /* ツールグリッド改善 */
+  .tc{padding:12px 14px}
+  .tn{font-size:13px}
+  /* PDF領域 */
+  .pdf-drop{padding:3rem 2rem}
+  .pdf-drop i{font-size:48px}
+  .pdf-drop p{font-size:15px}
+}
+.card{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:1rem 1.25rem;margin-bottom:.875rem}
+button{font-family:inherit;cursor:pointer;-webkit-appearance:none}
+.btn{padding:8px 16px;border:1px solid var(--bd);border-radius:9px;background:#fff;color:var(--tx);font-size:14px;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--g);color:#fff;border-color:var(--gd);font-weight:500}.btn-p:hover{background:var(--gd)}
 .btn-sm{padding:4px 10px;font-size:12px;border-radius:7px}
-.btn-danger{color:var(--red);border-color:#fca5a5}.btn-danger:hover{background:#fee2e2}
+.btn-danger{color:#dc2626;border-color:#fca5a5}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.875rem}
-.sec-title{font-size:14px;font-weight:600;margin-bottom:.75rem;display:flex;align-items:center;gap:6px;color:#374151}
-
-/* INPUT SECTION */
-.input-mode-tabs{display:flex;border:1px solid var(--border);border-radius:9px;margin-bottom:.875rem;overflow:hidden}
-.imt{flex:1;padding:8px;font-size:13px;font-weight:500;cursor:pointer;background:#fff;border:none;color:var(--gray);display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s}
-.imt.active{background:var(--green);color:#fff}
-.text-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:.875rem}
-textarea{width:100%;border:none;outline:none;font-size:15px;resize:vertical;min-height:100px;line-height:1.7;background:transparent;color:#1a1a1a;display:block}
-
-/* PDF */
-.pdf-drop{border:2px dashed var(--border);border-radius:10px;padding:1.75rem 1rem;text-align:center;cursor:pointer;background:#fafafa;margin-bottom:.875rem}
-.pdf-drop.drag-over{border-color:var(--green);background:#f0fdf9}
-.pdf-drop i{font-size:32px;color:#9ca3af;display:block;margin-bottom:.5rem}
-.pdf-drop p{font-size:14px;color:var(--gray)}
+.sec-t{font-size:14px;font-weight:600;margin-bottom:.75rem;display:flex;align-items:center;gap:6px;color:#374151}
+.imode{display:flex;border:1px solid var(--bd);border-radius:9px;margin-bottom:.875rem;overflow:hidden;background:#fff}
+.imt{flex:1;padding:9px;font-size:13px;font-weight:500;cursor:pointer;background:none;border:none;color:var(--gr);display:flex;align-items:center;justify-content:center;gap:5px;font-family:inherit}
+.imt.active{background:var(--g);color:#fff}
+.tcard{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:1rem;margin-bottom:.875rem}
+textarea{width:100%;border:none;outline:none;font-size:15px;resize:vertical;min-height:110px;line-height:1.7;background:transparent;color:var(--tx);display:block;font-family:inherit}
+.pdf-drop{border:2px dashed var(--bd);border-radius:10px;padding:2rem 1rem;text-align:center;cursor:pointer;background:#fafafa}
+.pdf-drop.drag-over{border-color:var(--g);background:#f0fdf9}
+.pdf-drop i{font-size:36px;color:#9ca3af;display:block;margin-bottom:.5rem}
+.pdf-drop p{font-size:14px;color:var(--gr);margin-bottom:.25rem}
 .pdf-drop small{font-size:12px;color:#9ca3af}
-.pdf-info{display:none;background:var(--green-light);border-radius:9px;padding:.75rem 1rem;margin-bottom:.875rem;align-items:center;gap:.75rem}
+.pdf-info{display:none;background:var(--gl);border-radius:9px;padding:.75rem 1rem;margin-bottom:.875rem;align-items:center;gap:.75rem}
 .pdf-info.show{display:flex}
-.pdf-info i{font-size:20px;color:var(--green);flex-shrink:0}
-.pdf-info-text{flex:1;font-size:13px;color:#065f46}
-.pdf-info-name{font-weight:600}
-
-/* STATS */
+.pdf-in{font-size:13px;font-weight:600;color:#065f46}.pdf-im{font-size:12px;color:#065f46;margin-top:2px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:.875rem}
-.sc{background:#f1f5f9;border-radius:9px;padding:10px 10px}
-.sl{font-size:10px;color:var(--gray);margin-bottom:2px}
-.sv{font-size:18px;font-weight:600}
-
-/* CEFR */
+.sc{background:#f1f5f9;border-radius:9px;padding:10px 12px;position:relative}
+.sl{font-size:10px;color:var(--gr);margin-bottom:3px}.sv{font-size:18px;font-weight:600}
 .cA1{background:#dcfce7;color:#15803d}.cA2{background:#d1fae5;color:#065f46}
 .cB1{background:#dbeafe;color:#1d4ed8}.cB2{background:#ede9fe;color:#6d28d9}
 .cC1{background:#fef3c7;color:#92400e}.cC2{background:#fee2e2;color:#991b1b}
-.cefr-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 11px;border-radius:20px;font-weight:600;font-size:12px}
-
-/* LEGEND */
+.cefr-b{display:inline-flex;align-items:center;gap:5px;padding:3px 11px;border-radius:20px;font-weight:600;font-size:12px}
 .legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:.875rem;font-size:11px;align-items:center}
-.leg{display:flex;align-items:center;gap:3px}
-.ll{width:18px;height:3px;border-radius:2px}
+.leg{display:flex;align-items:center;gap:3px}.ll{width:18px;height:3px;border-radius:2px}
 .awl-sw{display:inline-block;width:11px;height:11px;background:#fef9c3;border:1px solid #fcd34d;border-radius:2px;vertical-align:middle}
-
-/* SENTENCES */
-.sent-block{margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid #f3f4f6}
-.sent-block:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
-.sent-meta{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+.sent-b{margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid #f3f4f6}
+.sent-b:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.sent-m{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
 .sent-n{font-size:11px;color:#9ca3af}
 .stype{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:#f3f4f6;color:#374151}
-.sent-render{font-size:16px;line-height:2.6}
-.tok{display:inline-block;cursor:pointer;margin:0 1px;padding:2px 1px;border-radius:3px;-webkit-tap-highlight-color:transparent}
+.sent-r{font-size:16px;line-height:2.8}
+.tok{display:inline-block;cursor:pointer;margin:0 1px;padding:2px 1px;border-radius:3px;user-select:none}
+.tok:active{opacity:.6}
 .tok .lb{display:block;font-size:9px;font-weight:700;text-align:center;letter-spacing:.05em;line-height:1;margin-top:2px}
 .uS{border-bottom:3px solid #1D9E75}.lS{color:#1D9E75}
 .uV{border-bottom:3px solid #1a73e8}.lV{color:#1a73e8}
@@ -149,715 +113,1089 @@ textarea{width:100%;border:none;outline:none;font-size:15px;resize:vertical;min-
 .uC{border-bottom:3px solid #BA7517}.lC{color:#BA7517}
 .uM{border-bottom:3px dotted #7F77DD}.lM{color:#7F77DD}
 .awl{background:#fef9c3;border-radius:3px;padding:0 2px}
-.loading-msg{color:#9ca3af;font-style:italic;font-size:13px;padding:.5rem 0;display:flex;align-items:center;gap:5px}
-.err-msg{color:var(--red);font-size:13px;padding:.5rem 0}
-.ai-res{font-size:14px;line-height:1.8;white-space:pre-wrap}
-
-/* WORD POPUP - bottom sheet style for mobile */
-.popup-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200}
-.popup-backdrop.show{display:block}
-.popup-sheet{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;padding:1.25rem 1.25rem calc(1.25rem + var(--safe-bottom));z-index:201;transform:translateY(100%);transition:transform .3s ease;max-height:80vh;overflow-y:auto}
-.popup-sheet.show{transform:translateY(0)}
-.popup-handle{width:40px;height:4px;background:#d1d5db;border-radius:2px;margin:0 auto .875rem}
-.pop-word{font-size:22px;font-weight:700;margin-bottom:4px}
-.pop-role{font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;display:inline-block;margin-bottom:.75rem}
-.xlate-toggle{display:flex;gap:6px;margin-bottom:.875rem}
-.xtab{padding:5px 14px;font-size:13px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--gray);cursor:pointer;transition:all .15s;-webkit-appearance:none}
-.xtab.xa{background:var(--green);color:#fff;border-color:var(--green-dark)}
-.pop-sec{font-size:11px;color:var(--gray);margin-top:.75rem;margin-bottom:.25rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
-.pop-val{font-size:15px;color:#1a1a1a;line-height:1.5}
-.awl-tag{font-size:11px;background:#fef9c3;color:#b45309;padding:2px 8px;border-radius:10px;font-weight:600;display:inline-block;margin-top:4px}
-.bm-btn{background:#fff3cd;border-color:#f59e0b;color:#92400e}.bm-btn:hover{background:#fde68a}
-.bm-saved{background:#dcfce7;border-color:#16a34a;color:#15803d}
-
-/* VOCAB */
-.vocab-empty{text-align:center;padding:3rem 1rem;color:#9ca3af}
-.vi{border:1px solid var(--border);border-radius:10px;padding:11px 13px;background:#fff;display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
-.vw{font-size:15px;font-weight:600}
-.vp{font-size:11px;color:var(--gray);margin-top:1px}
-.vd{flex:1}
-.vd-ja{font-size:14px;color:#374151;margin-bottom:2px}
-.vd-en{font-size:12px;color:var(--gray);line-height:1.4}
+.pop-bd{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200}
+.pop-bd.show{display:block}
+.pop-sh{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;padding:1.25rem 1.25rem calc(1.5rem + var(--sb));z-index:201;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);max-height:85vh;overflow-y:auto}
+.pop-sh.show{transform:translateY(0)}
+.pop-h{width:36px;height:4px;background:#d1d5db;border-radius:2px;margin:0 auto 1rem}
+.pop-w{font-size:22px;font-weight:700;margin-bottom:4px}
+.pop-r{font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;display:inline-block;margin-bottom:.75rem}
+.xt{display:flex;gap:6px;margin-bottom:.875rem}
+.xtab{padding:6px 14px;font-size:13px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--gr);cursor:pointer;font-family:inherit}
+.xtab.xa{background:var(--g);color:#fff;border-color:var(--gd)}
+.pop-s{font-size:11px;color:var(--gr);margin-top:.875rem;margin-bottom:.25rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.pop-v{font-size:15px;color:var(--tx);line-height:1.6}
+.pop-e{font-size:13px;color:var(--gr);font-style:italic;line-height:1.5;margin-top:.25rem}
+.awl-t{font-size:11px;background:#fef9c3;color:#b45309;padding:2px 8px;border-radius:10px;font-weight:600;display:inline-block;margin-top:4px}
+.bm-btn{background:#fff3cd;border-color:#f59e0b;color:#92400e}
+.bm-sv{background:#dcfce7;border-color:#16a34a;color:#15803d}
+.vi{border:1px solid var(--bd);border-radius:10px;padding:12px 13px;background:#fff;display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.vw{font-size:15px;font-weight:600}.vp{font-size:11px;color:var(--gr);margin-top:1px}
+.vd{flex:1}.vd-j{font-size:14px;color:#374151;margin-bottom:2px}.vd-e{font-size:12px;color:var(--gr);line-height:1.4}
 .vrm{color:#9ca3af;cursor:pointer;background:none;border:none;padding:4px;font-size:18px;margin-left:auto;flex-shrink:0}
-.vrm:hover{color:var(--red)}
-.quiz-card{border:1px solid var(--border);border-radius:12px;padding:1.5rem;text-align:center;background:#fff;margin-bottom:1rem}
-.qw{font-size:24px;font-weight:700;margin-bottom:6px}
-.qh{font-size:13px;color:var(--gray);margin-bottom:1rem}
-.qa{font-size:16px;color:var(--green);font-weight:500;margin-top:1rem;display:none}
+.vrm:hover{color:#ef4444}
+.vempty{text-align:center;padding:3rem 1rem;color:#9ca3af}
+.qcard{border:1px solid var(--bd);border-radius:12px;padding:1.5rem;text-align:center;background:#fff;margin-bottom:1rem}
+.qw{font-size:26px;font-weight:700;margin-bottom:6px}.qh{font-size:13px;color:var(--gr);margin-bottom:1rem}
+.qa{font-size:16px;color:var(--g);font-weight:500;margin-top:1rem;display:none;line-height:1.6}
 .qbtns{display:flex;gap:8px;justify-content:center;margin-top:1rem}
-.qknew{background:#dcfce7;border-color:#16a34a;color:#15803d}.qknew:hover{background:#bbf7d0}
-.qforg{background:#fee2e2;border-color:#ef4444;color:#991b1b}.qforg:hover{background:#fecaca}
-.prog-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:8px}
-.prog-fill{height:100%;border-radius:3px;background:var(--green);transition:width .3s}
-
-/* TOOLS */
+.qok{background:#dcfce7;border-color:#16a34a;color:#15803d}.qng{background:#fee2e2;border-color:#ef4444;color:#991b1b}
+.pbar{height:5px;background:var(--bd);border-radius:3px;overflow:hidden;margin-top:8px}
+.pfill{height:100%;border-radius:3px;background:var(--g);transition:width .3s}
 .tg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.tc{border:1px solid var(--border);border-radius:9px;padding:10px 11px;display:flex;align-items:center;gap:9px;cursor:pointer;background:#fff;width:100%;text-align:left;transition:border-color .15s}
+.tc{border:1px solid var(--bd);border-radius:9px;padding:10px 11px;display:flex;align-items:center;gap:9px;cursor:pointer;background:#fff;width:100%;text-align:left;font-family:inherit}
 .tc:hover{border-color:#9ca3af;background:var(--bg)}
-.ti-w{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px}
-.tn{font-size:12px;font-weight:600;color:#1a1a1a;margin-bottom:2px}
-.tm{font-size:10px}
+.tiw{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px}
+.tn{font-size:12px;font-weight:600;color:var(--tx);margin-bottom:2px}.tm{font-size:10px}
 .bg-g{font-size:10px;padding:1px 5px;border-radius:6px;background:#dcfce7;color:#15803d}
 .bg-y{font-size:10px;padding:1px 5px;border-radius:6px;background:#fef3c7;color:#92400e}
 .bg-k{font-size:10px;padding:1px 5px;border-radius:6px;background:#f3f4f6;color:#374151}
 .ls-msg{font-size:13px;color:#15803d;display:none;margin-top:8px;padding:8px 12px;background:#dcfce7;border-radius:8px}
+.ab-t{font-size:13px;font-weight:600;color:#374151;margin-bottom:.5rem;display:flex;align-items:center;gap:5px}
+.ab-tx{font-size:13px;color:var(--gr);line-height:1.8}
+.ab-tb{width:100%;border-collapse:collapse;font-size:13px;margin-top:.5rem}
+.ab-tb th{text-align:left;padding:6px 10px;background:#f9fafb;color:#374151;font-weight:600;border:1px solid var(--bd)}
+.ab-tb td{padding:6px 10px;color:var(--gr);border:1px solid var(--bd);line-height:1.5}
 
-/* ACCOUNT */
-.account-info{display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:1rem}
-.avatar{width:48px;height:48px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--green-dark);flex-shrink:0}
-.sub-status{font-size:11px;margin-top:3px}
-.sub-active{color:var(--green)}.sub-inactive{color:var(--red)}
+
+/* PHRASE & WORD TOKENS */
+.phrase-wrap{display:inline;margin:0 1px}
+.word-clickable{display:inline-block;cursor:pointer;padding:1px 0;transition:opacity .15s;user-select:none}
+.word-clickable:hover{opacity:.65;background:rgba(0,0,0,.06);border-radius:3px}
+.word-clickable .lb{display:block;font-size:9px;font-weight:700;text-align:center;letter-spacing:.05em;line-height:1;margin-top:2px}
+/* Underline on phrase-wrap */
+.phrase-wrap.uS{border-bottom:3px solid #1D9E75}
+.phrase-wrap.uV{border-bottom:3px solid #1a73e8}
+.phrase-wrap.uO{border-bottom:3px solid #D85A30}
+.phrase-wrap.uC{border-bottom:3px solid #BA7517}
+.phrase-wrap.uM{border-bottom:3px dotted #7F77DD}
+/* Remove underline from individual word spans inside phrase */
+.phrase-wrap .uS,.phrase-wrap .uV,.phrase-wrap .uO,.phrase-wrap .uC,.phrase-wrap .uM{border-bottom:none}
+
+/* DARK MODE */
+body.dark{background:#111 !important;color:#e5e5e5 !important}
+body.dark .card,body.dark .tcard,body.dark .qcard,body.dark .sc{background:#1e1e1e !important;border-color:#333 !important;color:#e5e5e5 !important}
+body.dark .hdr,body.dark .tabs{background:#161616 !important;border-color:#333 !important}
+body.dark .tab{color:#9ca3af !important}
+body.dark .tab.active{background:#0d2e22 !important;color:#1D9E75 !important}
+body.dark .panels-wrap{background:#111 !important}
+body.dark textarea{color:#e5e5e5 !important;background:#1e1e1e !important}
+body.dark .sl,body.dark .vp,body.dark .vd-e,body.dark .qh,body.dark .pop-e,body.dark .pop-s,body.dark .cefr-desc{color:#9ca3af !important}
+body.dark .sv,body.dark .vw,body.dark .vd-j,body.dark .qw,body.dark .pop-v,body.dark .hist-preview{color:#e5e5e5 !important}
+body.dark .btn{background:#1e1e1e !important;color:#e5e5e5 !important;border-color:#333 !important}
+body.dark .btn:hover{background:#2a2a2a !important}
+body.dark .imode{background:#1e1e1e !important;border-color:#333 !important}
+body.dark .imt{color:#9ca3af !important}
+body.dark .imt.active{background:#1D9E75 !important;color:#fff !important}
+body.dark .tc{background:#1e1e1e !important;border-color:#333 !important}
+body.dark .vi{background:#1e1e1e !important;border-color:#333 !important}
+body.dark .stype{background:#2a2a2a !important;color:#9ca3af !important}
+body.dark .sent-b{border-bottom-color:#2a2a2a !important}
+body.dark .sent-fb{background:#1e1e1e !important;color:#9ca3af !important}
+body.dark .pdf-drop{background:#1e1e1e !important;border-color:#444 !important}
+body.dark .ab-tb th{background:#1e1e1e !important;color:#e5e5e5 !important;border-color:#333 !important}
+body.dark .ab-tb td{border-color:#333 !important}
+body.dark .ab-tx{color:#9ca3af !important}
+body.dark .ls-msg{background:#0d2e22 !important;color:#6ee7b7 !important}
+body.dark #popSH,body.dark #histSH{background:#1e1e1e !important;color:#e5e5e5 !important}
+body.dark .hist-item{background:#1e1e1e !important;border-color:#333 !important}
+body.dark #fleschCard{background:#1e1e1e !important;border-color:#333 !important}
+body.dark .free-b{background:#0d2e22 !important;color:#4ade80 !important}
+body.dark .xtab{background:#2a2a2a !important;color:#9ca3af !important;border-color:#333 !important}
+body.dark .sec-t{color:#ccc !important}
+body.dark .awl{background:#3d3200 !important}
+body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
 </style>
 </head>
 <body>
-
-<!-- LOADING -->
-<div class="screen active" id="screen-loading">
-  <div class="spinner"></div>
+<div class="hdr">
+  <div><div class="hdr-t">GrammarAI</div><div class="hdr-s">英文法アナライザー</div></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <a href="https://www.buymeacoffee.com/" target="_blank" id="tipBtn" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#FFDD00;color:#000;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;border:none;cursor:pointer;white-space:nowrap" title="開発者にチップを送る">☕ チップを送る</a><button id="darkBtn" onclick="toggleDark()" style="background:none;border:1px solid var(--bd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:13px;color:var(--gr);display:flex;align-items:center;gap:5px"><i class="ti ti-moon" id="darkIcon"></i><span id="darkLabel">ダーク</span></button><span class="free-b">完全無料</span></div>
 </div>
-
-<!-- AUTH -->
-<div class="screen" id="screen-auth">
-  <div class="auth-card">
-    <div class="auth-logo">📖</div>
-    <h1 class="auth-title">GrammarAI</h1>
-    <p class="auth-sub">英文SVOC分析・単語帳・CEFR推定<br>7日間無料で始められます</p>
-    <div class="auth-tabs">
-      <button class="auth-tab active" onclick="setAuthMode('login')">ログイン</button>
-      <button class="auth-tab" onclick="setAuthMode('signup')">新規登録</button>
+<div class="app-layout">
+<div class="tabs">
+  <button class="tab active" onclick="swT('analyze',this)"><i class="ti ti-analyze"></i>Analyze</button>
+  <button class="tab" onclick="swT('vocab',this)"><i class="ti ti-bookmark"></i>単語帳<span class="tbadge" id="vBadge" style="display:none">0</span></button>
+  <button class="tab" onclick="swT('tools',this)"><i class="ti ti-tools"></i>Tools</button>
+  <button class="tab" onclick="swT('about',this)"><i class="ti ti-info-circle"></i>使い方</button>
+</div>
+<div class="panels-wrap">
+<!-- ANALYZE -->
+<div class="panel active" id="panel-analyze"><div class="body">
+  <div class="imode">
+    <button class="imt active" id="imt-text" onclick="swI('text')"><i class="ti ti-text-size"></i> テキスト入力</button>
+    <button class="imt" id="imt-pdf" onclick="swI('pdf')"><i class="ti ti-file-type-pdf"></i> PDF→テキスト変換</button>
+  </div>
+  <div id="inp-text">
+    <div class="tcard"><textarea id="inputText" placeholder="英文を入力してください。&#10;&#10;例: The analysis of academic writing requires considerable effort. She gave him a beautiful book."></textarea></div>
+  </div>
+  <div id="inp-pdf" style="display:none">
+    <div class="pdf-drop" id="pdfDrop" onclick="document.getElementById('pdfFile').click()" ondragover="onDO(event)" ondragleave="onDL(event)" ondrop="onDP(event)">
+      <i class="ti ti-file-type-pdf"></i><p>PDFをドラッグ＆ドロップ、またはクリックして選択</p><small>テキストに変換してSVOC分析できます（最大20ページ）</small>
     </div>
-    <div class="field"><label>メールアドレス</label><input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email"></div>
-    <div class="field"><label>パスワード</label><input type="password" id="authPass" placeholder="8文字以上" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAuth()"></div>
-    <div class="auth-msg" id="authMsg"></div>
-    <button class="btn btn-p" style="width:100%;justify-content:center;padding:12px" onclick="doAuth()">
-      <i class="ti ti-arrow-right"></i> <span id="authBtnLabel">ログイン</span>
-    </button>
-    <div class="divider">または</div>
-    <button class="google-btn" onclick="signInWithGoogle()">
-      <svg class="google-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-      Googleで続ける
-    </button>
+    <input type="file" id="pdfFile" style="display:none" accept=".pdf" onchange="handlePdf(this.files[0])">
+    <div class="pdf-info" id="pdfInfo">
+      <i class="ti ti-file-check" style="font-size:20px;color:var(--g);flex-shrink:0"></i>
+      <div style="flex:1"><div class="pdf-in" id="pdfN"></div><div class="pdf-im" id="pdfM"></div></div>
+      <button class="btn btn-sm" onclick="clearPdf()" style="color:#dc2626;border-color:#fca5a5;flex-shrink:0"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="btn-row" id="pdfActs" style="display:none">
+      <button class="btn btn-p" onclick="usePdf()"><i class="ti ti-analyze"></i> SVOC分析する</button>
+      <button class="btn" onclick="cpPdf()"><i class="ti ti-copy"></i> テキストをコピー</button>
+    </div>
+    <div id="pdfPrev" style="display:none">
+      <div class="tcard" style="margin-top:.5rem">
+        <div style="font-size:11px;color:var(--gr);margin-bottom:.5rem;font-weight:500">抽出されたテキスト（編集可能）</div>
+        <textarea id="pdfTA" style="min-height:120px;font-size:13px"></textarea>
+      </div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-p" onclick="analyze()"><i class="ti ti-search"></i> Analyze</button>
+    <button class="btn" onclick="clearAll()"><i class="ti ti-x"></i> Clear</button>
+    <button class="btn" onclick="saveSnapshot()"><i class="ti ti-camera"></i> 保存</button>
+    <button class="btn" onclick="showHistory()"><i class="ti ti-history"></i> 履歴</button>
+  </div>
+  <div class="stats" id="statsRow" style="display:none">
+    <div class="sc"><div class="sl">Words</div><div class="sv" id="sw_"></div></div>
+    <div class="sc"><div class="sl">Characters</div><div class="sv" id="sc_"></div></div>
+    <div class="sc"><div class="sl">Sentences</div><div class="sv" id="ss_"></div></div>
+    <div class="sc"><div class="sl">Unique words</div><div class="sv" id="su_"></div></div>
+    <div class="sc"><div class="sl">Avg length</div><div class="sv" id="sa_"></div></div>
+    <div class="sc"><div class="sl" style="color:#b45309">AWL words</div><div class="sv" id="sawl_" style="color:#b45309"></div></div>
+  </div>
+  <div id="cefrArea" style="display:none;margin-bottom:.875rem"></div>
+  <div class="card" id="resultArea" style="display:none">
+    <div class="legend">
+      <span style="font-size:11px;font-weight:600;color:#374151">SVOC:</span>
+      <div class="leg"><div class="ll" style="background:#1D9E75"></div><span style="color:#1D9E75;font-weight:700;font-size:11px">S</span> 主語</div>
+      <div class="leg"><div class="ll" style="background:#1a73e8"></div><span style="color:#1a73e8;font-weight:700;font-size:11px">V</span> 動詞</div>
+      <div class="leg"><div class="ll" style="background:#D85A30"></div><span style="color:#D85A30;font-weight:700;font-size:11px">O</span> 目的語</div>
+      <div class="leg"><div class="ll" style="background:#BA7517"></div><span style="color:#BA7517;font-weight:700;font-size:11px">C</span> 補語</div>
+      <div class="leg"><div class="ll" style="background:#7F77DD;height:0;border-bottom:3px dotted #7F77DD"></div><span style="color:#7F77DD;font-weight:700;font-size:11px">M</span> 修飾語</div>
+      <span style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--gr)"><span class="awl-sw"></span> AWL語彙</span>
+    </div>
+    <div id="sentences"></div>
+  </div>
+</div></div>
+
+<!-- VOCAB -->
+<div class="panel" id="panel-vocab"><div class="body">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;flex-wrap:wrap;gap:8px">
+    <div><div style="font-size:16px;font-weight:600">苦手単語帳</div><div style="font-size:13px;color:var(--gr)" id="vSub">0 words</div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-p" onclick="startQ()"><i class="ti ti-cards"></i> Quiz</button>
+      <button class="btn btn-danger" onclick="clearV()"><i class="ti ti-trash"></i></button>
+      <button class="btn" onclick="exportV()"><i class="ti ti-download"></i></button>
+    </div>
+  </div>
+  <div id="quizArea" style="display:none">
+    <div class="qcard">
+      <div class="qw" id="qW">—</div><div class="qh" id="qH"></div>
+      <button class="btn" onclick="showAns()"><i class="ti ti-eye"></i> 答えを見る</button>
+      <div class="qa" id="qA"></div>
+      <div class="qbtns" id="qBs" style="display:none">
+        <button class="btn qok" onclick="qN(true)"><i class="ti ti-check"></i> 覚えた</button>
+        <button class="btn qng" onclick="qN(false)"><i class="ti ti-x"></i> まだ</button>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--gr);text-align:center;margin-bottom:4px" id="qP"></div>
+    <div class="pbar"><div class="pfill" id="qBar" style="width:0%"></div></div>
+    <button class="btn" style="width:100%;justify-content:center;margin-top:.75rem" onclick="stopQ()">クイズを終了</button>
+  </div>
+  <div id="vocabList"></div>
+</div></div>
+
+<!-- TOOLS -->
+<div class="panel" id="panel-tools"><div class="body">
+  <div class="card" style="border-color:var(--g);border-width:1.5px">
+    <div class="sec-t"><i class="ti ti-rocket"></i> 一括ランチャー</div>
+    <p style="font-size:13px;color:var(--gr);margin-bottom:.875rem;line-height:1.7">テキスト入力後「全ツールを開く」でテキスト自動コピー＋全ツールを同時に開きます。各タブで <strong>⌘V / Ctrl+V</strong> で貼り付けてください。<br><span style="color:#b45309;font-size:12px">⚠ ポップアップを許可してください（アドレスバー右端）</span></p>
+    <div class="btn-row">
+      <button class="btn btn-p" onclick="launchAll()"><i class="ti ti-rocket"></i> 全ツールを開く</button>
+      <button class="btn" onclick="doCopy()"><i class="ti ti-copy"></i> テキストをコピー</button>
+      <div style="font-size:12px;color:#b45309;margin-top:6px;line-height:1.5"><i class="ti ti-info-circle" style="font-size:12px"></i> ポップアップがブロックされる場合は下の個別ボタンを使ってください</div>
+    </div>
+    <div class="ls-msg" id="lsMsg"></div>
+  </div>
+  <div class="card">
+    <div class="sec-t"><i class="ti ti-tools"></i> 個別ツール</div>
+    <div style="font-size:12px;color:#9ca3af;margin-bottom:10px">クリックでテキスト自動コピー＋タブを開く</div>
+    <div class="tg">
+      <button class="tc" onclick="openTool('grammarly')"><div class="tiw" style="background:#dcfce7"><i class="ti ti-circle-check" style="color:#15803d"></i></div><div><div class="tn">Grammarly</div><div class="tm"><span class="bg-y">🟡 文法チェック</span></div></div></button>
+      <button class="tc" onclick="openTool('rewordify')"><div class="tiw" style="background:#fef3c7"><i class="ti ti-replace" style="color:#b45309"></i></div><div><div class="tn">Rewordify</div><div class="tm"><span class="bg-g">🟢 難語を簡単に言い換え</span></div></div></button>
+      <button class="tc" onclick="openTool('vocabprofile')"><div class="tiw" style="background:#dbeafe"><i class="ti ti-chart-pie" style="color:#1d4ed8"></i></div><div><div class="tn">VocabProfile</div><div class="tm"><span class="bg-y">🟡 語彙分析</span></div></div></button>
+      <button class="tc" onclick="openTool('awl')"><div class="tiw" style="background:#dcfce7"><i class="ti ti-school" style="color:#15803d"></i></div><div><div class="tn">AWL Highlighter</div><div class="tm"><span class="bg-y">🟡 AWL確認</span></div></div></button>
+      <button class="tc" onclick="openTool('analyzemywriting')"><div class="tiw" style="background:#ede9fe"><i class="ti ti-writing" style="color:#6d28d9"></i></div><div><div class="tn">Analyze My Writing</div><div class="tm"><span class="bg-y">🟡 文章分析</span></div></div></button>
+      <button class="tc" onclick="openTool('paperrater')"><div class="tiw" style="background:#fce7f3"><i class="ti ti-file-check" style="color:#9d174d"></i></div><div><div class="tn">PaperRater</div><div class="tm"><span class="bg-y">🟡 総合採点</span></div></div></button>
+      <button class="tc" onclick="openTool('gtzero')"><div class="tiw" style="background:#f1f5f9"><i class="ti ti-shield-check" style="color:#374151"></i></div><div><div class="tn">GPTZero</div><div class="tm"><span class="bg-y">🟡 AI検出</span></div></div></button>
+      <button class="tc" onclick="openTool('chatpdf')"><div class="tiw" style="background:#fee2e2"><i class="ti ti-file-type-pdf" style="color:#991b1b"></i></div><div><div class="tn">ChatPDF</div><div class="tm"><span class="bg-k">🔒 PDF専用</span></div></div></button>
+    </div>
   </div>
 </div>
 
-<!-- PAYWALL -->
-<div class="screen" id="screen-paywall">
-  <div style="max-width:480px;margin:0 auto;width:100%">
-    <div class="pw-header">
-      <div class="pw-badge">7日間無料トライアル</div>
-      <h2 class="pw-title">GrammarAIを始める</h2>
-      <p class="pw-sub">英文法の理解を深め、<br>アカデミック英語力を向上させましょう</p>
+  <div class="card" style="margin-top:0">
+    <div class="sec-t"><i class="ti ti-book"></i> 各ツールの使い方</div>
+    <div style="display:flex;flex-direction:column;gap:.875rem">
+
+      <div style="padding:.75rem;background:#f9fafb;border-radius:9px;border-left:3px solid #15803d">
+        <div style="font-size:13px;font-weight:600;margin-bottom:3px">✅ Grammarly</div>
+        <div style="font-size:13px;color:#6b7280;line-height:1.6">英文法・スペルをリアルタイムでチェックするツール。文章を貼り付けると下線で誤りを指摘し、修正案を提示してくれます。論文提出前の最終確認に最適。</div>
+      </div>
+
+      <div style="padding:.75rem;background:#f9fafb;border-radius:9px;border-left:3px solid #b45309">
+        <div style="font-size:13px;font-weight:600;margin-bottom:3px">🔄 Rewordify</div>
+        <div style="font-size:13px;color:#6b7280;line-height:1.6">難しい単語や表現を、より簡単な言葉に自動で言い換えてくれるツール。読んでいる論文の難解な部分を理解したいときや、自分の文章をシンプルにしたいときに使います。GrammarAIから自動でテキストが入力された状態で開きます。</div>
+      </div>
+
+      <div style="padding:.75rem;background:#f9fafb;border-radius:9px;border-left:3px solid #1d4ed8">
+        <div style="font-size:13px;font-weight:600;margin-bottom:3px">📊 VocabProfile</div>
+        <div style="font-size:13px;color:#6b7280;line-height:1.6">テキスト中の語彙を頻度レベル別（K1基本語・K2中級語・AWL学術語・オフリスト語）に分類して割合を表示するツール。自分の文章がどの程度アカデミックな語彙を使っているか確認できます。</div>
+      </div>
+
+      <div style="padding:.75rem;background:#f9fafb;border-radius:9px;border-left:3px solid #15803d">
+        <div style="font-size:13px;font-weight:600;margin-bottom:3px">🎓 AWL Highlighter</div>
+        <div style="font-size:13px;color:#6b7280;line-height:1.6">Academic Word List（学術論文頻出570語）に含まれる単語を一覧で確認できるサイト。GrammarAI内でも黄色くハイライトされますが、より詳しくAWL語彙を学びたい場合に参照してください。</div>
+      </div>
+
+      <div style="padding:.75rem;background:#f9fafb;border-radius:9px;border-left:3px solid #6d28d9">
+        <div style="font-size:13px;font-weight:600;margin-bottom:3px">✍️ Analyze My Writing</div>
+        <div style="font-size:13px;color:#6b7280;line-height:1.6">文章の読みやすさ・語彙レベル・文の長さなどを統計的に分析するツール。GrammarAIの統計機能と合わせて使うと、より詳しい文章分析ができます。</div>
+      </div>
+
+      <div style="padding:.75rem;background:#f9fafb;border-radius:9px;border-left:3px solid #9d174d">
+        <div style="font-size:13px;font-weight:600;margin-bottom:3px">📝 PaperRater</div>
+        <div style="font-size:13px;color:#6b7280;line-height:1.6">論文・エッセイを総合的に採点するツール。文法・語彙・構成・独自性などを自動採点し、改善点をレポート形式で提示します。英語論文の提出前チェックに最適。</div>
+      </div>
+
+      <div style="padding:.75rem;background:#f9fafb;border-radius:9px;border-left:3px solid #374151">
+        <div style="font-size:13px;font-weight:600;margin-bottom:3px">🛡 GPTZero</div>
+        <div style="font-size:13px;color:#6b7280;line-height:1.6">テキストがAIによって書かれたか人間によって書かれたかを判定するツール。自分の文章がAI生成と判定されないか確認したいときに使います。大学のレポートや論文提出前に確認する人が増えています。</div>
+      </div>
+
+      <div style="padding:.75rem;background:#f9fafb;border-radius:9px;border-left:3px solid #991b1b">
+        <div style="font-size:13px;font-weight:600;margin-bottom:3px">📄 ChatPDF</div>
+        <div style="font-size:13px;color:#6b7280;line-height:1.6">PDFをアップロードしてAIと対話できるツール。論文のPDFを読み込んで「この論文の主張は何ですか？」「第3節を要約してください」などの質問に答えてくれます。文献調査の効率化に役立ちます。</div>
+      </div>
+
     </div>
-    <div class="plan-card">
-      <div class="plan-popular">おすすめ</div>
-      <div class="plan-name">月額プラン</div>
-      <div class="plan-price">¥980<span> / 月</span></div>
-      <div class="plan-trial">最初の7日間は無料</div>
-      <ul class="features">
-        <li><i class="ti ti-check"></i>SVOC+M 文法分析（無制限）</li>
-        <li><i class="ti ti-check"></i>単語クリックで英英・英和辞書</li>
-        <li><i class="ti ti-check"></i>苦手単語帳 + クイズモード</li>
-        <li><i class="ti ti-check"></i>AWLハイライト・CEFR推定</li>
-        <li><i class="ti ti-check"></i>PDF読み込み・解析</li>
-        <li><i class="ti ti-check"></i>AI Grammar Check</li>
-        <li><i class="ti ti-check"></i>外部ツール一括ランチャー</li>
-      </ul>
-    </div>
-    <button class="btn btn-p" style="width:100%;justify-content:center;padding:14px;font-size:16px" onclick="startCheckout()">
-      <i class="ti ti-credit-card"></i> 7日間無料で始める
-    </button>
-    <p class="pw-note">トライアル期間中はいつでもキャンセル可能。<br>カード情報はStripeで安全に管理されます。</p>
-    <button class="pw-logout" onclick="signOut()">別のアカウントでログイン</button>
   </div>
+
+</div></div>
+
+<!-- ABOUT -->
+<div class="panel" id="panel-about"><div class="body">
+  <div class="card">
+    <div style="margin-bottom:1.25rem">
+      <div class="ab-t"><i class="ti ti-sparkles"></i> GrammarAIとは</div>
+      <div class="ab-tx">論文・アカデミック英語を書く方向けの完全無料の英語ライティング支援ツールです。SVOC文法分析・単語学習・外部ツール連携をひとつのアプリで行えます。</div>
+    </div>
+    <div style="margin-bottom:1.25rem">
+      <div class="ab-t"><i class="ti ti-chart-bar"></i> 統計指標の説明</div>
+      <table class="ab-tb">
+        <tr><th>指標</th><th>意味</th></tr>
+        <tr><td><strong>Words</strong></td><td>テキスト中の総単語数</td></tr>
+        <tr><td><strong>Characters</strong></td><td>スペースを除いた文字数</td></tr>
+        <tr><td><strong>Sentences</strong></td><td>文の数（.!?で区切り）</td></tr>
+        <tr><td><strong>Unique words</strong></td><td>異なる単語の種類数。高いほど語彙が豊富で表現が多様</td></tr>
+        <tr><td><strong>Avg length</strong></td><td>1文あたりの平均単語数。アカデミック文章では20〜25語が目安</td></tr>
+        <tr><td><strong>AWL words</strong></td><td>Academic Word List（学術論文頻出語）に含まれる単語数。高いほど学術的な語彙を使えている</td></tr>
+      </table>
+    </div>
+    <div style="margin-bottom:1.25rem">
+      <div class="ab-t"><i class="ti ti-award"></i> CEFRとは</div>
+      <div class="ab-tx" style="margin-bottom:.75rem">CEFR（セファール）はヨーロッパ言語共通参照枠の略で、英語力を6段階で示す国際標準指標です。TOEFLやIELTSのスコアとも対応しています。このアプリでは語彙・文長・AWL比率から自動推定しています。</div>
+      <table class="ab-tb">
+        <tr><th>レベル</th><th>目安</th><th>TOEIC目安</th></tr>
+        <tr><td><span class="cefr-b cA1" style="padding:1px 8px;font-size:11px">A1</span></td><td>初歩的な挨拶・自己紹介</td><td>〜225</td></tr>
+        <tr><td><span class="cefr-b cA2" style="padding:1px 8px;font-size:11px">A2</span></td><td>日常的な簡単な会話</td><td>225〜550</td></tr>
+        <tr><td><span class="cefr-b cB1" style="padding:1px 8px;font-size:11px">B1</span></td><td>身近なトピックで意思疎通可能</td><td>550〜785</td></tr>
+        <tr><td><span class="cefr-b cB2" style="padding:1px 8px;font-size:11px">B2</span></td><td>複雑な内容を理解・表現できる</td><td>785〜945</td></tr>
+        <tr><td><span class="cefr-b cC1" style="padding:1px 8px;font-size:11px">C1</span></td><td>流暢・自然な表現ができる</td><td>945〜990</td></tr>
+        <tr><td><span class="cefr-b cC2" style="padding:1px 8px;font-size:11px">C2</span></td><td>ネイティブと同等レベル</td><td>990</td></tr>
+      </table>
+    </div>
+    <div style="margin-bottom:1.25rem">
+      <div class="ab-t"><i class="ti ti-analyze"></i> SVOCとは</div>
+      <table class="ab-tb">
+        <tr><th>記号</th><th>名称</th><th>例</th></tr>
+        <tr><td><span style="color:#1D9E75;font-weight:700">S</span></td><td>主語（Subject）</td><td>She, The study</td></tr>
+        <tr><td><span style="color:#1a73e8;font-weight:700">V</span></td><td>動詞（Verb）</td><td>gave, requires</td></tr>
+        <tr><td><span style="color:#D85A30;font-weight:700">O</span></td><td>目的語（Object）</td><td>him, a book</td></tr>
+        <tr><td><span style="color:#BA7517;font-weight:700">C</span></td><td>補語（Complement）</td><td>happy, a teacher</td></tr>
+        <tr><td><span style="color:#7F77DD;font-weight:700">M</span></td><td>修飾語（Modifier）</td><td>quickly, in the library</td></tr>
+      </table>
+    </div>
+    <div style="margin-bottom:1.25rem">
+      <div class="ab-t"><i class="ti ti-book"></i> 文型分類</div>
+      <table class="ab-tb">
+        <tr><th>文型</th><th>構造</th><th>例文</th></tr>
+        <tr><td>第1文型 SV</td><td>S＋V</td><td>She smiled.</td></tr>
+        <tr><td>第2文型 SVC</td><td>S＋V＋C</td><td>He is a teacher.</td></tr>
+        <tr><td>第3文型 SVO</td><td>S＋V＋O</td><td>I like apples.</td></tr>
+        <tr><td>第4文型 SVOO</td><td>S＋V＋O＋O</td><td>She gave him a book.</td></tr>
+        <tr><td>第5文型 SVOC</td><td>S＋V＋O＋C</td><td>He made her happy.</td></tr>
+      </table>
+    </div>
+
+    <div style="margin-bottom:1.25rem">
+      <div class="ab-t"><i class="ti ti-gauge"></i> 読みやすさスコア（Flesch）とは</div>
+      <div class="ab-tx" style="margin-bottom:.75rem">Flesch Reading Ease（フレッシュ読みやすさスコア）は、英文の読みやすさを0〜100の数値で表す指標です。文の長さと単語の音節数をもとに計算されます。</div>
+      <table class="ab-tb">
+        <tr><th>スコア</th><th>難易度</th><th>目安</th></tr>
+        <tr><td>70〜100</td><td style="color:#16a34a;font-weight:600">読みやすい</td><td>一般的な文章・中学生レベル（A2-B1）</td></tr>
+        <tr><td>50〜70</td><td style="color:#2563eb;font-weight:600">普通</td><td>標準的な文章・高校生レベル（B2）</td></tr>
+        <tr><td>30〜50</td><td style="color:#d97706;font-weight:600">難しい</td><td>専門的な文章・大学生レベル（C1）</td></tr>
+        <tr><td>0〜30</td><td style="color:#dc2626;font-weight:600">非常に難しい</td><td>学術論文・専門家向け（C2）</td></tr>
+      </table>
+      <div class="ab-tx" style="margin-top:.75rem;padding:.75rem;background:#f0fdf9;border-radius:8px;border-left:3px solid #1D9E75">
+        <strong>アカデミック英語の目標：</strong>学術論文では30〜50程度が一般的です。スコアが低いほど文章が難しく専門的であることを示します。ただし低すぎる（複雑すぎる）文章は読者に伝わりにくくなるため、<strong>40〜55程度が読みやすくかつ学術的なバランスの良い目安</strong>です。
+      </div>
+    </div>
+    <div>
+      <div class="ab-t"><i class="ti ti-heart"></i> 開発者より</div>
+      <div class="ab-tx">このアプリは、英語学習と論文執筆の効率を高めたいという思いから制作しました。SVOC分析・単語学習・外部ツール連携をひとつにまとめることで、英語の文章を深く理解する手助けができれば幸いです。完全無料でご利用いただけます。</div>
+      <div style="margin-top:.875rem;padding:.875rem;background:#fffbeb;border-radius:10px;border:1px solid #fcd34d">
+        <div style="font-size:13px;color:#92400e;margin-bottom:.5rem">このアプリが役に立ったら、コーヒー1杯分の支援をいただけると嬉しいです ☕</div>
+        <a href="https://www.buymeacoffee.com/" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#FFDD00;color:#000;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none">☕ Buy Me a Coffee</a>
+        <div style="font-size:11px;color:#b45309;margin-top:.5rem">※ URLは buymeacoffee.com でアカウント作成後に設定してください</div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+</div><!-- /panels-wrap -->
+</div><!-- /app-layout -->
+
+<!-- HISTORY MODAL -->
+<div class="pop-bd" id="histBD" onclick="closeHistory()"></div>
+<div class="pop-sh" id="histSH" class="hist-sh" style="max-height:80vh;overflow-y:auto">
+  <div class="pop-h"></div>
+  <div style="font-size:17px;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:8px"><i class="ti ti-history"></i> 分析履歴</div>
+  <div id="histList"></div>
 </div>
 
-<!-- MAIN APP -->
-<div class="screen" id="screen-app">
-  <div class="app-header">
-    <div class="app-title">GrammarAI</div>
-    <div class="header-user"><span class="user-dot"></span><span id="headerEmail">—</span></div>
+<!-- POPUP -->
+<div class="pop-bd" id="popBD" onclick="closeP()"></div>
+<div class="pop-sh" id="popSH">
+  <div class="pop-h"></div>
+  <div class="pop-w"><span id="pw"></span><span id="pwBadge" style="font-size:14px;font-weight:400;margin-left:6px"></span></div>
+  <span class="pop-r" id="pr"></span>
+  <div id="pAwl" style="display:none;margin-top:4px"><span class="awl-t">AWL語彙</span></div>
+  <div class="xt" style="margin-top:.75rem">
+    <button class="xtab xa" id="xt-en" onclick="setXL('en')">英→英</button>
+    <button class="xtab" id="xt-ja" onclick="setXL('ja')">英→和</button>
   </div>
-
-  <div class="app-body">
-
-    <!-- ANALYZE PANEL -->
-    <div class="panel active" id="panel-analyze">
-      <div class="input-mode-tabs">
-        <button class="imt active" id="imt-text" onclick="switchInput('text')"><i class="ti ti-text-size"></i> テキスト</button>
-        <button class="imt" id="imt-pdf" onclick="switchInput('pdf')"><i class="ti ti-file-type-pdf"></i> PDF</button>
-      </div>
-
-      <!-- Text input -->
-      <div id="inp-text">
-        <div class="text-card">
-          <textarea id="inputText" placeholder="英文を入力してください。複数文に対応しています。"></textarea>
-        </div>
-      </div>
-
-      <!-- PDF input -->
-      <div id="inp-pdf" style="display:none">
-        <div class="pdf-drop" id="pdfDrop" onclick="document.getElementById('pdfFile').click()" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
-          <i class="ti ti-file-type-pdf"></i>
-          <p>PDFをタップして選択</p>
-          <small>最大20MB・20ページまで解析</small>
-        </div>
-        <input type="file" id="pdfFile" style="display:none" accept=".pdf" onchange="handlePdfFile(this.files[0])">
-        <div class="pdf-info" id="pdfInfo">
-          <i class="ti ti-file-check"></i>
-          <div class="pdf-info-text">
-            <div class="pdf-info-name" id="pdfName"></div>
-            <div id="pdfMeta"></div>
-          </div>
-          <button class="btn btn-sm" onclick="clearPdf()" style="color:var(--red);border-color:#fca5a5;flex-shrink:0"><i class="ti ti-x"></i></button>
-        </div>
-        <div class="btn-row" id="pdfActions" style="display:none">
-          <button class="btn btn-p" onclick="analyzePdf()"><i class="ti ti-file-search"></i> PDF解析</button>
-          <button class="btn" onclick="extractAndAnalyze()"><i class="ti ti-analyze"></i> SVOC分析</button>
-        </div>
-      </div>
-
-      <div class="btn-row">
-        <button class="btn btn-p" onclick="analyze()"><i class="ti ti-search"></i> Analyze</button>
-        <button class="btn" onclick="runAICheck()"><i class="ti ti-robot"></i> AI Check</button>
-        <button class="btn" onclick="clearAll()"><i class="ti ti-x"></i> Clear</button>
-      </div>
-
-      <div class="stats" id="statsRow" style="display:none">
-        <div class="sc"><div class="sl">Words</div><div class="sv" id="sw_"></div></div>
-        <div class="sc"><div class="sl">Sentences</div><div class="sv" id="ss_"></div></div>
-        <div class="sc"><div class="sl" style="color:#b45309">AWL</div><div class="sv" id="sawl_" style="color:#b45309"></div></div>
-        <div class="sc"><div class="sl">Characters</div><div class="sv" id="sc_"></div></div>
-        <div class="sc"><div class="sl">Unique</div><div class="sv" id="su_"></div></div>
-        <div class="sc"><div class="sl">Avg length</div><div class="sv" id="sa_"></div></div>
-      </div>
-
-      <div id="cefrArea" style="display:none;margin-bottom:.875rem"></div>
-
-      <div class="card" id="resultArea" style="display:none">
-        <div class="legend">
-          <div class="leg"><div class="ll" style="background:#1D9E75"></div><span style="color:#1D9E75;font-weight:700;font-size:11px">S</span></div>
-          <div class="leg"><div class="ll" style="background:#1a73e8"></div><span style="color:#1a73e8;font-weight:700;font-size:11px">V</span></div>
-          <div class="leg"><div class="ll" style="background:#D85A30"></div><span style="color:#D85A30;font-weight:700;font-size:11px">O</span></div>
-          <div class="leg"><div class="ll" style="background:#BA7517"></div><span style="color:#BA7517;font-weight:700;font-size:11px">C</span></div>
-          <div class="leg"><div class="ll" style="background:#7F77DD;height:0;border-bottom:3px dotted #7F77DD"></div><span style="color:#7F77DD;font-weight:700;font-size:11px">M</span></div>
-          <span style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--gray)"><span class="awl-sw"></span>AWL</span>
-        </div>
-        <div id="sentences"></div>
-      </div>
-
-      <div class="card" id="pdfSummaryArea" style="display:none">
-        <div class="sec-title"><i class="ti ti-file-description"></i> PDF解析結果</div>
-        <div class="ai-res" id="pdfSummaryResult"></div>
-      </div>
-
-      <div class="card" id="aiSection" style="display:none">
-        <div class="sec-title"><i class="ti ti-sparkles"></i> AI Grammar Analysis</div>
-        <div class="ai-res" id="aiResult"></div>
-      </div>
-    </div>
-
-    <!-- VOCAB PANEL -->
-    <div class="panel" id="panel-vocab">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;flex-wrap:wrap;gap:8px">
-        <div>
-          <div style="font-size:16px;font-weight:600">苦手単語帳</div>
-          <div style="font-size:13px;color:var(--gray)" id="vSubtitle">0 words</div>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-p" onclick="startQuiz()"><i class="ti ti-cards"></i> Quiz</button>
-          <button class="btn btn-danger" onclick="clearVocab()"><i class="ti ti-trash"></i></button>
-        </div>
-      </div>
-      <div id="quizArea" style="display:none">
-        <div class="quiz-card">
-          <div class="qw" id="qWord">—</div>
-          <div class="qh" id="qHint"></div>
-          <button class="btn" onclick="showAns()"><i class="ti ti-eye"></i> 答えを見る</button>
-          <div class="qa" id="qAns"></div>
-          <div class="qbtns" id="qBtns" style="display:none">
-            <button class="btn qknew" onclick="qNext(true)"><i class="ti ti-check"></i> 覚えた</button>
-            <button class="btn qforg" onclick="qNext(false)"><i class="ti ti-x"></i> まだ</button>
-          </div>
-        </div>
-        <div style="font-size:13px;color:var(--gray);text-align:center;margin-bottom:4px" id="qProg"></div>
-        <div class="prog-bar"><div class="prog-fill" id="qBar" style="width:0%"></div></div>
-        <button class="btn" style="width:100%;justify-content:center;margin-top:.75rem" onclick="stopQuiz()">クイズを終了</button>
-      </div>
-      <div id="vocabList"></div>
-    </div>
-
-    <!-- TOOLS PANEL -->
-    <div class="panel" id="panel-tools">
-      <div class="card" style="border-color:var(--green);border-width:1.5px;margin-bottom:.875rem">
-        <div class="sec-title"><i class="ti ti-rocket"></i> 一括ランチャー</div>
-        <p style="font-size:13px;color:var(--gray);margin-bottom:.875rem;line-height:1.7">テキスト入力後、全ツールを同時に開きます。各タブで <strong>⌘V / Ctrl+V</strong> で貼り付けてください。</p>
-        <div class="btn-row">
-          <button class="btn btn-p" onclick="launchAll()"><i class="ti ti-rocket"></i> 全て開く</button>
-          <button class="btn" onclick="doCopyText()"><i class="ti ti-copy"></i> コピー</button>
-        </div>
-        <div class="ls-msg" id="lsMsg"></div>
-      </div>
-      <div class="card">
-        <div class="sec-title"><i class="ti ti-tools"></i> 個別ツール</div>
-        <div class="tg">
-          <button class="tc" onclick="openTool('rewordify')"><div class="ti-w" style="background:#fef3c7"><i class="ti ti-replace" style="color:#b45309"></i></div><div><div class="tn">Rewordify</div><div class="tm"><span class="bg-g">🟢 自動</span></div></div></button>
-          <button class="tc" onclick="openTool('vocabprofile')"><div class="ti-w" style="background:#dbeafe"><i class="ti ti-chart-pie" style="color:#1d4ed8"></i></div><div><div class="tn">VocabProfile</div><div class="tm"><span class="bg-y">🟡 貼付</span></div></div></button>
-          <button class="tc" onclick="openTool('awl')"><div class="ti-w" style="background:#dcfce7"><i class="ti ti-school" style="color:#15803d"></i></div><div><div class="tn">AWL Highlighter</div><div class="tm"><span class="bg-y">🟡 貼付</span></div></div></button>
-          <button class="tc" onclick="openTool('analyzemywriting')"><div class="ti-w" style="background:#ede9fe"><i class="ti ti-writing" style="color:#6d28d9"></i></div><div><div class="tn">Analyze My Writing</div><div class="tm"><span class="bg-y">🟡 貼付</span></div></div></button>
-          <button class="tc" onclick="openTool('paperrater')"><div class="ti-w" style="background:#fce7f3"><i class="ti ti-file-check" style="color:#9d174d"></i></div><div><div class="tn">PaperRater</div><div class="tm"><span class="bg-y">🟡 貼付</span></div></div></button>
-          <button class="tc" onclick="openTool('gtzero')"><div class="ti-w" style="background:#f1f5f9"><i class="ti ti-shield-check" style="color:#374151"></i></div><div><div class="tn">GPTZero</div><div class="tm"><span class="bg-y">🟡 貼付</span></div></div></button>
-          <button class="tc" onclick="openTool('grammarly')"><div class="ti-w" style="background:#dcfce7"><i class="ti ti-circle-check" style="color:#15803d"></i></div><div><div class="tn">Grammarly</div><div class="tm"><span class="bg-k">🔒 ログイン</span></div></div></button>
-          <button class="tc" onclick="openTool('chatpdf')"><div class="ti-w" style="background:#fee2e2"><i class="ti ti-file-type-pdf" style="color:#991b1b"></i></div><div><div class="tn">ChatPDF</div><div class="tm"><span class="bg-k">🔒 PDF専用</span></div></div></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ACCOUNT PANEL -->
-    <div class="panel" id="panel-account">
-      <div class="account-info">
-        <div class="avatar" id="avatarInitial">?</div>
-        <div>
-          <div style="font-size:15px;font-weight:600" id="accountEmail">—</div>
-          <div class="sub-status sub-active" id="subStatusLabel">✓ サブスクリプション有効</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="sec-title"><i class="ti ti-credit-card"></i> サブスクリプション</div>
-        <p style="font-size:13px;color:var(--gray);margin-bottom:.875rem;line-height:1.7">プランの変更・キャンセルはStripeのポータルで行えます。</p>
-        <button class="btn" onclick="openBillingPortal()"><i class="ti ti-external-link"></i> 支払い管理を開く</button>
-      </div>
-      <div class="card">
-        <div class="sec-title"><i class="ti ti-database"></i> 単語帳データ</div>
-        <p style="font-size:13px;color:var(--gray);margin-bottom:.875rem">現在 <strong id="vocabCountAcc">0</strong> 語を登録中</p>
-        <button class="btn" onclick="exportVocab()"><i class="ti ti-download"></i> CSVでエクスポート</button>
-      </div>
-      <button class="btn btn-danger" style="width:100%;justify-content:center;margin-top:.5rem" onclick="signOut()"><i class="ti ti-logout"></i> ログアウト</button>
-    </div>
-
-  </div><!-- /app-body -->
-
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <button class="nav-btn active" id="nav-analyze" onclick="swNav('analyze')"><i class="ti ti-analyze"></i>Analyze</button>
-    <button class="nav-btn" id="nav-vocab" onclick="swNav('vocab')"><i class="ti ti-bookmark"></i>単語帳<span class="nav-badge" id="navBadge" style="display:none">0</span></button>
-    <button class="nav-btn" id="nav-tools" onclick="swNav('tools')"><i class="ti ti-tools"></i>Tools</button>
-    <button class="nav-btn" id="nav-account" onclick="swNav('account')"><i class="ti ti-user"></i>アカウント</button>
-  </nav>
-</div>
-
-<!-- WORD POPUP (bottom sheet) -->
-<div class="popup-backdrop" id="popBackdrop" onclick="closePopup()"></div>
-<div class="popup-sheet" id="popSheet">
-  <div class="popup-handle"></div>
-  <div class="pop-word" id="pw"></div>
-  <span class="pop-role" id="pr"></span>
-  <div id="popAwl" style="display:none;margin-top:4px"><span class="awl-tag">AWL語彙</span></div>
-  <div class="xlate-toggle">
-    <button class="xtab xa" id="xtab-en" onclick="setXlang('en')">英→英</button>
-    <button class="xtab" id="xtab-ja" onclick="setXlang('ja')">英→和</button>
-  </div>
-  <div class="pop-sec">定義</div>
-  <div class="pop-val" id="pDef">...</div>
-  <div class="pop-sec">例文</div>
-  <div class="pop-val" id="pEx" style="color:var(--gray);font-style:italic"></div>
+  <div id="pPhonetic" style="font-size:13px;color:var(--gr);margin-bottom:.5rem;display:none"><span id="pPhoneticTxt"></span> <button onclick="playPron()" class="btn btn-sm" style="padding:2px 8px;font-size:12px"><i class="ti ti-volume"></i> 発音</button></div>
+  <div class="pop-s">定義</div><div class="pop-v" id="pDef">読み込み中...</div>
+  <div class="pop-s">例文</div><div class="pop-e" id="pEx"></div>
   <div style="margin-top:1rem">
     <button class="btn btn-sm bm-btn" id="bmBtn" onclick="toggleBM()"><i class="ti ti-bookmark"></i> 単語帳に追加</button>
   </div>
 </div>
 
 <script>
-// ===== CONFIG - デプロイ時にご自身の値に変更してください =====
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';       // e.g. https://xxxx.supabase.co
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-const API_ENDPOINT = '/api/claude';              // Vercelのサーバーレス関数
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
 
-// ===== INIT =====
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-const AWL = new Set("abandon,abstract,access,accommodate,accompany,accumulate,accurate,achieve,acknowledge,acquisition,adapt,adequate,adjacent,adjust,adult,advocate,affect,aggregate,aid,albeit,allocate,alter,ambiguous,amend,analogy,analyze,analysis,annual,apparent,append,appreciate,approach,appropriate,approximate,arbitrary,area,aspect,assemble,assess,assign,assist,assume,assure,attach,attain,authority,automate,available,aware,behalf,benefit,bias,brief,bulk,capable,capacity,category,cease,challenge,chapter,civil,clarify,classic,clause,code,coherent,coincide,commit,community,complex,component,compound,comprehensive,concentrate,conduct,configure,consent,consequent,considerable,consist,constitute,constrain,construct,consult,consume,contact,context,contract,contrast,contribute,controversial,convention,convert,core,correspond,credit,criteria,culture,cycle,data,decline,define,demonstrate,distribute,document,domain,economy,element,emerge,emphasis,enable,equip,establish,evaluate,evident,exhibit,expand,expose,extract,facilitate,factor,feature,final,finance,focus,formula,foundation,framework,function,global,grant,hypothesis,identify,illustrate,impact,implement,indicate,individual,infrastructure,integrate,interpret,invest,involve,issue,justify,label,layer,lecture,legal,link,locate,major,method,modify,monitor,network,normal,notion,objective,obtain,occur,option,outcome,overall,participate,perceive,period,principle,process,professional,project,promote,proportion,provide,publish,pursue,range,ratio,rely,research,resident,resolve,resource,role,sector,sequence,significant,similar,simulate,specific,specify,structure,submit,sufficient,summary,survey,sustain,symbolic,target,task,team,technique,technology,theory,transfer,transform,transport,trend,ultimate,utility,valid,vary,version,via,volume,require,select,vocabulary,academic,writing,contribute,debate,sociology,empirical,phenomenology,critique,interpretation,textual,embody,embodiment,commentary".split(","));
+const AWL=new Set("abandon,abstract,access,accommodate,accompany,accumulate,accurate,achieve,acknowledge,acquisition,adapt,adequate,adjacent,adjust,adult,advocate,affect,aggregate,aid,albeit,allocate,alter,ambiguous,amend,analogy,analyze,analysis,annual,apparent,append,appreciate,approach,appropriate,approximate,arbitrary,area,aspect,assemble,assess,assign,assist,assume,assure,attach,attain,authority,automate,available,aware,behalf,benefit,bias,brief,bulk,capable,capacity,category,cease,challenge,chapter,civil,clarify,classic,clause,code,coherent,coincide,commit,community,complex,component,compound,comprehensive,concentrate,conduct,configure,consent,consequent,considerable,consist,constitute,constrain,construct,consult,consume,contact,context,contract,contrast,contribute,controversial,convention,convert,core,correspond,credit,criteria,culture,cycle,data,decline,define,demonstrate,distribute,document,domain,economy,element,emerge,emphasis,enable,equip,establish,evaluate,evident,exhibit,expand,expose,extract,facilitate,factor,feature,final,finance,focus,formula,foundation,framework,function,global,grant,hypothesis,identify,illustrate,impact,implement,indicate,individual,infrastructure,integrate,interpret,invest,involve,issue,justify,label,layer,lecture,legal,link,locate,major,method,modify,monitor,network,normal,notion,objective,obtain,occur,option,outcome,overall,participate,perceive,period,principle,process,professional,project,promote,proportion,provide,publish,pursue,range,ratio,rely,research,resident,resolve,resource,role,sector,sequence,significant,similar,simulate,specific,specify,structure,submit,sufficient,summary,survey,sustain,symbolic,target,task,team,technique,technology,theory,transfer,transform,transport,trend,ultimate,utility,valid,vary,version,via,volume,require,select,vocabulary,academic,writing,contribute,debate,sociology,empirical,critique,interpretation,textual,embodiment,commentary,concept,create,design,develop,evidence,source".split(","));
 const RC={S:"#1D9E75",V:"#1a73e8",O:"#D85A30",C:"#BA7517",M:"#7F77DD"};
 const RB={S:"#dcfce7",V:"#dbeafe",O:"#ffedd5",C:"#fef3c7",M:"#ede9fe"};
 const RJ={S:"主語 (Subject)",V:"動詞 (Verb)",O:"目的語 (Object)",C:"補語 (Complement)",M:"修飾語 (Modifier)"};
 const STYPES={SV:"第1文型 SV",SVC:"第2文型 SVC",SVO:"第3文型 SVO",SVOO:"第4文型 SVOO",SVOC:"第5文型 SVOC"};
 const CORD=["A1","A2","B1","B2","C1","C2"];
-const TOOL_URLS={
+const TURLS={
+  grammarly:()=>"https://app.grammarly.com/",
   rewordify:t=>"https://rewordify.com/index.php?text="+encodeURIComponent(t),
   vocabprofile:()=>"https://www.lextutor.ca/vp/eng/",
   awl:()=>"https://www.eapfoundation.com/vocab/academic/awllists/",
   analyzemywriting:()=>"http://www.analyzemywriting.com/",
   paperrater:()=>"https://www.paperrater.com/",
   gtzero:()=>"https://gptzero.me/",
-  grammarly:()=>"https://app.grammarly.com/",
   chatpdf:()=>"https://www.chatpdf.com/"
 };
 
-let vocabDB=JSON.parse(localStorage.getItem("ega_vocab")||"[]");
-let curPop=null,xlang="en",quizQ=[],quizI=0,pdfText="",currentUser=null,authMode="login";
+let vDB=JSON.parse(localStorage.getItem("ga_v")||"[]");
+let curP=null,xl="en",qQ=[],qI=0,pdfTxt="";
 
-// ===== AUTH STATE =====
-sb.auth.onAuthStateChange(async (event, session) => {
-  if (session?.user) {
-    currentUser = session.user;
-    const hasSub = await checkSubscription();
-    if (hasSub) showScreen('app');
-    else showScreen('paywall');
-  } else {
-    currentUser = null;
-    showScreen('auth');
-  }
-});
+function saveV(){localStorage.setItem("ga_v",JSON.stringify(vDB));updB();}
+function updB(){const n=vDB.length;const b=document.getElementById("vBadge");b.textContent=n;b.style.display=n>0?"inline":"none";document.getElementById("vSub").textContent=n+" words";}
+updB();
 
-function showScreen(name) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + name).classList.add('active');
-  if (name === 'app') {
-    document.getElementById('headerEmail').textContent = currentUser?.email?.split('@')[0] || '';
-    document.getElementById('accountEmail').textContent = currentUser?.email || '';
-    document.getElementById('avatarInitial').textContent = (currentUser?.email?.[0] || '?').toUpperCase();
-    updBadge();
-  }
-}
+function swT(name,el){document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));el.classList.add("active");document.getElementById("panel-"+name).classList.add("active");if(name==="vocab")renderVL();}
+function swI(m){["text","pdf"].forEach(x=>{document.getElementById("imt-"+x).classList.toggle("active",x===m);document.getElementById("inp-"+x).style.display=x===m?"block":"none";});}
 
-async function checkSubscription() {
-  if (!currentUser) return false;
-  const { data } = await sb.from('subscriptions').select('status').eq('user_id', currentUser.id).eq('status', 'active').limit(1);
-  return data && data.length > 0;
+// PDF
+function onDO(e){e.preventDefault();document.getElementById("pdfDrop").classList.add("drag-over");}
+function onDL(){document.getElementById("pdfDrop").classList.remove("drag-over");}
+function onDP(e){e.preventDefault();onDL();const f=e.dataTransfer.files[0];if(f&&f.type==="application/pdf")handlePdf(f);}
+async function handlePdf(file){
+  if(!file)return;
+  if(file.size>20*1024*1024){alert("20MB以下のファイルを選択してください");return;}
+  const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
+  const maxP=Math.min(pdf.numPages,20);let text="";
+  for(let i=1;i<=maxP;i++){const pg=await pdf.getPage(i);const tc=await pg.getTextContent();text+=tc.items.map(it=>it.str).join(" ")+"\n";}
+  pdfTxt=text.trim();
+  document.getElementById("pdfN").textContent=file.name;
+  document.getElementById("pdfM").textContent=`${pdf.numPages}ページ · ${pdfTxt.split(/\s+/).length.toLocaleString()} words 抽出完了`;
+  document.getElementById("pdfInfo").classList.add("show");
+  document.getElementById("pdfActs").style.display="flex";
+  document.getElementById("pdfTA").value=pdfTxt;
+  document.getElementById("pdfPrev").style.display="block";
 }
+function clearPdf(){pdfTxt="";document.getElementById("pdfInfo").classList.remove("show");document.getElementById("pdfActs").style.display="none";document.getElementById("pdfPrev").style.display="none";document.getElementById("pdfFile").value="";}
+function usePdf(){const t=document.getElementById("pdfTA").value.trim();if(!t)return;document.getElementById("inputText").value=t;swI("text");analyze();}
+async function cpPdf(){const t=document.getElementById("pdfTA").value.trim();if(!t)return;try{await navigator.clipboard.writeText(t);}catch{const ta=document.createElement("textarea");ta.value=t;ta.style.cssText="position:fixed;opacity:0";document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);}alert("テキストをコピーしました");}
 
-// ===== AUTH ACTIONS =====
-function setAuthMode(mode) {
-  authMode = mode;
-  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&mode==='login')||(i===1&&mode==='signup')));
-  document.getElementById('authBtnLabel').textContent = mode === 'login' ? 'ログイン' : '新規登録';
-  document.getElementById('authMsg').textContent = '';
-}
-
-async function doAuth() {
-  const email = document.getElementById('authEmail').value.trim();
-  const pass = document.getElementById('authPass').value;
-  const msg = document.getElementById('authMsg');
-  msg.className = 'auth-msg';
-  if (!email || !pass) { msg.className='auth-msg err'; msg.textContent='メールとパスワードを入力してください'; return; }
-  msg.textContent = authMode === 'login' ? 'ログイン中...' : 'アカウント作成中...';
-  const fn = authMode === 'login' ? sb.auth.signInWithPassword.bind(sb.auth) : sb.auth.signUp.bind(sb.auth);
-  const { error } = await fn({ email, password: pass });
-  if (error) { msg.className='auth-msg err'; msg.textContent = error.message; return; }
-  if (authMode === 'signup') { msg.className='auth-msg ok'; msg.textContent='確認メールを送信しました。メールを確認してください。'; }
-}
-
-async function signInWithGoogle() {
-  await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
-}
-
-async function signOut() {
-  await sb.auth.signOut();
-  showScreen('auth');
-}
-
-// ===== STRIPE =====
-async function startCheckout() {
-  const { data: { session } } = await sb.auth.getSession();
-  const res = await fetch('/api/create-checkout', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` }
-  });
-  const { url, error } = await res.json();
-  if (error) { alert('エラー: ' + error); return; }
-  window.location.href = url;
-}
-
-async function openBillingPortal() {
-  // Stripeカスタマーポータル（要: stripe.billingPortal.sessionsを作るエンドポイントを追加）
-  alert('Stripeポータルは /api/billing-portal エンドポイントを追加してください');
-}
-
-// ===== API CALL =====
-async function callAPI(prompt, maxTok = 2000) {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) throw new Error('ログインが必要です');
-  const r = await fetch(API_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-    body: JSON.stringify({ prompt, maxTokens: maxTok })
-  });
-  if (r.status === 403) throw new Error('subscription_required');
-  if (!r.ok) { const e = await r.json(); throw new Error(e.error || 'API error'); }
-  const d = await r.json();
-  return (d.content || []).map(x => x.text || '').join('');
-}
-
-function extractJSON(raw) {
-  const s = raw.indexOf('['), e = raw.lastIndexOf(']');
-  if (s === -1 || e <= s) throw new Error('JSON not found');
-  return JSON.parse(raw.slice(s, e + 1));
-}
-
-// ===== NAVIGATION =====
-function swNav(name) {
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('nav-' + name).classList.add('active');
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('panel-' + name).classList.add('active');
-  if (name === 'vocab') { renderVL(); document.getElementById('vocabCountAcc').textContent = vocabDB.length; }
-}
-
-function switchInput(mode) {
-  ['text','pdf'].forEach(m => {
-    document.getElementById('imt-'+m).classList.toggle('active', m===mode);
-    document.getElementById('inp-'+m).style.display = m===mode ? 'block' : 'none';
-  });
-}
-
-// ===== PDF =====
-function onDragOver(e){e.preventDefault();document.getElementById('pdfDrop').classList.add('drag-over');}
-function onDragLeave(){document.getElementById('pdfDrop').classList.remove('drag-over');}
-function onDrop(e){e.preventDefault();onDragLeave();const f=e.dataTransfer.files[0];if(f&&f.type==='application/pdf')handlePdfFile(f);}
-async function handlePdfFile(file) {
-  if (!file) return;
-  if (file.size > 20*1024*1024) { alert('20MB以下のファイルを選択してください'); return; }
-  const ab = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({data: new Uint8Array(ab)}).promise;
-  const maxPages = Math.min(pdf.numPages, 20);
-  let text = '';
-  for (let i = 1; i <= maxPages; i++) {
-    const page = await pdf.getPage(i);
-    const tc = await page.getTextContent();
-    text += tc.items.map(it => it.str).join(' ') + '\n';
-  }
-  pdfText = text.trim();
-  document.getElementById('pdfName').textContent = file.name;
-  document.getElementById('pdfMeta').textContent = `${pdf.numPages}ページ · ${pdfText.split(/\s+/).length.toLocaleString()} words`;
-  document.getElementById('pdfInfo').classList.add('show');
-  document.getElementById('pdfActions').style.display = 'flex';
-}
-function clearPdf() {
-  pdfText=''; document.getElementById('pdfInfo').classList.remove('show');
-  document.getElementById('pdfActions').style.display='none';
-  document.getElementById('pdfFile').value='';
-}
-async function analyzePdf() {
-  if (!pdfText) return;
-  document.getElementById('pdfSummaryArea').style.display='block';
-  document.getElementById('pdfSummaryResult').textContent='PDFを解析中...';
-  try {
-    const raw = await callAPI(`Analyze this text from a PDF:\n1. Summary（要約）3-5文 in Japanese\n2. Key topics（主要トピック）\n3. CEFR level estimate\n4. Grammar observations\n5. Learning points for language learners\n\nText:\n${pdfText.slice(0,4000)}`, 1500);
-    document.getElementById('pdfSummaryResult').textContent = raw;
-  } catch(e) { document.getElementById('pdfSummaryResult').textContent = 'エラー: ' + e.message; }
-}
-async function extractAndAnalyze() {
-  if (!pdfText) return;
-  document.getElementById('inputText').value = parseSents(pdfText).slice(0,5).join(' ');
-  switchInput('text'); document.getElementById('imt-text').classList.add('active');
-  await analyze();
-}
-
-// ===== STATS & ANALYZE =====
-function saveV(){localStorage.setItem('ega_vocab',JSON.stringify(vocabDB));updBadge();}
-function updBadge(){
-  const n=vocabDB.length;
-  const b=document.getElementById('navBadge');
-  b.textContent=n; b.style.display=n>0?'block':'none';
-  document.getElementById('vSubtitle').textContent=n+' words';
-}
-function clearAll(){
-  document.getElementById('inputText').value='';
-  ['resultArea','statsRow','aiSection','cefrArea','pdfSummaryArea'].forEach(id=>document.getElementById(id).style.display='none');
-}
+// STATS
+function clearAll(){document.getElementById("inputText").value="";["resultArea","statsRow","cefrArea"].forEach(id=>document.getElementById(id).style.display="none");}
 function parseSents(t){return(t.match(/[^.!?]+[.!?]*/g)||[t]).filter(s=>s.trim().length>4);}
 function computeStats(t){
-  const w=t.trim().split(/\s+/).filter(x=>x.length>0);
-  const s=parseSents(t);
-  return{words:w.length,chars:t.replace(/\s/g,'').length,sents:s.length,
-    unique:new Set(w.map(x=>x.toLowerCase().replace(/[^a-z]/g,''))).size,
-    avg:s.length>0?Math.round(w.length/s.length):0,
-    awl:(t.toLowerCase().match(/[a-z]+/g)||[]).filter(x=>AWL.has(x)).length};
+  const w=t.trim().split(/\s+/).filter(x=>x.length>0);const s=parseSents(t);
+  const awl=(t.toLowerCase().match(/[a-z]+/g)||[]).filter(x=>AWL.has(x)).length;
+  return{words:w.length,chars:t.replace(/\s/g,"").length,sents:s.length,unique:new Set(w.map(x=>x.toLowerCase().replace(/[^a-z]/g,""))).size,avg:s.length>0?Math.round(w.length/s.length):0,awl};
 }
 
-async function analyze(){
-  const text=document.getElementById('inputText').value.trim(); if(!text)return;
-  const st=computeStats(text);
-  ['sw_','sc_','ss_','su_','sa_','sawl_'].forEach((id,i)=>{document.getElementById(id).textContent=[st.words,st.chars,st.sents,st.unique,st.avg,st.awl][i];});
-  document.getElementById('statsRow').style.display='grid';
-  document.getElementById('resultArea').style.display='block';
-  document.getElementById('cefrArea').style.display='none';
-  document.getElementById('sentences').innerHTML='';
-  const sents=parseSents(text).slice(0,12), BATCH=3, allP=[];
-  for(let i=0;i<sents.length;i+=BATCH){
-    const batch=sents.slice(i,i+BATCH);
-    const c=document.getElementById('sentences');
-    const ld=document.createElement('div'); ld.className='loading-msg'; ld.id='ld'+i;
-    ld.innerHTML=`<i class="ti ti-loader"></i> 文 ${i+1}〜${Math.min(i+BATCH,sents.length)} を解析中...`;
-    c.appendChild(ld);
-    try{
-      const raw=await callAPI(`Analyze each sentence for SVOC+M grammar. Return ONLY a JSON array starting with [. No markdown.
-[{"sentence":"...","sentenceType":"SVOO","cefrLevel":"B1","tokens":[{"word":"She","role":"S"},{"word":"gave","role":"V"},{"word":"him","role":"O"},{"word":"a","role":"M"},{"word":"book","role":"O"},{"word":".","role":"PUNCT"}]}]
-sentenceType: SV/SVC/SVO/SVOO/SVOC. cefrLevel: A1-C2. roles: S V O C M PUNCT. Every word must be a token.
-Sentences:\n${batch.map((s,j)=>`${j+1}. ${s.trim()}`).join('\n')}`);
-      const parsed=extractJSON(raw);
-      document.getElementById('ld'+i)?.remove();
-      parsed.forEach((s,j)=>addSent(s,allP.length+j));
-      allP.push(...parsed);
-    }catch(e){
-      const ld=document.getElementById('ld'+i);
-      if(ld){ld.className='err-msg';ld.textContent=`解析失敗 — ${e.message}`;}
+// CEFR
+function estCEFR(text){
+  const words=(text.toLowerCase().match(/[a-z]+/g)||[]);const n=words.length;if(n===0)return"A1";
+  const awlR=(words.filter(w=>AWL.has(w)).length/n)*100;
+  const uniR=(new Set(words).size/n)*100;
+  const sents=parseSents(text);const avgL=sents.length>0?n/sents.length:0;
+  const longR=(words.filter(w=>w.length>=7).length/n)*100;
+  let sc=0;
+  if(awlR>=15)sc+=3;else if(awlR>=8)sc+=2;else if(awlR>=3)sc+=1;
+  if(uniR>=70)sc+=3;else if(uniR>=55)sc+=2;else if(uniR>=40)sc+=1;
+  if(avgL>=22)sc+=3;else if(avgL>=16)sc+=2;else if(avgL>=10)sc+=1;
+  if(longR>=30)sc+=2;else if(longR>=18)sc+=1;
+  return sc>=10?"C2":sc>=8?"C1":sc>=6?"B2":sc>=4?"B1":sc>=2?"A2":"A1";
+}
+const CDESC={A1:"初歩的な表現",A2:"日常的な簡単な文",B1:"馴染みのあるトピック",B2:"複雑・抽象的な文",C1:"流暢な複雑表現",C2:"ネイティブレベル"};
+function renderCEFR(text){
+  const lv=estCEFR(text);const area=document.getElementById("cefrArea");area.style.display="block";
+  area.innerHTML=`<div class="card" style="padding:.875rem 1.25rem"><div class="sec-t" style="margin-bottom:6px"><i class="ti ti-award"></i> 難易度スコア（CEFR）<span style="font-size:11px;color:var(--gr);font-weight:400;margin-left:6px">※語彙・文長から推定</span></div><span class="cefr-b c${lv}">${lv}</span><span style="font-size:13px;color:var(--gr);margin-left:8px">${CDESC[lv]}</span><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px">${CORD.map(l=>`<span class="cefr-b c${l}" style="padding:2px 8px;font-size:10px;opacity:${l===lv?"1":"0.3"}">${l}</span>`).join("")}</div></div>`;
+}
+
+// PHRASE-BASED SVOC PARSER
+// Parses into phrases rather than individual words
+
+const BE=new Set("is,are,was,were,am,be,been,being".split(","));
+const AUX_V=new Set("will,would,shall,should,can,could,may,might,must,have,has,had,do,does,did,need,used,ought,dare".split(","));
+const LINK_V=new Set("seem,appear,become,feel,look,remain,stay,taste,smell,sound,turn,grow,prove,go,keep,get,come,fall,run,stand".split(","));
+const TRANS_V=new Set("give,gave,send,sent,show,showed,tell,told,teach,taught,bring,brought,buy,bought,make,made,find,found,call,name,consider,elect,appoint,choose,believe,leave,keep,render,prove,allow,enable,cause,force,help,want,ask,expect,require,permit".split(","));
+const PREP=new Set("in,on,at,to,for,with,by,from,of,about,as,into,through,during,before,after,above,below,between,among,under,over,near,around,along,across,within,without,despite,towards,toward,upon,onto,off,behind,beyond,beside,inside,outside,according,due,instead,rather,than,like,unlike,except,per,via,concerning,regarding,following,including,excluding,plus,despite,throughout".split(","));
+const ART=new Set("a,an,the".split(","));
+const DET=new Set("this,that,these,those,my,your,his,her,its,our,their,some,any,no,each,every,both,all,several,many,few,much,more,most,less,least,enough,such,what,which,whose".split(","));
+const SUBJ_PRO=new Set("i,you,he,she,it,we,they,who,whoever,whatever".split(","));
+const OBJ_PRO=new Set("me,him,her,us,them,whom,whomever,myself,yourself,himself,herself,itself,ourselves,themselves".split(","));
+const CONJ=new Set("and,but,or,nor,so,yet,for,although,because,since,unless,until,while,when,where,though,if,whether,as,after,before,once,whereas,whenever,wherever,however,whatever,whoever,that,which,who".split(","));
+const ADV_W=new Set("very,too,quite,rather,almost,nearly,just,only,even,already,still,yet,always,never,often,sometimes,usually,generally,mainly,especially,particularly,perhaps,possibly,probably,certainly,clearly,however,therefore,moreover,furthermore,nevertheless,thus,hence,finally,also,besides,otherwise,meanwhile,consequently,accordingly,similarly,likewise,instead,surprisingly,unfortunately,fortunately,apparently,evidently,notably,recently,currently,traditionally,typically,widely,significantly,substantially,considerably,relatively,frequently,increasingly,potentially,essentially,critically,importantly,thereby,whereby,herein,thereof".split(","));
+const CADJ=new Set("good,bad,big,small,large,little,long,short,high,low,old,new,young,early,late,great,important,different,similar,same,other,last,first,next,main,major,minor,general,specific,certain,free,full,open,public,private,common,special,local,national,international,global,social,political,economic,cultural,natural,physical,mental,personal,professional,technical,practical,theoretical,academic,scientific,historical,traditional,modern,recent,current,true,false,real,possible,necessary,available,clear,simple,complex,difficult,easy,hard,right,wrong,correct,positive,negative,various,direct,basic,complete,total,whole,single,multiple,individual,original,formal,normal,regular,typical,unique,likely,obvious,critical,essential,fundamental,key,central,actual,apparent,common,rare,frequent,consistent,significant,substantial,considerable,effective,efficient,relevant,appropriate,sufficient,adequate,comprehensive,extensive,significant,potential,primary,secondary,additional,further,final,initial,previous,existing,resulting,abstract,empirical,classical,critical,injured,ageing,textual,social,constructionist".split(","));
+
+function isAdj(w){
+  const wl=w.toLowerCase().replace(/[^a-z]/g,'');
+  if(!wl)return false;
+  if(CADJ.has(wl))return true;
+  const sfx=["ful","less","ous","ious","eous","al","ial","ic","ical","ive","ative","ible","able","ant","ent","ish","some","ward"];
+  for(const s of sfx)if(wl.endsWith(s)&&wl.length>s.length+2)return true;
+  return false;
+}
+function isAdv(w){const wl=w.toLowerCase();return ADV_W.has(wl)||(wl.endsWith("ly")&&wl.length>4&&wl!=="early"&&wl!=="only"&&wl!=="likely");}
+function isVerbWord(w,prev){
+  const wl=w.toLowerCase();
+  if(BE.has(wl)||AUX_V.has(wl)||LINK_V.has(wl)||TRANS_V.has(wl))return true;
+  if(prev&&(AUX_V.has(prev.toLowerCase())||BE.has(prev.toLowerCase())))return true;
+  if(wl.endsWith("ing")&&wl.length>5&&!CADJ.has(wl)&&!DET.has(wl))return true;
+  if(wl.endsWith("ed")&&wl.length>4&&!CADJ.has(wl))return true;
+  if(["ize","ise","ify","ate"].some(s=>wl.endsWith(s)&&wl.length>s.length+2))return true;
+  return false;
+}
+
+// Tokenize sentence into words + punct
+function tokenizeWords(sent){
+  const parts=[];const re=/([a-zA-Z']+)|([^a-zA-Z'\s])/g;let m;
+  while((m=re.exec(sent.trim()))!==null)parts.push(m[0]);
+  return parts;
+}
+
+// Build phrases from words
+function buildPhrases(sent){
+  const words=tokenizeWords(sent);
+  if(!words.length)return{phrases:[],sentenceType:"SV"};
+  const n=words.length;
+  const tags=new Array(n).fill(null); // word-level role tags
+
+  // Tag punctuation, articles, determiners, conjunctions
+  for(let i=0;i<n;i++){
+    const wl=words[i].toLowerCase();
+    if(/^[^a-zA-Z']/.test(words[i])){tags[i]="PUNCT";continue;}
+    if(ART.has(wl)||DET.has(wl)){tags[i]="DET";continue;}
+    if(CONJ.has(wl)&&i>0&&!SUBJ_PRO.has(wl)&&!OBJ_PRO.has(wl)){tags[i]="CONJ";continue;}
+    if(PREP.has(wl)&&i>0){tags[i]="PREP";continue;}
+    if(ADV_W.has(wl)){tags[i]="ADV";continue;}
+  }
+
+  // Find subject start/end
+  let sStart=-1,sEnd=-1;
+  for(let i=0;i<n;i++){
+    if(tags[i]==="PUNCT"||tags[i]==="CONJ")continue;
+    const wl=words[i].toLowerCase();
+    if(SUBJ_PRO.has(wl)){sStart=i;sEnd=i;break;}
+    // Noun phrase: (det/adj)* noun
+    if(tags[i]==="DET"||(tags[i]===null&&(isAdj(words[i])||!isVerbWord(words[i],i>0?words[i-1]:"")))){
+      if(sStart===-1)sStart=i;
+      // extend until verb or prep
+      let j=i;
+      while(j<n&&tags[j]!=="PREP"&&tags[j]!=="PUNCT"&&!isVerbWord(words[j],j>0?words[j-1]:"")){
+        if(tags[j]===null||tags[j]==="DET"||tags[j]==="ADV")tags[j]="S_WORD";
+        j++;
+      }
+      sEnd=j-1;break;
     }
   }
-  if(allP.length>0)renderCEFR(allP);
+  if(sStart>=0)for(let i=sStart;i<=sEnd;i++)if(tags[i]!=="PUNCT")tags[i]="S_WORD";
+
+  // Find verb phrase
+  let vStart=-1,vEnd=-1;
+  const searchFrom=sEnd+1;
+  for(let i=searchFrom;i<n;i++){
+    if(tags[i])continue;
+    if(isVerbWord(words[i],i>0?words[i-1]:"")){
+      vStart=i;tags[i]="V_WORD";vEnd=i;
+      // Extend verb phrase: aux + main + particles
+      let j=i+1;
+      while(j<n&&tags[j]===null&&(isVerbWord(words[j],words[j-1])||ADV_W.has(words[j].toLowerCase()))){
+        tags[j]=ADV_W.has(words[j].toLowerCase())?"ADV":"V_WORD";
+        vEnd=j;j++;
+      }
+      break;
+    }
+  }
+
+  // Determine if linking or transitive
+  const isLink=vStart>=0&&(BE.has(words[vStart].toLowerCase())||LINK_V.has(words[vStart].toLowerCase())||
+    words.slice(vStart,vEnd+1).some(w=>BE.has(w.toLowerCase())));
+  const isTrans=vStart>=0&&TRANS_V.has(words[vStart].toLowerCase());
+
+  // Mark prep phrases as M
+  for(let i=vEnd+1;i<n;i++){
+    if(tags[i]!=="PREP")continue;
+    tags[i]="M_WORD";
+    let j=i+1,len=0;
+    while(j<n&&len<6&&(tags[j]===null||tags[j]==="DET"||tags[j]==="ADV")){
+      if(!/^[^a-zA-Z']/.test(words[j])){tags[j]="M_WORD";len++;}
+      j++;
+    }
+    i=j-1;
+  }
+
+  // Remaining after verb = O or C
+  let oCount=0,cFound=false;
+  for(let i=vEnd+1;i<n;i++){
+    if(tags[i])continue;
+    if(isAdv(words[i])){tags[i]="ADV";continue;}
+    const wl=words[i].toLowerCase();
+    if(isLink){tags[i]="C_WORD";cFound=true;}
+    else if(OBJ_PRO.has(wl)){tags[i]="O_WORD";oCount++;}
+    else if(oCount===0){tags[i]="O_WORD";oCount++;}
+    else if(!cFound&&(isAdj(words[i])||OBJ_PRO.has(wl))){tags[i]="C_WORD";cFound=true;}
+    else if(!cFound){tags[i]="O_WORD";oCount++;}
+    else{tags[i]="M_WORD";}
+  }
+  for(let i=0;i<n;i++)if(!tags[i])tags[i]="M_WORD";
+
+  // Map to simple roles for phrase building
+  const roleMap={"S_WORD":"S","V_WORD":"V","O_WORD":"O","C_WORD":"C","M_WORD":"M","DET":"M","ADV":"M","CONJ":"M","PREP":"M","PUNCT":"PUNCT"};
+  const simpleRoles=tags.map(t=>roleMap[t]||"M");
+
+  // Group consecutive same-role words into phrases
+  const phrases=[];
+  let i=0;
+  while(i<n){
+    if(simpleRoles[i]==="PUNCT"){phrases.push({words:[words[i]],role:"PUNCT"});i++;continue;}
+    const role=simpleRoles[i];
+    const group=[words[i]];
+    let j=i+1;
+    // Extend phrase: same role, or M words within an O/C/S phrase (articles, adjs)
+    while(j<n&&simpleRoles[j]!=="PUNCT"){
+      const nr=simpleRoles[j];
+      if(nr===role)group.push(words[j]);
+      // Allow M (articles, adjs) to be absorbed into adjacent content phrase
+      else if(nr==="M"&&(role==="S"||role==="O"||role==="C")&&!PREP.has(words[j].toLowerCase())&&!ADV_W.has(words[j].toLowerCase()))group.push(words[j]);
+      else if(nr==="V"&&role==="V")group.push(words[j]);
+      else break;
+      j++;
+    }
+    phrases.push({words:group,role});
+    i=j;
+  }
+
+  // Sentence type
+  const roles=phrases.map(p=>p.role).filter(r=>r!=="PUNCT"&&r!=="M");
+  const hasS=roles.includes("S"),hasV=roles.includes("V");
+  const oC=roles.filter(r=>r==="O").length,hasC=roles.includes("C");
+  let st="SV";
+  if(hasS&&hasV){
+    if(oC>=2)st="SVOO";
+    else if(oC>=1&&hasC)st="SVOC";
+    else if(oC>=1)st="SVO";
+    else if(hasC)st="SVC";
+  }
+  return{phrases,sentenceType:st};
 }
 
-function renderCEFR(parsed){
-  const levels=parsed.map(s=>s.cefrLevel).filter(Boolean);
-  if(!levels.length)return;
-  const ov=CORD[Math.max(...levels.map(l=>CORD.indexOf(l)))]||'B1';
-  const descs={A1:"初歩的",A2:"日常会話",B1:"中級",B2:"上級",C1:"流暢",C2:"ネイティブ級"};
-  document.getElementById('cefrArea').style.display='block';
-  document.getElementById('cefrArea').innerHTML=`<div class="card" style="padding:.875rem 1.25rem"><div class="sec-title" style="margin-bottom:6px"><i class="ti ti-award"></i> 難易度（CEFR）</div><span class="cefr-badge c${ov}">${ov} — ${descs[ov]||''}</span><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px">${CORD.map(l=>`<span class="cefr-badge c${l}" style="padding:2px 8px;font-size:10px;opacity:${l===ov?'1':'0.3'}">${l}</span>`).join('')}</div></div>`;
+function analyze(){
+  const text=document.getElementById("inputText").value.trim();if(!text)return;
+  const st=computeStats(text);
+  ["sw_","sc_","ss_","su_","sa_","sawl_"].forEach((id,i)=>{document.getElementById(id).textContent=[st.words,st.chars,st.sents,st.unique,st.avg,st.awl][i];});
+  document.getElementById("statsRow").style.display="grid";
+  document.getElementById("resultArea").style.display="block";
+  renderCEFR(text);
+  const c=document.getElementById("sentences");c.innerHTML="";
+  parseSents(text).forEach((sent,si)=>{const{phrases,sentenceType}=buildPhrases(sent);addSent({phrases,sentenceType},si);});
 }
 
 function addSent(sent,si){
-  const c=document.getElementById('sentences');
-  const block=document.createElement('div'); block.className='sent-block';
-  const meta=document.createElement('div'); meta.className='sent-meta';
-  meta.innerHTML=`<span class="sent-n">文 ${si+1}</span><span class="stype">${STYPES[sent.sentenceType]||sent.sentenceType||'不明'}</span>${sent.cefrLevel?`<span class="cefr-badge c${sent.cefrLevel}" style="padding:1px 8px;font-size:10px">${sent.cefrLevel}</span>`:''}`;
+  const container=document.getElementById('sentences');
+  const block=document.createElement('div');block.className='sent-b';
+  const meta=document.createElement('div');meta.className='sent-m';
+  meta.innerHTML=`<span class="sent-n">文 ${si+1}</span><span class="stype">${STYPES[sent.sentenceType]||''}</span>`;
   block.appendChild(meta);
-  const render=document.createElement('div'); render.className='sent-render';
-  (sent.tokens||[]).forEach(tok=>{
-    if(tok.role==='PUNCT'){const s=document.createElement('span');s.textContent=tok.word;s.style.color='#9ca3af';render.appendChild(s);return;}
-    const r=tok.role.toUpperCase();
-    const isAWL=AWL.has(tok.word.toLowerCase().replace(/[^a-z]/g,''));
-    const span=document.createElement('span');
-    span.className='tok u'+r+(isAWL?' awl':'');
-    span.innerHTML=tok.word+`<span class="lb l${r}">${r}</span>`;
-    span.addEventListener('click',e=>showPopup(e,tok.word,r,isAWL));
-    render.appendChild(span); render.appendChild(document.createTextNode(' '));
+  const render=document.createElement('div');render.className='sent-r';
+
+  (sent.phrases||[]).forEach(phrase=>{
+    if(phrase.role==="PUNCT"){
+      const s=document.createElement('span');
+      s.textContent=phrase.words.join('');
+      s.style.color='#9ca3af';
+      render.appendChild(s);
+      return;
+    }
+    const r=phrase.role.toUpperCase();
+
+    // Wrap entire phrase in a colored underline container
+    const phraseSpan=document.createElement('span');
+    phraseSpan.className='phrase-wrap u'+r;
+    phraseSpan.style.display='inline';
+
+    // Render each word individually so each is clickable
+    phrase.words.forEach((word,wi)=>{
+      const isAWL=AWL.has(word.toLowerCase().replace(/[^a-z]/g,''));
+      const wordSpan=document.createElement('span');
+      wordSpan.className='word-clickable'+(isAWL?' awl':'');
+      // Show label only on last word of phrase
+      const isLast=(wi===phrase.words.length-1);
+      if(isLast){
+        wordSpan.innerHTML=word+`<span class="lb l${r}">${r}</span>`;
+      }else{
+        wordSpan.textContent=word;
+      }
+      wordSpan.addEventListener('click',e=>{
+        e.stopPropagation();
+        showP(e,word,r,isAWL);
+      });
+      phraseSpan.appendChild(wordSpan);
+      if(wi<phrase.words.length-1){
+        phraseSpan.appendChild(document.createTextNode(' '));
+      }
+    });
+
+    render.appendChild(phraseSpan);
+    render.appendChild(document.createTextNode(' '));
   });
-  block.appendChild(render); c.appendChild(block);
+  block.appendChild(render);container.appendChild(block);
 }
 
-// ===== POPUP =====
-function showPopup(e,word,role,isAWL){
-  curPop={word,role,isAWL,ja:'',en_def:'',en_ex:''};
-  document.getElementById('pw').textContent=word;
-  const pr=document.getElementById('pr'); pr.textContent=RJ[role]||role; pr.style.background=RB[role]||'#f3f4f6'; pr.style.color=RC[role]||'#1a1a1a';
-  document.getElementById('popAwl').style.display=isAWL?'block':'none';
-  document.getElementById('pDef').textContent='読み込み中...'; document.getElementById('pEx').textContent='';
-  const saved=vocabDB.some(v=>v.word.toLowerCase()===word.toLowerCase());
-  const btn=document.getElementById('bmBtn');
-  btn.className='btn btn-sm '+(saved?'bm-saved':'bm-btn');
+// POPUP & DICTIONARY
+function showP(e,word,role,isAWL){
+  curP={word,role,isAWL,en_def:"",en_ex:"",ja:""};
+  document.getElementById("pw").textContent=word;
+  document.getElementById("pwBadge").innerHTML="";
+  const pr=document.getElementById("pr");pr.textContent=RJ[role]||role;pr.style.background=RB[role]||"#f3f4f6";pr.style.color=RC[role]||"#1a1a1a";
+  document.getElementById("pAwl").style.display=isAWL?"block":"none";
+  document.getElementById("pDef").textContent="読み込み中...";document.getElementById("pEx").textContent="";
+  const saved=vDB.some(v=>v.word.toLowerCase()===word.toLowerCase());
+  const btn=document.getElementById("bmBtn");
+  btn.className="btn btn-sm "+(saved?"bm-sv":"bm-btn");
   btn.innerHTML=saved?'<i class="ti ti-bookmark-filled"></i> 登録済み':'<i class="ti ti-bookmark"></i> 単語帳に追加';
-  document.getElementById('popBackdrop').classList.add('show');
-  document.getElementById('popSheet').classList.add('show');
-  fetchDef(word,role);
+  document.getElementById("popBD").classList.add("show");document.getElementById("popSH").classList.add("show");
+  fetchDict(word);
 }
-async function fetchDef(word,role){
+async function fetchDict(word){
   try{
-    const raw=await callAPI(`For "${word}" (${role}). Return ONLY JSON no markdown: {"en_def":"1-sentence English definition","en_ex":"Short example sentence","ja":"日本語訳（1〜3語）","ja_ex":"例文の日本語訳"}`,200);
-    const s=raw.indexOf('{'),e=raw.lastIndexOf('}');
-    const info=JSON.parse(raw.slice(s,e+1));
-    if(curPop)Object.assign(curPop,info);
-    renderPopDef();
-  }catch{document.getElementById('pDef').textContent='読み込み失敗';}
+    const r=await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+    if(!r.ok)throw new Error();
+    const data=await r.json();
+    const meaning=data[0]?.meanings?.[0];const def=meaning?.definitions?.[0];
+    const en_def=def?.definition||"";const en_ex=def?.example||"";
+    const phonetic=data[0]?.phonetic||data[0]?.phonetics?.find(p=>p.text)?.text||"";
+    if(curP){curP.en_def=en_def;curP.en_ex=en_ex;curP.phonetic=phonetic;}
+    if(xl==="en"){document.getElementById("pDef").textContent=en_def||"—";document.getElementById("pEx").textContent=en_ex||phonetic;}
+    else await fetchJA(word,en_def,en_ex);
+  }catch{
+    document.getElementById("pDef").textContent="定義が見つかりませんでした";document.getElementById("pEx").textContent="";
+    if(curP)curP.en_def="Not found";
+  }
 }
-function renderPopDef(){
-  if(!curPop)return;
-  if(xlang==='en'){document.getElementById('pDef').textContent=curPop.en_def||'—';document.getElementById('pEx').textContent=curPop.en_ex||'';}
-  else{document.getElementById('pDef').textContent=curPop.ja||'—';document.getElementById('pEx').textContent=curPop.ja_ex||curPop.en_ex||'';}
+async function fetchJA(word,en_def,en_ex){
+  try{
+    const r=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|ja`);
+    const d=await r.json();const ja=d.responseData?.translatedText||"";
+    if(curP)curP.ja=ja;
+    document.getElementById("pDef").textContent=ja||en_def||"—";document.getElementById("pEx").textContent=en_ex||"";
+  }catch{document.getElementById("pDef").textContent=en_def||"—";document.getElementById("pEx").textContent=en_ex||"";}
 }
-function setXlang(lang){
-  xlang=lang;
-  document.getElementById('xtab-en').className='xtab'+(lang==='en'?' xa':'');
-  document.getElementById('xtab-ja').className='xtab'+(lang==='ja'?' xa':'');
-  renderPopDef();
+function setXL(lang){
+  xl=lang;
+  document.getElementById("xt-en").className="xtab"+(lang==="en"?" xa":"");
+  document.getElementById("xt-ja").className="xtab"+(lang==="ja"?" xa":"");
+  if(!curP)return;
+  if(lang==="en"){document.getElementById("pDef").textContent=curP.en_def||"—";document.getElementById("pEx").textContent=curP.en_ex||curP.phonetic||"";}
+  else if(curP.ja){document.getElementById("pDef").textContent=curP.ja;document.getElementById("pEx").textContent=curP.en_ex||"";}
+  else fetchJA(curP.word,curP.en_def,curP.en_ex);
 }
 function toggleBM(){
-  if(!curPop)return;
-  const {word,role,isAWL,ja,en_def}=curPop;
-  const idx=vocabDB.findIndex(v=>v.word.toLowerCase()===word.toLowerCase());
-  if(idx>=0){vocabDB.splice(idx,1);document.getElementById('bmBtn').className='btn btn-sm bm-btn';document.getElementById('bmBtn').innerHTML='<i class="ti ti-bookmark"></i> 単語帳に追加';}
-  else{vocabDB.push({word,role,isAWL,ja,en_def,added:Date.now(),forgotten:0});document.getElementById('bmBtn').className='btn btn-sm bm-saved';document.getElementById('bmBtn').innerHTML='<i class="ti ti-bookmark-filled"></i> 登録済み';}
+  if(!curP)return;
+  const{word,role,isAWL,ja,en_def}=curP;
+  const idx=vDB.findIndex(v=>v.word.toLowerCase()===word.toLowerCase());
+  if(idx>=0){vDB.splice(idx,1);document.getElementById("bmBtn").className="btn btn-sm bm-btn";document.getElementById("bmBtn").innerHTML='<i class="ti ti-bookmark"></i> 単語帳に追加';}
+  else{vDB.push({word,role,isAWL,ja,en_def,added:Date.now(),forgotten:0});document.getElementById("bmBtn").className="btn btn-sm bm-sv";document.getElementById("bmBtn").innerHTML='<i class="ti ti-bookmark-filled"></i> 登録済み';}
   saveV();
 }
-function closePopup(){document.getElementById('popBackdrop').classList.remove('show');document.getElementById('popSheet').classList.remove('show');}
+function closeP(){document.getElementById("popBD").classList.remove("show");document.getElementById("popSH").classList.remove("show");}
+document.addEventListener("click",e=>{if(document.getElementById("popSH").classList.contains("show")&&!document.getElementById("popSH").contains(e.target)&&!e.target.closest(".tok"))closeP();});
 
-// ===== VOCAB =====
+// VOCAB
 function renderVL(){
-  const list=document.getElementById('vocabList');
-  if(!vocabDB.length){list.innerHTML=`<div class="vocab-empty"><i class="ti ti-bookmark" style="font-size:32px;display:block;margin-bottom:.5rem;opacity:.3"></i>単語をタップして「単語帳に追加」を押すと保存されます</div>`;return;}
-  list.innerHTML='';
-  [...vocabDB].reverse().forEach((v,ri)=>{
-    const i=vocabDB.length-1-ri;
-    const isAWL=v.isAWL||AWL.has((v.word||'').toLowerCase());
-    const el=document.createElement('div'); el.className='vi';
-    el.innerHTML=`<div style="min-width:90px"><div class="vw">${v.word}${isAWL?'<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:1px 5px;border-radius:6px;margin-left:5px;font-weight:600">AWL</span>':''}</div><div class="vp" style="color:${RC[v.role]||'#6b7280'}">${RJ[v.role]||v.role}</div>${v.forgotten>0?`<div style="font-size:11px;color:var(--red);margin-top:1px">${v.forgotten}回間違い</div>`:''}</div><div class="vd"><div class="vd-ja">${v.ja||'—'}</div><div class="vd-en">${v.en_def||''}</div></div><button class="vrm" onclick="rmV(${i})"><i class="ti ti-trash"></i></button>`;
+  const list=document.getElementById("vocabList");
+  if(!vDB.length){list.innerHTML=`<div class="vempty"><i class="ti ti-bookmark" style="font-size:32px;display:block;margin-bottom:.5rem;opacity:.3"></i>単語をタップして<br>「単語帳に追加」を押すと保存されます</div>`;return;}
+  list.innerHTML="";
+  [...vDB].reverse().forEach((v,ri)=>{
+    const i=vDB.length-1-ri;const isAWL=v.isAWL||AWL.has((v.word||"").toLowerCase());
+    const el=document.createElement("div");el.className="vi";
+    el.innerHTML=`<div style="min-width:90px"><div class="vw">${v.word}${isAWL?'<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:1px 5px;border-radius:6px;margin-left:5px;font-weight:600">AWL</span>':""}</div><div class="vp" style="color:${RC[v.role]||"#6b7280"}">${RJ[v.role]||v.role}</div>${v.forgotten>0?`<div style="font-size:11px;color:#dc2626;margin-top:1px">${v.forgotten}回間違い</div>`:""}</div><div class="vd"><div class="vd-j">${v.ja||"—"}</div><div class="vd-e">${v.en_def||""}</div></div><button class="vrm" onclick="rmV(${i})"><i class="ti ti-trash"></i></button>`;
     list.appendChild(el);
   });
 }
-function rmV(i){vocabDB.splice(i,1);saveV();renderVL();}
-function clearVocab(){if(confirm('全て削除しますか？')){vocabDB=[];saveV();renderVL();}}
-function exportVocab(){
-  const csv='word,role,japanese,english_def,wrong_count\n'+vocabDB.map(v=>`"${v.word}","${v.role}","${v.ja||''}","${v.en_def||''}",${v.forgotten||0}`).join('\n');
-  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download='vocab.csv'; a.click();
+function rmV(i){vDB.splice(i,1);saveV();renderVL();}
+function clearV(){if(confirm("全て削除しますか？")){vDB=[];saveV();renderVL();}}
+function exportV(){
+  if(!vDB.length){alert("単語帳が空です");return;}
+  const csv="word,role,japanese,english_def,wrong_count\n"+vDB.map(v=>`"${v.word}","${v.role}","${v.ja||""}","${v.en_def||""}",${v.forgotten||0}`).join("\n");
+  const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,\uFEFF"+encodeURIComponent(csv);a.download="vocabulary.csv";a.click();
 }
 
-// ===== QUIZ =====
-function startQuiz(){if(!vocabDB.length)return;quizQ=[...vocabDB].sort(()=>Math.random()-.5);quizI=0;document.getElementById('quizArea').style.display='block';showQCard();}
-function showQCard(){
-  if(quizI>=quizQ.length){document.getElementById('quizArea').innerHTML=`<div class="quiz-card"><div class="qw">クイズ完了！</div><div class="qh">全${quizQ.length}問終了</div><button class="btn" style="width:100%;justify-content:center;margin-top:1rem" onclick="stopQuiz()">閉じる</button></div>`;return;}
-  const v=quizQ[quizI];
-  document.getElementById('qWord').textContent=v.word;
-  document.getElementById('qHint').textContent=(RJ[v.role]||v.role)+(v.isAWL?' · AWL':'');
-  document.getElementById('qAns').style.display='none'; document.getElementById('qBtns').style.display='none';
-  document.getElementById('qAns').textContent=(v.ja||'?')+' / '+(v.en_def||'?');
-  document.getElementById('qProg').textContent=(quizI+1)+' / '+quizQ.length;
-  document.getElementById('qBar').style.width=Math.round(quizI/quizQ.length*100)+'%';
+// QUIZ
+function startQ(){if(!vDB.length)return;qQ=[...vDB].sort(()=>Math.random()-.5);qI=0;document.getElementById("quizArea").style.display="block";showQC();}
+function showQC(){
+  if(qI>=qQ.length){document.getElementById("quizArea").innerHTML=`<div class="qcard"><div class="qw">クイズ完了！</div><div class="qh">全${qQ.length}問終了しました。</div><button class="btn" style="width:100%;justify-content:center;margin-top:1rem" onclick="stopQ()">閉じる</button></div>`;return;}
+  const v=qQ[qI];
+  document.getElementById("qW").textContent=v.word;
+  document.getElementById("qH").textContent=(RJ[v.role]||v.role)+(v.isAWL?" · AWL":"");
+  document.getElementById("qA").style.display="none";document.getElementById("qBs").style.display="none";
+  document.getElementById("qA").textContent=(v.ja||"?")+" / "+(v.en_def||"?");
+  document.getElementById("qP").textContent=(qI+1)+" / "+qQ.length;
+  document.getElementById("qBar").style.width=Math.round(qI/qQ.length*100)+"%";
 }
-function showAns(){document.getElementById('qAns').style.display='block';document.getElementById('qBtns').style.display='flex';}
-function qNext(knew){if(!knew){const o=vocabDB.find(w=>w.word===quizQ[quizI].word);if(o){o.forgotten=(o.forgotten||0)+1;saveV();}}quizI++;showQCard();}
-function stopQuiz(){document.getElementById('quizArea').style.display='none';renderVL();}
+function showAns(){document.getElementById("qA").style.display="block";document.getElementById("qBs").style.display="flex";}
+function qN(ok){if(!ok){const o=vDB.find(w=>w.word===qQ[qI].word);if(o){o.forgotten=(o.forgotten||0)+1;saveV();}}qI++;showQC();}
+function stopQ(){document.getElementById("quizArea").style.display="none";renderVL();}
 
-// ===== AI CHECK =====
-async function runAICheck(){
-  const text=document.getElementById('inputText').value.trim(); if(!text)return;
-  document.getElementById('aiSection').style.display='block';
-  document.getElementById('aiResult').textContent='分析中...';
-  try{
-    const raw=await callAPI(`Analyze this English text:\n1. Grammar errors\n2. Style & clarity\n3. Vocabulary level\n4. AI detection\n5. Score (1-10)\n\nText: "${text}"`,1000);
-    document.getElementById('aiResult').textContent=raw;
-  }catch(e){document.getElementById('aiResult').textContent='エラー: '+e.message;}
-}
-
-// ===== TOOLS =====
-async function doCopyText(){
-  const t=document.getElementById('inputText').value.trim(); if(!t){alert('テキストを入力してください');return false;}
-  try{await navigator.clipboard.writeText(t);}catch{const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);}
+// TOOLS
+async function doCopy(){
+  const t=document.getElementById("inputText").value.trim();if(!t){alert("テキストを入力してください");return false;}
+  try{await navigator.clipboard.writeText(t);}catch{const ta=document.createElement("textarea");ta.value=t;ta.style.cssText="position:fixed;opacity:0";document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);}
   return true;
 }
-function showMsg(txt){const m=document.getElementById('lsMsg');m.textContent=txt;m.style.display='block';setTimeout(()=>{m.style.display='none';},6000);}
+function showMsg(txt){const m=document.getElementById("lsMsg");m.textContent=txt;m.style.display="block";setTimeout(()=>{m.style.display="none";},6000);}
 async function openTool(key){
-  const t=document.getElementById('inputText').value.trim(); if(!t){alert('テキストを入力してください');return;}
-  await doCopyText(); window.open(TOOL_URLS[key](t),'_blank');
-  if(key!=='rewordify')showMsg('コピー済み — 開いたタブで ⌘V / Ctrl+V で貼り付けてください');
+  const t=document.getElementById("inputText").value.trim();if(!t){alert("テキストを入力してください");return;}
+  await doCopy();window.open(TURLS[key](t),"_blank");
+  if(key!=="rewordify")showMsg("テキストをコピーしました — 開いたタブで ⌘V / Ctrl+V で貼り付けてください");
 }
 async function launchAll(){
-  const t=document.getElementById('inputText').value.trim(); if(!t){alert('テキストを入力してください');return;}
-  await doCopyText(); let n=0;
-  for(const key of Object.keys(TOOL_URLS)){try{window.open(TOOL_URLS[key](t),'_blank');n++;await new Promise(r=>setTimeout(r,300));}catch{}}
-  showMsg(`${n}個のツールを開きました — 各タブで ⌘V / Ctrl+V で貼り付けてください`);
+  const t=document.getElementById('inputText').value.trim();
+  if(!t){alert('テキストを入力してください');return;}
+  await doCopy();
+  const keys=Object.keys(TURLS);
+  let n=0;
+  for(const k of keys){
+    try{
+      const w=window.open(TURLS[k](t),'_blank');
+      if(w)n++;
+      await new Promise(r=>setTimeout(r,600));
+    }catch(e){}
+  }
+  if(n===0){
+    showMsg('⚠ ポップアップがブロックされています。アドレスバー右端の通知から「許可」をクリック後、再度押してください');
+  }else if(n<keys.length){
+    showMsg(n+'個開きました（残りはポップアップブロック）。下の個別ボタンからも開けます');
+  }else{
+    showMsg(n+'個のツールを開きました — 各タブで ⌘V / Ctrl+V で貼り付けてください');
+  }
 }
 
-// ===== SERVICE WORKER =====
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+
+// ===== DARK MODE =====
+function toggleDark(){
+  const isDark=document.body.classList.toggle('dark');
+  localStorage.setItem('ga_dark',isDark?'1':'0');
+  document.getElementById('darkIcon').className=isDark?'ti ti-sun':'ti ti-moon';
+  document.getElementById('darkLabel').textContent=isDark?'ライト':'ダーク';
+}
+if(localStorage.getItem('ga_dark')==='1'){
+  document.body.classList.add('dark');
+  document.getElementById('darkIcon').className='ti ti-sun';
+  document.getElementById('darkLabel').textContent='ライト';
 }
 
-// URLパラメータ処理（Stripe redirect後）
-const params = new URLSearchParams(window.location.search);
-if(params.get('success')){
-  setTimeout(()=>alert('サブスクリプションが有効になりました！'),500);
-  window.history.replaceState({},'','/');
+// ===== ANALYSIS HISTORY =====
+let histDB=JSON.parse(localStorage.getItem('ga_hist')||'[]');
+function saveSnapshot(){
+  const text=document.getElementById('inputText').value.trim();
+  if(!text){alert('テキストを入力してください');return;}
+  // Ask for a title
+  const title=prompt('この分析にタイトルをつけてください（省略可）','') ;
+  const st=computeStats(text);
+  const snap={
+    id:Date.now(),
+    title:title||new Date().toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}),
+    text:text.slice(0,2000),
+    fullText:text,
+    stats:st,
+    date:new Date().toLocaleString('ja-JP'),
+    cefr:document.getElementById('cefrArea').querySelector('.cefr-b')?.textContent?.trim()||''
+  };
+  histDB.unshift(snap);
+  if(histDB.length>50)histDB=histDB.slice(0,50);
+  localStorage.setItem('ga_hist',JSON.stringify(histDB));
+  // Visual feedback on button
+  const btn=document.querySelector('[onclick="saveSnapshot()"]');
+  if(btn){
+    const orig=btn.innerHTML;
+    btn.innerHTML='<i class="ti ti-check"></i> 保存しました';
+    btn.style.background='#1D9E75';btn.style.color='#fff';btn.style.borderColor='#0F6E56';
+    setTimeout(()=>{btn.innerHTML=orig;btn.style.background='';btn.style.color='';btn.style.borderColor='';},2000);
+  }
 }
+function showHistory(){
+  document.getElementById('histSearch').value='';
+  renderHistList();
+  document.getElementById('histBD').classList.add('show');
+  document.getElementById('histSH').classList.add('show');
+}
+function renderHistList(){
+  const q=(document.getElementById('histSearch').value||'').toLowerCase();
+  const filtered=histDB.filter(h=>
+    !q||(h.title||'').toLowerCase().includes(q)||(h.text||'').toLowerCase().includes(q)
+  );
+  const count=document.getElementById('histCount');
+  count.textContent=filtered.length>0?`${filtered.length}件の履歴`:'履歴がありません';
+  const list=document.getElementById('histList');
+  if(!filtered.length){
+    list.innerHTML=`<div style="text-align:center;padding:2rem;color:var(--gr)">${histDB.length?'検索結果がありません':'履歴がありません。分析後「保存」を押すと保存されます。'}</div>`;
+    return;
+  }
+  list.innerHTML='';
+  filtered.forEach((h)=>{
+    const origIdx=histDB.findIndex(x=>x.id===h.id);
+    const el=document.createElement('div');
+    el.className='hist-item';
+    el.style.cssText='border:1px solid var(--bd);border-radius:10px;padding:12px 14px;margin-bottom:8px;background:var(--bg)';
+    el.innerHTML=`
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div style="flex:1;cursor:pointer" onclick="loadHistory(${origIdx})">
+          <div style="font-size:14px;font-weight:600;color:var(--tx);margin-bottom:3px">${h.title||'無題'}</div>
+          <div style="font-size:11px;color:var(--gr);margin-bottom:4px;display:flex;align-items:center;gap:6px">
+            <span><i class="ti ti-clock" style="font-size:10px"></i> ${h.date}</span>
+            <span>${h.stats?.words||0}語</span>
+            ${h.cefr?`<span class="cefr-b c${h.cefr}" style="padding:1px 6px;font-size:10px">${h.cefr}</span>`:''}
+          </div>
+          <div style="font-size:13px;color:var(--gr);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${h.text}</div>
+        </div>
+        <button onclick="deleteHistory(${origIdx})" style="background:none;border:none;color:#9ca3af;cursor:pointer;padding:4px;font-size:16px;flex-shrink:0" title="削除"><i class="ti ti-trash"></i></button>
+      </div>`;
+    list.appendChild(el);
+  });
+}
+function loadHistory(idx){
+  const h=histDB[idx];
+  if(!h)return;
+  document.getElementById('inputText').value=h.fullText||h.text;
+  closeHistory();
+  analyze();
+}
+function deleteHistory(idx){
+  histDB.splice(idx,1);
+  localStorage.setItem('ga_hist',JSON.stringify(histDB));
+  renderHistList();
+}
+function clearAllHistory(){
+  if(!confirm('履歴を全て削除しますか？'))return;
+  histDB=[];
+  localStorage.setItem('ga_hist',JSON.stringify(histDB));
+  renderHistList();
+}
+function closeHistory(){document.getElementById('histBD').classList.remove('show');document.getElementById('histSH').classList.remove('show');}
+
+// ===== PRONUNCIATION =====
+let curAudio=null,curPronUrl='';
+function playPron(){
+  if(curPronUrl){const a=new Audio(curPronUrl);a.play().catch(()=>{});}
+}
+
+// ===== WORD LEVEL ESTIMATION =====
+const BASIC_WORDS=new Set("the,be,to,of,and,a,in,that,have,it,for,not,on,with,he,as,you,do,at,this,but,his,by,from,they,we,say,her,she,or,an,will,my,one,all,would,there,their,what,so,up,out,if,about,who,get,which,go,me,when,make,can,like,time,no,just,him,know,take,people,into,year,your,good,some,could,them,see,other,than,then,now,look,only,come,its,over,think,also,back,after,use,two,how,our,work,first,well,way,even,new,want,because,any,these,give,day,most,us".split(","));
+function wordLevel(w){
+  const wl=w.toLowerCase().replace(/[^a-z]/g,'');
+  if(BASIC_WORDS.has(wl))return{label:'A1-A2',cls:'wl-a'};
+  if(AWL.has(wl))return{label:'AWL',cls:'wl-b'};
+  if(wl.length>=9)return{label:'C1-C2',cls:'wl-c'};
+  return null;
+}
+
+// ===== AWL REPLACEMENT SUGGESTIONS =====
+const AWL_ALTS={use:'utilize / employ',show:'demonstrate / indicate',find:'identify / establish',make:'create / generate',need:'require / necessitate',help:'facilitate / assist',start:'initiate / commence',change:'alter / modify',think:'consider / analyze',look:'examine / investigate',give:'provide / offer',see:'observe / perceive',get:'obtain / acquire',say:'state / assert',talk:'discuss / address',keep:'maintain / sustain',end:'conclude / terminate',try:'attempt / endeavor',ask:'inquire / investigate',come:'emerge / arise',seem:'appear / suggest',want:'seek / aim',know:'recognize / acknowledge'};
+function awlSuggestion(word){return AWL_ALTS[word.toLowerCase()]||null;}
+
+// ===== FLESCH READING EASE =====
+function countSyllables(word){
+  word=word.toLowerCase().replace(/[^a-z]/g,'');
+  if(word.length<=3)return 1;
+  word=word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/,'');
+  word=word.replace(/^y/,'');
+  const m=word.match(/[aeiouy]{1,2}/g);
+  return m?m.length:1;
+}
+function fleschScore(text){
+  const sentences=parseSents(text);const words=(text.match(/[a-zA-Z]+/g)||[]);
+  if(!sentences.length||!words.length)return null;
+  const totalSyl=words.reduce((s,w)=>s+countSyllables(w),0);
+  const asl=words.length/sentences.length;
+  const asw=totalSyl/words.length;
+  const score=Math.round(206.835-1.015*asl-84.6*asw);
+  return Math.max(0,Math.min(100,score));
+}
+function fleschLabel(score){
+  if(score>=70)return{label:'読みやすい (A2-B1)',color:'#16a34a'};
+  if(score>=50)return{label:'普通 (B2)',color:'#2563eb'};
+  if(score>=30)return{label:'難しい (C1)',color:'#d97706'};
+  return{label:'非常に難しい (C2)',color:'#dc2626'};
+}
+
+// ===== SENTENCE FEEDBACK =====
+function sentFeedback(phrases,sentType,text){
+  const tips=[];
+  const allWords=phrases.flatMap(p=>p.words||[]).filter(w=>/[a-zA-Z]/.test(w));
+  if(allWords.length>35)tips.push('⚠ 文が長すぎます（'+allWords.length+'語）。分割を検討してください');
+  if(allWords.length<5)tips.push('💡 文が短すぎます。詳細を追加してみましょう');
+  const vPhrase=phrases.find(p=>p.role==='V');
+  if(vPhrase){
+    const vw=vPhrase.words.map(w=>w.toLowerCase());
+    if(vw.some(w=>['was','were','been'].includes(w)))tips.push('📝 受動態が使われています。能動態の方が明確な場合があります');
+  }
+  const sPhrase=phrases.find(p=>p.role==='S');
+  if(sPhrase&&sPhrase.words[0]?.toLowerCase()==='i')tips.push('🎓 アカデミック文では "I" より非人称表現を検討してください');
+  return tips;
+}
+
+// Override addSent to include feedback + reading ease display
+const _origAnalyze=analyze;
+analyze=function(){
+  _origAnalyze();
+  // Add reading ease after result
+  const text=document.getElementById('inputText').value.trim();
+  if(!text)return;
+  const score=fleschScore(text);
+  if(score!==null){
+    const{label,color}=fleschLabel(score);
+    const existing=document.getElementById('fleschCard');
+    if(existing)existing.remove();
+    const card=document.createElement('div');
+    card.id='fleschCard';
+    card.className='card';
+    card.style.padding='.875rem 1.25rem';
+    card.innerHTML=`<div class="sec-t" style="margin-bottom:6px"><i class="ti ti-gauge"></i> 読みやすさスコア（Flesch）</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:24px;font-weight:700;color:${color}">${score}</span>
+        <span style="font-size:13px;color:${color};font-weight:500">${label}</span>
+        <span style="font-size:12px;color:var(--gr)">（0=最難 / 100=最易）</span>
+      </div>
+      <div class="re-bar"><div class="re-fill" style="width:${score}%;background:${color}"></div></div>`;
+    const resultArea=document.getElementById('resultArea');
+    resultArea.parentNode.insertBefore(card,resultArea);
+  }
+};
+
+// Override addSent to add feedback
+const _origAddSent=addSent;
+addSent=function(sent,si){
+  _origAddSent(sent,si);
+  const blocks=document.getElementById('sentences').querySelectorAll('.sent-b');
+  const block=blocks[blocks.length-1];
+  if(!block)return;
+  const tips=sentFeedback(sent.phrases||[],sent.sentenceType,'');
+  if(tips.length>0){
+    const fb=document.createElement('div');
+    fb.className='sent-fb';
+    fb.textContent=tips[0];
+    block.appendChild(fb);
+  }
+};
+
+// ===== ENHANCED POPUP (pronunciation + word level + AWL suggestion + collocations) =====
+const _origFetchDict=fetchDict;
+fetchDict=async function(word){
+  await _origFetchDict(word);
+  // Word level badge
+  const lv=wordLevel(word);
+  const pwBadgeEl=document.getElementById('pwBadge');
+  pwBadgeEl.innerHTML="";
+  if(lv){const badge=document.createElement('span');badge.className='word-level '+lv.cls;badge.textContent=lv.label;pwBadgeEl.appendChild(badge);}
+  // AWL replacement suggestion
+  const sug=awlSuggestion(word);
+  const sugEl=document.getElementById('awlSuggestBox');
+  if(sugEl)sugEl.remove();
+  if(sug){
+    const box=document.createElement('div');box.id='awlSuggestBox';box.className='awl-suggest';
+    box.innerHTML='<i class="ti ti-bulb" style="font-size:12px"></i> より学術的: '+sug;
+    document.getElementById('pDef').parentNode.insertBefore(box,document.getElementById('pDef').nextSibling);
+  }
+};
+
+// Enhance showP to show phonetic
+const _origShowP=showP;
+showP=function(e,word,role,isAWL){
+  curPronUrl='';
+  document.getElementById('pPhonetic').style.display='none';
+  _origShowP(e,word,role,isAWL);
+};
+
+const _origFetchDictInner=window.fetchDict;
+const __origFetchDict=fetchDict;
+fetchDict=async function(word){
+  await __origFetchDict(word);
+  // Get pronunciation URL
+  try{
+    const r=await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(word));
+    if(r.ok){
+      const data=await r.json();
+      const phonetic=data[0]?.phonetics?.find(p=>p.audio&&p.audio.length>0);
+      if(phonetic){
+        curPronUrl=phonetic.audio;
+        const txt=data[0]?.phonetic||data[0]?.phonetics?.find(p=>p.text)?.text||'';
+        if(txt||curPronUrl){
+          document.getElementById('pPhoneticTxt').textContent=txt;
+          document.getElementById('pPhonetic').style.display='flex';
+          document.getElementById('pPhonetic').style.alignItems='center';
+          document.getElementById('pPhonetic').style.gap='6px';
+        }
+      }
+    }
+  }catch{}
+};
+
+if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 </script>
 </body>
 </html>
