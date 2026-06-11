@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="GrammarAI">
+<meta name="theme-color" content="#1D9E75">
+<title>English Grammar Analyzer</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<!-- pdf.js -->
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--green:#1D9E75;--green-dark:#0F6E56;--green-light:#E1F5EE;--red:#dc2626;--gray:#6b7280;--border:#e5e7eb;--bg:#f7f8fa;--safe-bottom:env(safe-area-inset-bottom,0px)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:#1a1a1a;min-height:100vh;-webkit-tap-highlight-color:transparent}
+
+/* SCREENS */
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
+
+/* LOADING */
+#screen-loading{align-items:center;justify-content:center;background:#fff}
+.spinner{width:40px;height:40px;border:3px solid var(--green-light);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* AUTH */
+#screen-auth{align-items:center;justify-content:center;padding:2rem 1.25rem;background:#fff}
+.auth-card{width:100%;max-width:400px}
+.auth-logo{font-size:52px;text-align:center;margin-bottom:1rem}
+.auth-title{font-size:22px;font-weight:700;text-align:center;margin-bottom:.25rem}
+.auth-sub{font-size:14px;color:var(--gray);text-align:center;margin-bottom:2rem;line-height:1.6}
+.auth-tabs{display:flex;border:1px solid var(--border);border-radius:10px;margin-bottom:1.25rem;overflow:hidden}
+.auth-tab{flex:1;padding:9px;font-size:14px;font-weight:500;cursor:pointer;background:#fff;border:none;font-family:inherit;color:var(--gray);transition:all .15s}
+.auth-tab.active{background:var(--green);color:#fff}
+.field{margin-bottom:.875rem}
+.field label{display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:.375rem}
+.field input{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:9px;font-size:15px;font-family:inherit;outline:none;transition:border-color .15s;color:#1a1a1a;background:#fff;-webkit-appearance:none}
+.field input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.1)}
+.auth-msg{font-size:13px;min-height:18px;margin:.375rem 0 .875rem;text-align:center}
+.auth-msg.err{color:var(--red)}.auth-msg.ok{color:var(--green)}
+.divider{display:flex;align-items:center;gap:.75rem;margin:.875rem 0;color:var(--gray);font-size:13px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.google-btn{width:100%;padding:11px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s}
+.google-btn:hover{background:var(--bg)}
+.google-logo{width:18px;height:18px}
+
+/* PAYWALL */
+#screen-paywall{padding:1.5rem 1.25rem;background:#fff;overflow-y:auto}
+.pw-header{text-align:center;padding:1.5rem 0 1rem}
+.pw-badge{display:inline-block;background:var(--green-light);color:var(--green-dark);font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;margin-bottom:1rem}
+.pw-title{font-size:24px;font-weight:700;margin-bottom:.5rem}
+.pw-sub{font-size:14px;color:var(--gray);line-height:1.7}
+.plan-card{border:2px solid var(--green);border-radius:14px;padding:1.25rem 1.5rem;margin:1.25rem 0;background:#fff;position:relative}
+.plan-popular{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;font-size:11px;font-weight:600;padding:3px 14px;border-radius:20px;white-space:nowrap}
+.plan-name{font-size:14px;font-weight:600;color:var(--gray);margin-bottom:.25rem}
+.plan-price{font-size:32px;font-weight:700;color:#1a1a1a}
+.plan-price span{font-size:14px;font-weight:400;color:var(--gray)}
+.plan-trial{font-size:13px;color:var(--green);font-weight:500;margin:.25rem 0 .875rem}
+.features{list-style:none;display:flex;flex-direction:column;gap:.5rem}
+.features li{display:flex;align-items:center;gap:.5rem;font-size:14px;color:#374151}
+.features li i{color:var(--green);font-size:16px;flex-shrink:0}
+.pw-note{font-size:12px;color:var(--gray);text-align:center;margin-top:.75rem;line-height:1.6}
+.pw-logout{font-size:13px;color:var(--gray);text-align:center;margin-top:1rem;cursor:pointer;text-decoration:underline;background:none;border:none;font-family:inherit;display:block;width:100%}
+
+/* MAIN APP */
+#screen-app{padding-bottom:calc(60px + var(--safe-bottom));overflow:hidden}
+.app-header{background:#fff;border-bottom:1px solid var(--border);padding:.875rem 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.app-title{font-size:16px;font-weight:700}
+.header-user{font-size:12px;color:var(--gray);display:flex;align-items:center;gap:6px}
+.user-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
+.app-body{overflow-y:auto;height:calc(100vh - 108px);padding:1rem 1.25rem}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-bottom);z-index:50}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.625rem .5rem;gap:3px;background:none;border:none;cursor:pointer;font-family:inherit;color:var(--gray);font-size:10px;font-weight:500;transition:color .15s;position:relative}
+.nav-btn.active{color:var(--green)}
+.nav-btn i{font-size:22px}
+.nav-badge{position:absolute;top:6px;right:calc(50% - 16px);background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:0 5px;border-radius:8px;min-width:16px;text-align:center;line-height:16px}
+
+/* PANELS */
+.panel{display:none}.panel.active{display:block}
+
+/* CARDS & BUTTONS */
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;margin-bottom:.875rem}
+button,input,textarea,select{font-family:inherit}
+.btn{padding:8px 16px;border:1px solid var(--border);border-radius:9px;background:#fff;color:#1a1a1a;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s;-webkit-appearance:none}
+.btn:hover{background:var(--bg)}.btn:active{transform:scale(.98)}
+.btn-p{background:var(--green);color:#fff;border-color:var(--green-dark);font-weight:500}.btn-p:hover{background:var(--green-dark);color:#fff}
+.btn-sm{padding:4px 10px;font-size:12px;border-radius:7px}
+.btn-danger{color:var(--red);border-color:#fca5a5}.btn-danger:hover{background:#fee2e2}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.875rem}
+.sec-title{font-size:14px;font-weight:600;margin-bottom:.75rem;display:flex;align-items:center;gap:6px;color:#374151}
+
+/* INPUT SECTION */
+.input-mode-tabs{display:flex;border:1px solid var(--border);border-radius:9px;margin-bottom:.875rem;overflow:hidden}
+.imt{flex:1;padding:8px;font-size:13px;font-weight:500;cursor:pointer;background:#fff;border:none;color:var(--gray);display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s}
+.imt.active{background:var(--green);color:#fff}
+.text-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:.875rem}
+textarea{width:100%;border:none;outline:none;font-size:15px;resize:vertical;min-height:100px;line-height:1.7;background:transparent;color:#1a1a1a;display:block}
+
+/* PDF */
+.pdf-drop{border:2px dashed var(--border);border-radius:10px;padding:1.75rem 1rem;text-align:center;cursor:pointer;background:#fafafa;margin-bottom:.875rem}
+.pdf-drop.drag-over{border-color:var(--green);background:#f0fdf9}
+.pdf-drop i{font-size:32px;color:#9ca3af;display:block;margin-bottom:.5rem}
+.pdf-drop p{font-size:14px;color:var(--gray)}
+.pdf-drop small{font-size:12px;color:#9ca3af}
+.pdf-info{display:none;background:var(--green-light);border-radius:9px;padding:.75rem 1rem;margin-bottom:.875rem;align-items:center;gap:.75rem}
+.pdf-info.show{display:flex}
+.pdf-info i{font-size:20px;color:var(--green);flex-shrink:0}
+.pdf-info-text{flex:1;font-size:13px;color:#065f46}
+.pdf-info-name{font-weight:600}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:.875rem}
+.sc{background:#f1f5f9;border-radius:9px;padding:10px 10px}
+.sl{font-size:10px;color:var(--gray);margin-bottom:2px}
+.sv{font-size:18px;font-weight:600}
+
+/* CEFR */
+.cA1{background:#dcfce7;color:#15803d}.cA2{background:#d1fae5;color:#065f46}
+.cB1{background:#dbeafe;color:#1d4ed8}.cB2{background:#ede9fe;color:#6d28d9}
+.cC1{background:#fef3c7;color:#92400e}.cC2{background:#fee2e2;color:#991b1b}
+.cefr-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 11px;border-radius:20px;font-weight:600;font-size:12px}
+
+/* LEGEND */
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:.875rem;font-size:11px;align-items:center}
+.leg{display:flex;align-items:center;gap:3px}
+.ll{width:18px;height:3px;border-radius:2px}
+.awl-sw{display:inline-block;width:11px;height:11px;background:#fef9c3;border:1px solid #fcd34d;border-radius:2px;vertical-align:middle}
+
+/* SENTENCES */
+.sent-block{margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid #f3f4f6}
+.sent-block:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.sent-meta{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+.sent-n{font-size:11px;color:#9ca3af}
+.stype{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:#f3f4f6;color:#374151}
+.sent-render{font-size:16px;line-height:2.6}
+.tok{display:inline-block;cursor:pointer;margin:0 1px;padding:2px 1px;border-radius:3px;-webkit-tap-highlight-color:transparent}
+.tok .lb{display:block;font-size:9px;font-weight:700;text-align:center;letter-spacing:.05em;line-height:1;margin-top:2px}
+.uS{border-bottom:3px solid #1D9E75}.lS{color:#1D9E75}
+.uV{border-bottom:3px solid #1a73e8}.lV{color:#1a73e8}
+.uO{border-bottom:3px solid #D85A30}.lO{color:#D85A30}
+.uC{border-bottom:3px solid #BA7517}.lC{color:#BA7517}
+.uM{border-bottom:3px dotted #7F77DD}.lM{color:#7F77DD}
+.awl{background:#fef9c3;border-radius:3px;padding:0 2px}
+.loading-msg{color:#9ca3af;font-style:italic;font-size:13px;padding:.5rem 0;display:flex;align-items:center;gap:5px}
+.err-msg{color:var(--red);font-size:13px;padding:.5rem 0}
+.ai-res{font-size:14px;line-height:1.8;white-space:pre-wrap}
+
+/* WORD POPUP - bottom sheet style for mobile */
+.popup-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200}
+.popup-backdrop.show{display:block}
+.popup-sheet{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;padding:1.25rem 1.25rem calc(1.25rem + var(--safe-bottom));z-index:201;transform:translateY(100%);transition:transform .3s ease;max-height:80vh;overflow-y:auto}
+.popup-sheet.show{transform:translateY(0)}
+.popup-handle{width:40px;height:4px;background:#d1d5db;border-radius:2px;margin:0 auto .875rem}
+.pop-word{font-size:22px;font-weight:700;margin-bottom:4px}
+.pop-role{font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;display:inline-block;margin-bottom:.75rem}
+.xlate-toggle{display:flex;gap:6px;margin-bottom:.875rem}
+.xtab{padding:5px 14px;font-size:13px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--gray);cursor:pointer;transition:all .15s;-webkit-appearance:none}
+.xtab.xa{background:var(--green);color:#fff;border-color:var(--green-dark)}
+.pop-sec{font-size:11px;color:var(--gray);margin-top:.75rem;margin-bottom:.25rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.pop-val{font-size:15px;color:#1a1a1a;line-height:1.5}
+.awl-tag{font-size:11px;background:#fef9c3;color:#b45309;padding:2px 8px;border-radius:10px;font-weight:600;display:inline-block;margin-top:4px}
+.bm-btn{background:#fff3cd;border-color:#f59e0b;color:#92400e}.bm-btn:hover{background:#fde68a}
+.bm-saved{background:#dcfce7;border-color:#16a34a;color:#15803d}
+
+/* VOCAB */
+.vocab-empty{text-align:center;padding:3rem 1rem;color:#9ca3af}
+.vi{border:1px solid var(--border);border-radius:10px;padding:11px 13px;background:#fff;display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.vw{font-size:15px;font-weight:600}
+.vp{font-size:11px;color:var(--gray);margin-top:1px}
+.vd{flex:1}
+.vd-ja{font-size:14px;color:#374151;margin-bottom:2px}
+.vd-en{font-size:12px;color:var(--gray);line-height:1.4}
+.vrm{color:#9ca3af;cursor:pointer;background:none;border:none;padding:4px;font-size:18px;margin-left:auto;flex-shrink:0}
+.vrm:hover{color:var(--red)}
+.quiz-card{border:1px solid var(--border);border-radius:12px;padding:1.5rem;text-align:center;background:#fff;margin-bottom:1rem}
+.qw{font-size:24px;font-weight:700;margin-bottom:6px}
+.qh{font-size:13px;color:var(--gray);margin-bottom:1rem}
+.qa{font-size:16px;color:var(--green);font-weight:500;margin-top:1rem;display:none}
+.qbtns{display:flex;gap:8px;justify-content:center;margin-top:1rem}
+.qknew{background:#dcfce7;border-color:#16a34a;color:#15803d}.qknew:hover{background:#bbf7d0}
+.qforg{background:#fee2e2;border-color:#ef4444;color:#991b1b}.qforg:hover{background:#fecaca}
+.prog-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:8px}
+.prog-fill{height:100%;border-radius:3px;background:var(--green);transition:width .3s}
+
+/* TOOLS */
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tc{border:1px solid var(--border);border-radius:9px;padding:10px 11px;display:flex;align-items:center;gap:9px;cursor:pointer;background:#fff;width:100%;text-align:left;transition:border-color .15s}
+.tc:hover{border-color:#9ca3af;background:var(--bg)}
+.ti-w{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px}
+.tn{font-size:12px;font-weight:600;color:#1a1a1a;margin-bottom:2px}
+.tm{font-size:10px}
+.bg-g{font-size:10px;padding:1px 5px;border-radius:6px;background:#dcfce7;color:#15803d}
+.bg-y{font-size:10px;padding:1px 5px;border-radius:6px;background:#fef3c7;color:#92400e}
+.bg-k{font-size:10px;padding:1px 5px;border-radius:6px;background:#f3f4f6;color:#374151}
+.ls-msg{font-size:13px;color:#15803d;display:none;margin-top:8px;padding:8px 12px;background:#dcfce7;border-radius:8px}
+
+/* ACCOUNT */
+.account-info{display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:1rem}
+.avatar{width:48px;height:48px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--green-dark);flex-shrink:0}
+.sub-status{font-size:11px;margin-top:3px}
+.sub-active{color:var(--green)}.sub-inactive{color:var(--red)}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="screen active" id="screen-loading">
+  <div class="spinner"></div>
+</div>
+
+<!-- AUTH -->
+<div class="screen" id="screen-auth">
+  <div class="auth-card">
+    <div class="auth-logo">📖</div>
+    <h1 class="auth-title">GrammarAI</h1>
+    <p class="auth-sub">英文SVOC分析・単語帳・CEFR推定<br>7日間無料で始められます</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="setAuthMode('login')">ログイン</button>
+      <button class="auth-tab" onclick="setAuthMode('signup')">新規登録</button>
+    </div>
+    <div class="field"><label>メールアドレス</label><input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email"></div>
+    <div class="field"><label>パスワード</label><input type="password" id="authPass" placeholder="8文字以上" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAuth()"></div>
+    <div class="auth-msg" id="authMsg"></div>
+    <button class="btn btn-p" style="width:100%;justify-content:center;padding:12px" onclick="doAuth()">
+      <i class="ti ti-arrow-right"></i> <span id="authBtnLabel">ログイン</span>
+    </button>
+    <div class="divider">または</div>
+    <button class="google-btn" onclick="signInWithGoogle()">
+      <svg class="google-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Googleで続ける
+    </button>
+  </div>
+</div>
+
+<!-- PAYWALL -->
+<div class="screen" id="screen-paywall">
+  <div style="max-width:480px;margin:0 auto;width:100%">
+    <div class="pw-header">
+      <div class="pw-badge">7日間無料トライアル</div>
+      <h2 class="pw-title">GrammarAIを始める</h2>
+      <p class="pw-sub">英文法の理解を深め、<br>アカデミック英語力を向上させましょう</p>
+    </div>
+    <div class="plan-card">
+      <div class="plan-popular">おすすめ</div>
+      <div class="plan-name">月額プラン</div>
+      <div class="plan-price">¥980<span> / 月</span></div>
+      <div class="plan-trial">最初の7日間は無料</div>
+      <ul class="features">
+        <li><i class="ti ti-check"></i>SVOC+M 文法分析（無制限）</li>
+        <li><i class="ti ti-check"></i>単語クリックで英英・英和辞書</li>
+        <li><i class="ti ti-check"></i>苦手単語帳 + クイズモード</li>
+        <li><i class="ti ti-check"></i>AWLハイライト・CEFR推定</li>
+        <li><i class="ti ti-check"></i>PDF読み込み・解析</li>
+        <li><i class="ti ti-check"></i>AI Grammar Check</li>
+        <li><i class="ti ti-check"></i>外部ツール一括ランチャー</li>
+      </ul>
+    </div>
+    <button class="btn btn-p" style="width:100%;justify-content:center;padding:14px;font-size:16px" onclick="startCheckout()">
+      <i class="ti ti-credit-card"></i> 7日間無料で始める
+    </button>
+    <p class="pw-note">トライアル期間中はいつでもキャンセル可能。<br>カード情報はStripeで安全に管理されます。</p>
+    <button class="pw-logout" onclick="signOut()">別のアカウントでログイン</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="screen" id="screen-app">
+  <div class="app-header">
+    <div class="app-title">GrammarAI</div>
+    <div class="header-user"><span class="user-dot"></span><span id="headerEmail">—</span></div>
+  </div>
+
+  <div class="app-body">
+
+    <!-- ANALYZE PANEL -->
+    <div class="panel active" id="panel-analyze">
+      <div class="input-mode-tabs">
+        <button class="imt active" id="imt-text" onclick="switchInput('text')"><i class="ti ti-text-size"></i> テキスト</button>
+        <button class="imt" id="imt-pdf" onclick="switchInput('pdf')"><i class="ti ti-file-type-pdf"></i> PDF</button>
+      </div>
+
+      <!-- Text input -->
+      <div id="inp-text">
+        <div class="text-card">
+          <textarea id="inputText" placeholder="英文を入力してください。複数文に対応しています。"></textarea>
+        </div>
+      </div>
+
+      <!-- PDF input -->
+      <div id="inp-pdf" style="display:none">
+        <div class="pdf-drop" id="pdfDrop" onclick="document.getElementById('pdfFile').click()" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+          <i class="ti ti-file-type-pdf"></i>
+          <p>PDFをタップして選択</p>
+          <small>最大20MB・20ページまで解析</small>
+        </div>
+        <input type="file" id="pdfFile" style="display:none" accept=".pdf" onchange="handlePdfFile(this.files[0])">
+        <div class="pdf-info" id="pdfInfo">
+          <i class="ti ti-file-check"></i>
+          <div class="pdf-info-text">
+            <div class="pdf-info-name" id="pdfName"></div>
+            <div id="pdfMeta"></div>
+          </div>
+          <button class="btn btn-sm" onclick="clearPdf()" style="color:var(--red);border-color:#fca5a5;flex-shrink:0"><i class="ti ti-x"></i></button>
+        </div>
+        <div class="btn-row" id="pdfActions" style="display:none">
+          <button class="btn btn-p" onclick="analyzePdf()"><i class="ti ti-file-search"></i> PDF解析</button>
+          <button class="btn" onclick="extractAndAnalyze()"><i class="ti ti-analyze"></i> SVOC分析</button>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-p" onclick="analyze()"><i class="ti ti-search"></i> Analyze</button>
+        <button class="btn" onclick="runAICheck()"><i class="ti ti-robot"></i> AI Check</button>
+        <button class="btn" onclick="clearAll()"><i class="ti ti-x"></i> Clear</button>
+      </div>
+
+      <div class="stats" id="statsRow" style="display:none">
+        <div class="sc"><div class="sl">Words</div><div class="sv" id="sw_"></div></div>
+        <div class="sc"><div class="sl">Sentences</div><div class="sv" id="ss_"></div></div>
+        <div class="sc"><div class="sl" style="color:#b45309">AWL</div><div class="sv" id="sawl_" style="color:#b45309"></div></div>
+        <div class="sc"><div class="sl">Characters</div><div class="sv" id="sc_"></div></div>
+        <div class="sc"><div class="sl">Unique</div><div class="sv" id="su_"></div></div>
+        <div class="sc"><div class="sl">Avg length</div><div class="sv" id="sa_"></div></div>
+      </div>
+
+      <div id="cefrArea" style="display:none;margin-bottom:.875rem"></div>
+
+      <div class="card" id="resultArea" style="display:none">
+        <div class="legend">
+          <div class="leg"><div class="ll" style="background:#1D9E75"></div><span style="color:#1D9E75;font-weight:700;font-size:11px">S</span></div>
+          <div class="leg"><div class="ll" style="background:#1a73e8"></div><span style="color:#1a73e8;font-weight:700;font-size:11px">V</span></div>
+          <div class="leg"><div class="ll" style="background:#D85A30"></div><span style="color:#D85A30;font-weight:700;font-size:11px">O</span></div>
+          <div class="leg"><div class="ll" style="background:#BA7517"></div><span style="color:#BA7517;font-weight:700;font-size:11px">C</span></div>
+          <div class="leg"><div class="ll" style="background:#7F77DD;height:0;border-bottom:3px dotted #7F77DD"></div><span style="color:#7F77DD;font-weight:700;font-size:11px">M</span></div>
+          <span style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--gray)"><span class="awl-sw"></span>AWL</span>
+        </div>
+        <div id="sentences"></div>
+      </div>
+
+      <div class="card" id="pdfSummaryArea" style="display:none">
+        <div class="sec-title"><i class="ti ti-file-description"></i> PDF解析結果</div>
+        <div class="ai-res" id="pdfSummaryResult"></div>
+      </div>
+
+      <div class="card" id="aiSection" style="display:none">
+        <div class="sec-title"><i class="ti ti-sparkles"></i> AI Grammar Analysis</div>
+        <div class="ai-res" id="aiResult"></div>
+      </div>
+    </div>
+
+    <!-- VOCAB PANEL -->
+    <div class="panel" id="panel-vocab">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:16px;font-weight:600">苦手単語帳</div>
+          <div style="font-size:13px;color:var(--gray)" id="vSubtitle">0 words</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-p" onclick="startQuiz()"><i class="ti ti-cards"></i> Quiz</button>
+          <button class="btn btn-danger" onclick="clearVocab()"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+      <div id="quizArea" style="display:none">
+        <div class="quiz-card">
+          <div class="qw" id="qWord">—</div>
+          <div class="qh" id="qHint"></div>
+          <button class="btn" onclick="showAns()"><i class="ti ti-eye"></i> 答えを見る</button>
+          <div class="qa" id="qAns"></div>
+          <div class="qbtns" id="qBtns" style="display:none">
+            <button class="btn qknew" onclick="qNext(true)"><i class="ti ti-check"></i> 覚えた</button>
+            <button class="btn qforg" onclick="qNext(false)"><i class="ti ti-x"></i> まだ</button>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--gray);text-align:center;margin-bottom:4px" id="qProg"></div>
+        <div class="prog-bar"><div class="prog-fill" id="qBar" style="width:0%"></div></div>
+        <button class="btn" style="width:100%;justify-content:center;margin-top:.75rem" onclick="stopQuiz()">クイズを終了</button>
+      </div>
+      <div id="vocabList"></div>
+    </div>
+
+    <!-- TOOLS PANEL -->
+    <div class="panel" id="panel-tools">
+      <div class="card" style="border-color:var(--green);border-width:1.5px;margin-bottom:.875rem">
+        <div class="sec-title"><i class="ti ti-rocket"></i> 一括ランチャー</div>
+        <p style="font-size:13px;color:var(--gray);margin-bottom:.875rem;line-height:1.7">テキスト入力後、全ツールを同時に開きます。各タブで <strong>⌘V / Ctrl+V</strong> で貼り付けてください。</p>
+        <div class="btn-row">
+          <button class="btn btn-p" onclick="launchAll()"><i class="ti ti-rocket"></i> 全て開く</button>
+          <button class="btn" onclick="doCopyText()"><i class="ti ti-copy"></i> コピー</button>
+        </div>
+        <div class="ls-msg" id="lsMsg"></div>
+      </div>
+      <div class="card">
+        <div class="sec-title"><i class="ti ti-tools"></i> 個別ツール</div>
+        <div class="tg">
+          <button class="tc" onclick="openTool('rewordify')"><div class="ti-w" style="background:#fef3c7"><i class="ti ti-replace" style="color:#b45309"></i></div><div><div class="tn">Rewordify</div><div class="tm"><span class="bg-g">🟢 自動</span></div></div></button>
+          <button class="tc" onclick="openTool('vocabprofile')"><div class="ti-w" style="background:#dbeafe"><i class="ti ti-chart-pie" style="color:#1d4ed8"></i></div><div><div class="tn">VocabProfile</div><div class="tm"><span class="bg-y">🟡 貼付</span></div></div></button>
+          <button class="tc" onclick="openTool('awl')"><div class="ti-w" style="background:#dcfce7"><i class="ti ti-school" style="color:#15803d"></i></div><div><div class="tn">AWL Highlighter</div><div class="tm"><span class="bg-y">🟡 貼付</span></div></div></button>
+          <button class="tc" onclick="openTool('analyzemywriting')"><div class="ti-w" style="background:#ede9fe"><i class="ti ti-writing" style="color:#6d28d9"></i></div><div><div class="tn">Analyze My Writing</div><div class="tm"><span class="bg-y">🟡 貼付</span></div></div></button>
+          <button class="tc" onclick="openTool('paperrater')"><div class="ti-w" style="background:#fce7f3"><i class="ti ti-file-check" style="color:#9d174d"></i></div><div><div class="tn">PaperRater</div><div class="tm"><span class="bg-y">🟡 貼付</span></div></div></button>
+          <button class="tc" onclick="openTool('gtzero')"><div class="ti-w" style="background:#f1f5f9"><i class="ti ti-shield-check" style="color:#374151"></i></div><div><div class="tn">GPTZero</div><div class="tm"><span class="bg-y">🟡 貼付</span></div></div></button>
+          <button class="tc" onclick="openTool('grammarly')"><div class="ti-w" style="background:#dcfce7"><i class="ti ti-circle-check" style="color:#15803d"></i></div><div><div class="tn">Grammarly</div><div class="tm"><span class="bg-k">🔒 ログイン</span></div></div></button>
+          <button class="tc" onclick="openTool('chatpdf')"><div class="ti-w" style="background:#fee2e2"><i class="ti ti-file-type-pdf" style="color:#991b1b"></i></div><div><div class="tn">ChatPDF</div><div class="tm"><span class="bg-k">🔒 PDF専用</span></div></div></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCOUNT PANEL -->
+    <div class="panel" id="panel-account">
+      <div class="account-info">
+        <div class="avatar" id="avatarInitial">?</div>
+        <div>
+          <div style="font-size:15px;font-weight:600" id="accountEmail">—</div>
+          <div class="sub-status sub-active" id="subStatusLabel">✓ サブスクリプション有効</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="sec-title"><i class="ti ti-credit-card"></i> サブスクリプション</div>
+        <p style="font-size:13px;color:var(--gray);margin-bottom:.875rem;line-height:1.7">プランの変更・キャンセルはStripeのポータルで行えます。</p>
+        <button class="btn" onclick="openBillingPortal()"><i class="ti ti-external-link"></i> 支払い管理を開く</button>
+      </div>
+      <div class="card">
+        <div class="sec-title"><i class="ti ti-database"></i> 単語帳データ</div>
+        <p style="font-size:13px;color:var(--gray);margin-bottom:.875rem">現在 <strong id="vocabCountAcc">0</strong> 語を登録中</p>
+        <button class="btn" onclick="exportVocab()"><i class="ti ti-download"></i> CSVでエクスポート</button>
+      </div>
+      <button class="btn btn-danger" style="width:100%;justify-content:center;margin-top:.5rem" onclick="signOut()"><i class="ti ti-logout"></i> ログアウト</button>
+    </div>
+
+  </div><!-- /app-body -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="nav-analyze" onclick="swNav('analyze')"><i class="ti ti-analyze"></i>Analyze</button>
+    <button class="nav-btn" id="nav-vocab" onclick="swNav('vocab')"><i class="ti ti-bookmark"></i>単語帳<span class="nav-badge" id="navBadge" style="display:none">0</span></button>
+    <button class="nav-btn" id="nav-tools" onclick="swNav('tools')"><i class="ti ti-tools"></i>Tools</button>
+    <button class="nav-btn" id="nav-account" onclick="swNav('account')"><i class="ti ti-user"></i>アカウント</button>
+  </nav>
+</div>
+
+<!-- WORD POPUP (bottom sheet) -->
+<div class="popup-backdrop" id="popBackdrop" onclick="closePopup()"></div>
+<div class="popup-sheet" id="popSheet">
+  <div class="popup-handle"></div>
+  <div class="pop-word" id="pw"></div>
+  <span class="pop-role" id="pr"></span>
+  <div id="popAwl" style="display:none;margin-top:4px"><span class="awl-tag">AWL語彙</span></div>
+  <div class="xlate-toggle">
+    <button class="xtab xa" id="xtab-en" onclick="setXlang('en')">英→英</button>
+    <button class="xtab" id="xtab-ja" onclick="setXlang('ja')">英→和</button>
+  </div>
+  <div class="pop-sec">定義</div>
+  <div class="pop-val" id="pDef">...</div>
+  <div class="pop-sec">例文</div>
+  <div class="pop-val" id="pEx" style="color:var(--gray);font-style:italic"></div>
+  <div style="margin-top:1rem">
+    <button class="btn btn-sm bm-btn" id="bmBtn" onclick="toggleBM()"><i class="ti ti-bookmark"></i> 単語帳に追加</button>
+  </div>
+</div>
+
+<script>
+// ===== CONFIG - デプロイ時にご自身の値に変更してください =====
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';       // e.g. https://xxxx.supabase.co
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const API_ENDPOINT = '/api/claude';              // Vercelのサーバーレス関数
+
+// ===== INIT =====
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const AWL = new Set("abandon,abstract,access,accommodate,accompany,accumulate,accurate,achieve,acknowledge,acquisition,adapt,adequate,adjacent,adjust,adult,advocate,affect,aggregate,aid,albeit,allocate,alter,ambiguous,amend,analogy,analyze,analysis,annual,apparent,append,appreciate,approach,appropriate,approximate,arbitrary,area,aspect,assemble,assess,assign,assist,assume,assure,attach,attain,authority,automate,available,aware,behalf,benefit,bias,brief,bulk,capable,capacity,category,cease,challenge,chapter,civil,clarify,classic,clause,code,coherent,coincide,commit,community,complex,component,compound,comprehensive,concentrate,conduct,configure,consent,consequent,considerable,consist,constitute,constrain,construct,consult,consume,contact,context,contract,contrast,contribute,controversial,convention,convert,core,correspond,credit,criteria,culture,cycle,data,decline,define,demonstrate,distribute,document,domain,economy,element,emerge,emphasis,enable,equip,establish,evaluate,evident,exhibit,expand,expose,extract,facilitate,factor,feature,final,finance,focus,formula,foundation,framework,function,global,grant,hypothesis,identify,illustrate,impact,implement,indicate,individual,infrastructure,integrate,interpret,invest,involve,issue,justify,label,layer,lecture,legal,link,locate,major,method,modify,monitor,network,normal,notion,objective,obtain,occur,option,outcome,overall,participate,perceive,period,principle,process,professional,project,promote,proportion,provide,publish,pursue,range,ratio,rely,research,resident,resolve,resource,role,sector,sequence,significant,similar,simulate,specific,specify,structure,submit,sufficient,summary,survey,sustain,symbolic,target,task,team,technique,technology,theory,transfer,transform,transport,trend,ultimate,utility,valid,vary,version,via,volume,require,select,vocabulary,academic,writing,contribute,debate,sociology,empirical,phenomenology,critique,interpretation,textual,embody,embodiment,commentary".split(","));
+const RC={S:"#1D9E75",V:"#1a73e8",O:"#D85A30",C:"#BA7517",M:"#7F77DD"};
+const RB={S:"#dcfce7",V:"#dbeafe",O:"#ffedd5",C:"#fef3c7",M:"#ede9fe"};
+const RJ={S:"主語 (Subject)",V:"動詞 (Verb)",O:"目的語 (Object)",C:"補語 (Complement)",M:"修飾語 (Modifier)"};
+const STYPES={SV:"第1文型 SV",SVC:"第2文型 SVC",SVO:"第3文型 SVO",SVOO:"第4文型 SVOO",SVOC:"第5文型 SVOC"};
+const CORD=["A1","A2","B1","B2","C1","C2"];
+const TOOL_URLS={
+  rewordify:t=>"https://rewordify.com/index.php?text="+encodeURIComponent(t),
+  vocabprofile:()=>"https://www.lextutor.ca/vp/eng/",
+  awl:()=>"https://www.eapfoundation.com/vocab/academic/awllists/",
+  analyzemywriting:()=>"http://www.analyzemywriting.com/",
+  paperrater:()=>"https://www.paperrater.com/",
+  gtzero:()=>"https://gptzero.me/",
+  grammarly:()=>"https://app.grammarly.com/",
+  chatpdf:()=>"https://www.chatpdf.com/"
+};
+
+let vocabDB=JSON.parse(localStorage.getItem("ega_vocab")||"[]");
+let curPop=null,xlang="en",quizQ=[],quizI=0,pdfText="",currentUser=null,authMode="login";
+
+// ===== AUTH STATE =====
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (session?.user) {
+    currentUser = session.user;
+    const hasSub = await checkSubscription();
+    if (hasSub) showScreen('app');
+    else showScreen('paywall');
+  } else {
+    currentUser = null;
+    showScreen('auth');
+  }
+});
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  if (name === 'app') {
+    document.getElementById('headerEmail').textContent = currentUser?.email?.split('@')[0] || '';
+    document.getElementById('accountEmail').textContent = currentUser?.email || '';
+    document.getElementById('avatarInitial').textContent = (currentUser?.email?.[0] || '?').toUpperCase();
+    updBadge();
+  }
+}
+
+async function checkSubscription() {
+  if (!currentUser) return false;
+  const { data } = await sb.from('subscriptions').select('status').eq('user_id', currentUser.id).eq('status', 'active').limit(1);
+  return data && data.length > 0;
+}
+
+// ===== AUTH ACTIONS =====
+function setAuthMode(mode) {
+  authMode = mode;
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&mode==='login')||(i===1&&mode==='signup')));
+  document.getElementById('authBtnLabel').textContent = mode === 'login' ? 'ログイン' : '新規登録';
+  document.getElementById('authMsg').textContent = '';
+}
+
+async function doAuth() {
+  const email = document.getElementById('authEmail').value.trim();
+  const pass = document.getElementById('authPass').value;
+  const msg = document.getElementById('authMsg');
+  msg.className = 'auth-msg';
+  if (!email || !pass) { msg.className='auth-msg err'; msg.textContent='メールとパスワードを入力してください'; return; }
+  msg.textContent = authMode === 'login' ? 'ログイン中...' : 'アカウント作成中...';
+  const fn = authMode === 'login' ? sb.auth.signInWithPassword.bind(sb.auth) : sb.auth.signUp.bind(sb.auth);
+  const { error } = await fn({ email, password: pass });
+  if (error) { msg.className='auth-msg err'; msg.textContent = error.message; return; }
+  if (authMode === 'signup') { msg.className='auth-msg ok'; msg.textContent='確認メールを送信しました。メールを確認してください。'; }
+}
+
+async function signInWithGoogle() {
+  await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  showScreen('auth');
+}
+
+// ===== STRIPE =====
+async function startCheckout() {
+  const { data: { session } } = await sb.auth.getSession();
+  const res = await fetch('/api/create-checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` }
+  });
+  const { url, error } = await res.json();
+  if (error) { alert('エラー: ' + error); return; }
+  window.location.href = url;
+}
+
+async function openBillingPortal() {
+  // Stripeカスタマーポータル（要: stripe.billingPortal.sessionsを作るエンドポイントを追加）
+  alert('Stripeポータルは /api/billing-portal エンドポイントを追加してください');
+}
+
+// ===== API CALL =====
+async function callAPI(prompt, maxTok = 2000) {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) throw new Error('ログインが必要です');
+  const r = await fetch(API_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+    body: JSON.stringify({ prompt, maxTokens: maxTok })
+  });
+  if (r.status === 403) throw new Error('subscription_required');
+  if (!r.ok) { const e = await r.json(); throw new Error(e.error || 'API error'); }
+  const d = await r.json();
+  return (d.content || []).map(x => x.text || '').join('');
+}
+
+function extractJSON(raw) {
+  const s = raw.indexOf('['), e = raw.lastIndexOf(']');
+  if (s === -1 || e <= s) throw new Error('JSON not found');
+  return JSON.parse(raw.slice(s, e + 1));
+}
+
+// ===== NAVIGATION =====
+function swNav(name) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + name).classList.add('active');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  if (name === 'vocab') { renderVL(); document.getElementById('vocabCountAcc').textContent = vocabDB.length; }
+}
+
+function switchInput(mode) {
+  ['text','pdf'].forEach(m => {
+    document.getElementById('imt-'+m).classList.toggle('active', m===mode);
+    document.getElementById('inp-'+m).style.display = m===mode ? 'block' : 'none';
+  });
+}
+
+// ===== PDF =====
+function onDragOver(e){e.preventDefault();document.getElementById('pdfDrop').classList.add('drag-over');}
+function onDragLeave(){document.getElementById('pdfDrop').classList.remove('drag-over');}
+function onDrop(e){e.preventDefault();onDragLeave();const f=e.dataTransfer.files[0];if(f&&f.type==='application/pdf')handlePdfFile(f);}
+async function handlePdfFile(file) {
+  if (!file) return;
+  if (file.size > 20*1024*1024) { alert('20MB以下のファイルを選択してください'); return; }
+  const ab = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data: new Uint8Array(ab)}).promise;
+  const maxPages = Math.min(pdf.numPages, 20);
+  let text = '';
+  for (let i = 1; i <= maxPages; i++) {
+    const page = await pdf.getPage(i);
+    const tc = await page.getTextContent();
+    text += tc.items.map(it => it.str).join(' ') + '\n';
+  }
+  pdfText = text.trim();
+  document.getElementById('pdfName').textContent = file.name;
+  document.getElementById('pdfMeta').textContent = `${pdf.numPages}ページ · ${pdfText.split(/\s+/).length.toLocaleString()} words`;
+  document.getElementById('pdfInfo').classList.add('show');
+  document.getElementById('pdfActions').style.display = 'flex';
+}
+function clearPdf() {
+  pdfText=''; document.getElementById('pdfInfo').classList.remove('show');
+  document.getElementById('pdfActions').style.display='none';
+  document.getElementById('pdfFile').value='';
+}
+async function analyzePdf() {
+  if (!pdfText) return;
+  document.getElementById('pdfSummaryArea').style.display='block';
+  document.getElementById('pdfSummaryResult').textContent='PDFを解析中...';
+  try {
+    const raw = await callAPI(`Analyze this text from a PDF:\n1. Summary（要約）3-5文 in Japanese\n2. Key topics（主要トピック）\n3. CEFR level estimate\n4. Grammar observations\n5. Learning points for language learners\n\nText:\n${pdfText.slice(0,4000)}`, 1500);
+    document.getElementById('pdfSummaryResult').textContent = raw;
+  } catch(e) { document.getElementById('pdfSummaryResult').textContent = 'エラー: ' + e.message; }
+}
+async function extractAndAnalyze() {
+  if (!pdfText) return;
+  document.getElementById('inputText').value = parseSents(pdfText).slice(0,5).join(' ');
+  switchInput('text'); document.getElementById('imt-text').classList.add('active');
+  await analyze();
+}
+
+// ===== STATS & ANALYZE =====
+function saveV(){localStorage.setItem('ega_vocab',JSON.stringify(vocabDB));updBadge();}
+function updBadge(){
+  const n=vocabDB.length;
+  const b=document.getElementById('navBadge');
+  b.textContent=n; b.style.display=n>0?'block':'none';
+  document.getElementById('vSubtitle').textContent=n+' words';
+}
+function clearAll(){
+  document.getElementById('inputText').value='';
+  ['resultArea','statsRow','aiSection','cefrArea','pdfSummaryArea'].forEach(id=>document.getElementById(id).style.display='none');
+}
+function parseSents(t){return(t.match(/[^.!?]+[.!?]*/g)||[t]).filter(s=>s.trim().length>4);}
+function computeStats(t){
+  const w=t.trim().split(/\s+/).filter(x=>x.length>0);
+  const s=parseSents(t);
+  return{words:w.length,chars:t.replace(/\s/g,'').length,sents:s.length,
+    unique:new Set(w.map(x=>x.toLowerCase().replace(/[^a-z]/g,''))).size,
+    avg:s.length>0?Math.round(w.length/s.length):0,
+    awl:(t.toLowerCase().match(/[a-z]+/g)||[]).filter(x=>AWL.has(x)).length};
+}
+
+async function analyze(){
+  const text=document.getElementById('inputText').value.trim(); if(!text)return;
+  const st=computeStats(text);
+  ['sw_','sc_','ss_','su_','sa_','sawl_'].forEach((id,i)=>{document.getElementById(id).textContent=[st.words,st.chars,st.sents,st.unique,st.avg,st.awl][i];});
+  document.getElementById('statsRow').style.display='grid';
+  document.getElementById('resultArea').style.display='block';
+  document.getElementById('cefrArea').style.display='none';
+  document.getElementById('sentences').innerHTML='';
+  const sents=parseSents(text).slice(0,12), BATCH=3, allP=[];
+  for(let i=0;i<sents.length;i+=BATCH){
+    const batch=sents.slice(i,i+BATCH);
+    const c=document.getElementById('sentences');
+    const ld=document.createElement('div'); ld.className='loading-msg'; ld.id='ld'+i;
+    ld.innerHTML=`<i class="ti ti-loader"></i> 文 ${i+1}〜${Math.min(i+BATCH,sents.length)} を解析中...`;
+    c.appendChild(ld);
+    try{
+      const raw=await callAPI(`Analyze each sentence for SVOC+M grammar. Return ONLY a JSON array starting with [. No markdown.
+[{"sentence":"...","sentenceType":"SVOO","cefrLevel":"B1","tokens":[{"word":"She","role":"S"},{"word":"gave","role":"V"},{"word":"him","role":"O"},{"word":"a","role":"M"},{"word":"book","role":"O"},{"word":".","role":"PUNCT"}]}]
+sentenceType: SV/SVC/SVO/SVOO/SVOC. cefrLevel: A1-C2. roles: S V O C M PUNCT. Every word must be a token.
+Sentences:\n${batch.map((s,j)=>`${j+1}. ${s.trim()}`).join('\n')}`);
+      const parsed=extractJSON(raw);
+      document.getElementById('ld'+i)?.remove();
+      parsed.forEach((s,j)=>addSent(s,allP.length+j));
+      allP.push(...parsed);
+    }catch(e){
+      const ld=document.getElementById('ld'+i);
+      if(ld){ld.className='err-msg';ld.textContent=`解析失敗 — ${e.message}`;}
+    }
+  }
+  if(allP.length>0)renderCEFR(allP);
+}
+
+function renderCEFR(parsed){
+  const levels=parsed.map(s=>s.cefrLevel).filter(Boolean);
+  if(!levels.length)return;
+  const ov=CORD[Math.max(...levels.map(l=>CORD.indexOf(l)))]||'B1';
+  const descs={A1:"初歩的",A2:"日常会話",B1:"中級",B2:"上級",C1:"流暢",C2:"ネイティブ級"};
+  document.getElementById('cefrArea').style.display='block';
+  document.getElementById('cefrArea').innerHTML=`<div class="card" style="padding:.875rem 1.25rem"><div class="sec-title" style="margin-bottom:6px"><i class="ti ti-award"></i> 難易度（CEFR）</div><span class="cefr-badge c${ov}">${ov} — ${descs[ov]||''}</span><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px">${CORD.map(l=>`<span class="cefr-badge c${l}" style="padding:2px 8px;font-size:10px;opacity:${l===ov?'1':'0.3'}">${l}</span>`).join('')}</div></div>`;
+}
+
+function addSent(sent,si){
+  const c=document.getElementById('sentences');
+  const block=document.createElement('div'); block.className='sent-block';
+  const meta=document.createElement('div'); meta.className='sent-meta';
+  meta.innerHTML=`<span class="sent-n">文 ${si+1}</span><span class="stype">${STYPES[sent.sentenceType]||sent.sentenceType||'不明'}</span>${sent.cefrLevel?`<span class="cefr-badge c${sent.cefrLevel}" style="padding:1px 8px;font-size:10px">${sent.cefrLevel}</span>`:''}`;
+  block.appendChild(meta);
+  const render=document.createElement('div'); render.className='sent-render';
+  (sent.tokens||[]).forEach(tok=>{
+    if(tok.role==='PUNCT'){const s=document.createElement('span');s.textContent=tok.word;s.style.color='#9ca3af';render.appendChild(s);return;}
+    const r=tok.role.toUpperCase();
+    const isAWL=AWL.has(tok.word.toLowerCase().replace(/[^a-z]/g,''));
+    const span=document.createElement('span');
+    span.className='tok u'+r+(isAWL?' awl':'');
+    span.innerHTML=tok.word+`<span class="lb l${r}">${r}</span>`;
+    span.addEventListener('click',e=>showPopup(e,tok.word,r,isAWL));
+    render.appendChild(span); render.appendChild(document.createTextNode(' '));
+  });
+  block.appendChild(render); c.appendChild(block);
+}
+
+// ===== POPUP =====
+function showPopup(e,word,role,isAWL){
+  curPop={word,role,isAWL,ja:'',en_def:'',en_ex:''};
+  document.getElementById('pw').textContent=word;
+  const pr=document.getElementById('pr'); pr.textContent=RJ[role]||role; pr.style.background=RB[role]||'#f3f4f6'; pr.style.color=RC[role]||'#1a1a1a';
+  document.getElementById('popAwl').style.display=isAWL?'block':'none';
+  document.getElementById('pDef').textContent='読み込み中...'; document.getElementById('pEx').textContent='';
+  const saved=vocabDB.some(v=>v.word.toLowerCase()===word.toLowerCase());
+  const btn=document.getElementById('bmBtn');
+  btn.className='btn btn-sm '+(saved?'bm-saved':'bm-btn');
+  btn.innerHTML=saved?'<i class="ti ti-bookmark-filled"></i> 登録済み':'<i class="ti ti-bookmark"></i> 単語帳に追加';
+  document.getElementById('popBackdrop').classList.add('show');
+  document.getElementById('popSheet').classList.add('show');
+  fetchDef(word,role);
+}
+async function fetchDef(word,role){
+  try{
+    const raw=await callAPI(`For "${word}" (${role}). Return ONLY JSON no markdown: {"en_def":"1-sentence English definition","en_ex":"Short example sentence","ja":"日本語訳（1〜3語）","ja_ex":"例文の日本語訳"}`,200);
+    const s=raw.indexOf('{'),e=raw.lastIndexOf('}');
+    const info=JSON.parse(raw.slice(s,e+1));
+    if(curPop)Object.assign(curPop,info);
+    renderPopDef();
+  }catch{document.getElementById('pDef').textContent='読み込み失敗';}
+}
+function renderPopDef(){
+  if(!curPop)return;
+  if(xlang==='en'){document.getElementById('pDef').textContent=curPop.en_def||'—';document.getElementById('pEx').textContent=curPop.en_ex||'';}
+  else{document.getElementById('pDef').textContent=curPop.ja||'—';document.getElementById('pEx').textContent=curPop.ja_ex||curPop.en_ex||'';}
+}
+function setXlang(lang){
+  xlang=lang;
+  document.getElementById('xtab-en').className='xtab'+(lang==='en'?' xa':'');
+  document.getElementById('xtab-ja').className='xtab'+(lang==='ja'?' xa':'');
+  renderPopDef();
+}
+function toggleBM(){
+  if(!curPop)return;
+  const {word,role,isAWL,ja,en_def}=curPop;
+  const idx=vocabDB.findIndex(v=>v.word.toLowerCase()===word.toLowerCase());
+  if(idx>=0){vocabDB.splice(idx,1);document.getElementById('bmBtn').className='btn btn-sm bm-btn';document.getElementById('bmBtn').innerHTML='<i class="ti ti-bookmark"></i> 単語帳に追加';}
+  else{vocabDB.push({word,role,isAWL,ja,en_def,added:Date.now(),forgotten:0});document.getElementById('bmBtn').className='btn btn-sm bm-saved';document.getElementById('bmBtn').innerHTML='<i class="ti ti-bookmark-filled"></i> 登録済み';}
+  saveV();
+}
+function closePopup(){document.getElementById('popBackdrop').classList.remove('show');document.getElementById('popSheet').classList.remove('show');}
+
+// ===== VOCAB =====
+function renderVL(){
+  const list=document.getElementById('vocabList');
+  if(!vocabDB.length){list.innerHTML=`<div class="vocab-empty"><i class="ti ti-bookmark" style="font-size:32px;display:block;margin-bottom:.5rem;opacity:.3"></i>単語をタップして「単語帳に追加」を押すと保存されます</div>`;return;}
+  list.innerHTML='';
+  [...vocabDB].reverse().forEach((v,ri)=>{
+    const i=vocabDB.length-1-ri;
+    const isAWL=v.isAWL||AWL.has((v.word||'').toLowerCase());
+    const el=document.createElement('div'); el.className='vi';
+    el.innerHTML=`<div style="min-width:90px"><div class="vw">${v.word}${isAWL?'<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:1px 5px;border-radius:6px;margin-left:5px;font-weight:600">AWL</span>':''}</div><div class="vp" style="color:${RC[v.role]||'#6b7280'}">${RJ[v.role]||v.role}</div>${v.forgotten>0?`<div style="font-size:11px;color:var(--red);margin-top:1px">${v.forgotten}回間違い</div>`:''}</div><div class="vd"><div class="vd-ja">${v.ja||'—'}</div><div class="vd-en">${v.en_def||''}</div></div><button class="vrm" onclick="rmV(${i})"><i class="ti ti-trash"></i></button>`;
+    list.appendChild(el);
+  });
+}
+function rmV(i){vocabDB.splice(i,1);saveV();renderVL();}
+function clearVocab(){if(confirm('全て削除しますか？')){vocabDB=[];saveV();renderVL();}}
+function exportVocab(){
+  const csv='word,role,japanese,english_def,wrong_count\n'+vocabDB.map(v=>`"${v.word}","${v.role}","${v.ja||''}","${v.en_def||''}",${v.forgotten||0}`).join('\n');
+  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download='vocab.csv'; a.click();
+}
+
+// ===== QUIZ =====
+function startQuiz(){if(!vocabDB.length)return;quizQ=[...vocabDB].sort(()=>Math.random()-.5);quizI=0;document.getElementById('quizArea').style.display='block';showQCard();}
+function showQCard(){
+  if(quizI>=quizQ.length){document.getElementById('quizArea').innerHTML=`<div class="quiz-card"><div class="qw">クイズ完了！</div><div class="qh">全${quizQ.length}問終了</div><button class="btn" style="width:100%;justify-content:center;margin-top:1rem" onclick="stopQuiz()">閉じる</button></div>`;return;}
+  const v=quizQ[quizI];
+  document.getElementById('qWord').textContent=v.word;
+  document.getElementById('qHint').textContent=(RJ[v.role]||v.role)+(v.isAWL?' · AWL':'');
+  document.getElementById('qAns').style.display='none'; document.getElementById('qBtns').style.display='none';
+  document.getElementById('qAns').textContent=(v.ja||'?')+' / '+(v.en_def||'?');
+  document.getElementById('qProg').textContent=(quizI+1)+' / '+quizQ.length;
+  document.getElementById('qBar').style.width=Math.round(quizI/quizQ.length*100)+'%';
+}
+function showAns(){document.getElementById('qAns').style.display='block';document.getElementById('qBtns').style.display='flex';}
+function qNext(knew){if(!knew){const o=vocabDB.find(w=>w.word===quizQ[quizI].word);if(o){o.forgotten=(o.forgotten||0)+1;saveV();}}quizI++;showQCard();}
+function stopQuiz(){document.getElementById('quizArea').style.display='none';renderVL();}
+
+// ===== AI CHECK =====
+async function runAICheck(){
+  const text=document.getElementById('inputText').value.trim(); if(!text)return;
+  document.getElementById('aiSection').style.display='block';
+  document.getElementById('aiResult').textContent='分析中...';
+  try{
+    const raw=await callAPI(`Analyze this English text:\n1. Grammar errors\n2. Style & clarity\n3. Vocabulary level\n4. AI detection\n5. Score (1-10)\n\nText: "${text}"`,1000);
+    document.getElementById('aiResult').textContent=raw;
+  }catch(e){document.getElementById('aiResult').textContent='エラー: '+e.message;}
+}
+
+// ===== TOOLS =====
+async function doCopyText(){
+  const t=document.getElementById('inputText').value.trim(); if(!t){alert('テキストを入力してください');return false;}
+  try{await navigator.clipboard.writeText(t);}catch{const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);}
+  return true;
+}
+function showMsg(txt){const m=document.getElementById('lsMsg');m.textContent=txt;m.style.display='block';setTimeout(()=>{m.style.display='none';},6000);}
+async function openTool(key){
+  const t=document.getElementById('inputText').value.trim(); if(!t){alert('テキストを入力してください');return;}
+  await doCopyText(); window.open(TOOL_URLS[key](t),'_blank');
+  if(key!=='rewordify')showMsg('コピー済み — 開いたタブで ⌘V / Ctrl+V で貼り付けてください');
+}
+async function launchAll(){
+  const t=document.getElementById('inputText').value.trim(); if(!t){alert('テキストを入力してください');return;}
+  await doCopyText(); let n=0;
+  for(const key of Object.keys(TOOL_URLS)){try{window.open(TOOL_URLS[key](t),'_blank');n++;await new Promise(r=>setTimeout(r,300));}catch{}}
+  showMsg(`${n}個のツールを開きました — 各タブで ⌘V / Ctrl+V で貼り付けてください`);
+}
+
+// ===== SERVICE WORKER =====
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+}
+
+// URLパラメータ処理（Stripe redirect後）
+const params = new URLSearchParams(window.location.search);
+if(params.get('success')){
+  setTimeout(()=>alert('サブスクリプションが有効になりました！'),500);
+  window.history.replaceState({},'','/');
+}
+</script>
+</body>
+</html>
