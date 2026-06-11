@@ -211,7 +211,37 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
 <div class="hdr">
   <div><div class="hdr-t">GrammarAI</div><div class="hdr-s">英文法アナライザー</div></div>
   <div style="display:flex;align-items:center;gap:8px">
+    <button id="aiToggleBtn" onclick="openKeyModal()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#f3f4f6;color:#6b7280;border-radius:8px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;cursor:pointer;white-space:nowrap"><i class="ti ti-sparkles" style="font-size:13px"></i> AI分析</button>
     <a href="https://www.buymeacoffee.com/" target="_blank" id="tipBtn" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#FFDD00;color:#000;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;border:none;cursor:pointer;white-space:nowrap" title="開発者にチップを送る">☕ チップを送る</a><button id="darkBtn" onclick="toggleDark()" style="background:none;border:1px solid var(--bd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:13px;color:var(--gr);display:flex;align-items:center;gap:5px"><i class="ti ti-moon" id="darkIcon"></i><span id="darkLabel">ダーク</span></button><span class="free-b">完全無料</span></div>
+</div>
+
+<!-- GEMINI KEY MODAL -->
+<div class="pop-bd" id="keyBD" onclick="closeKeyModal()"></div>
+<div class="pop-sh" id="keySH" style="max-height:70vh">
+  <div class="pop-h"></div>
+  <div style="font-size:17px;font-weight:700;margin-bottom:.5rem;display:flex;align-items:center;gap:8px"><i class="ti ti-sparkles" style="color:#1D9E75"></i> AI分析を有効にする</div>
+  <p style="font-size:13px;color:var(--gr);line-height:1.7;margin-bottom:1rem">Gemini APIキーを入力するとSVOC分析の精度が大幅に向上します。<br>キーはあなたのブラウザにのみ保存され、外部には送信されません。</p>
+  <div style="margin-bottom:.75rem">
+    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:.375rem">Gemini APIキー</label>
+    <input type="password" id="geminiKeyInput" placeholder="AIza..." style="width:100%;padding:10px 14px;border:1px solid var(--bd);border-radius:8px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--tx);outline:none">
+  </div>
+  <div style="margin-bottom:1rem;background:#f9fafb;border-radius:10px;padding:.875rem;border:1px solid var(--bd)">
+    <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:.5rem">📋 APIキーの取得方法（無料・5分）</div>
+    <ol style="font-size:12px;color:var(--gr);line-height:2;padding-left:1.25rem">
+      <li><a href="https://aistudio.google.com/apikey" target="_blank" style="color:#1D9E75;font-weight:500">aistudio.google.com</a> をクリックして開く</li>
+      <li>Googleアカウントでログイン</li>
+      <li>「<strong style="color:#374151">Get API key</strong>」→「<strong style="color:#374151">Create API key</strong>」をクリック</li>
+      <li>「Default Gemini Project」を選択 → 「<strong style="color:#374151">Create API key</strong>」</li>
+      <li>表示された <code style="background:#f3f4f6;padding:1px 5px;border-radius:4px;font-size:11px">AIza...</code> で始まるキーをコピー</li>
+      <li>上の入力欄に貼り付けて「保存」を押す</li>
+    </ol>
+    <div style="font-size:11px;color:#9ca3af;margin-top:.5rem">✅ 無料枠: 1日1,500回まで無料 &nbsp;·&nbsp; クレジットカード不要</div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-p" onclick="saveGeminiKey()" style="flex:1;justify-content:center"><i class="ti ti-check"></i> 保存してAI分析を有効化</button>
+    <button class="btn" onclick="clearGeminiKey()" style="color:#dc2626;border-color:#fca5a5"><i class="ti ti-trash"></i></button>
+  </div>
+  <div id="keyStatusMsg" style="font-size:13px;margin-top:.75rem;min-height:18px"></div>
 </div>
 <div class="app-layout">
 <div class="tabs">
@@ -745,57 +775,148 @@ function buildPhrases(sent){
 }
 
 function analyze(){
-  const text=document.getElementById("inputText").value.trim();if(!text)return;
-  const st=computeStats(text);
-  ["sw_","sc_","ss_","su_","sa_","sawl_"].forEach((id,i)=>{document.getElementById(id).textContent=[st.words,st.chars,st.sents,st.unique,st.avg,st.awl][i];});
-  document.getElementById("statsRow").style.display="grid";
-  document.getElementById("resultArea").style.display="block";
+  const text = document.getElementById('inputText').value.trim();
+  if(!text) return;
+  const st = computeStats(text);
+  ['sw_','sc_','ss_','su_','sa_','sawl_'].forEach((id,i) => {
+    document.getElementById(id).textContent = [st.words,st.chars,st.sents,st.unique,st.avg,st.awl][i];
+  });
+  document.getElementById('statsRow').style.display = 'grid';
+  document.getElementById('resultArea').style.display = 'block';
+  document.getElementById('cefrArea').style.display = 'none';
+  document.getElementById('sentences').innerHTML = '';
   renderCEFR(text);
-  const c=document.getElementById("sentences");c.innerHTML="";
-  parseSents(text).forEach((sent,si)=>{const{phrases,sentenceType}=buildPhrases(sent);addSent({phrases,sentenceType},si);});
+
+  // Flesch reading ease
+  const score = fleschScore(text);
+  if(score !== null){
+    const existing = document.getElementById('fleschCard');
+    if(existing) existing.remove();
+    const {label, color} = fleschLabel(score);
+    const card = document.createElement('div');
+    card.id = 'fleschCard'; card.className = 'card';
+    card.style.padding = '.875rem 1.25rem';
+    card.innerHTML = `<div class="sec-t" style="margin-bottom:6px"><i class="ti ti-gauge"></i> 読みやすさスコア（Flesch）</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:24px;font-weight:700;color:${color}">${score}</span>
+        <span style="font-size:13px;color:${color};font-weight:500">${label}</span>
+        <span style="font-size:12px;color:var(--gr)">（0=最難 / 100=最易）</span>
+      </div>
+      <div class="re-bar"><div class="re-fill" style="width:${score}%;background:${color}"></div></div>`;
+    const resultArea = document.getElementById('resultArea');
+    resultArea.parentNode.insertBefore(card, resultArea);
+  }
+
+  const sents = parseSents(text);
+
+  if(GEMINI_KEY){
+    // AI-powered analysis
+    analyzeWithAI(sents);
+  } else {
+    // Rule-based fallback
+    sents.forEach((sent, si) => {
+      const {phrases, sentenceType} = buildPhrases(sent);
+      addSent({phrases, sentenceType}, si);
+    });
+  }
+}
+
+async function analyzeWithAI(sents){
+  const c = document.getElementById('sentences');
+  const BATCH = 4;
+  const allResults = [];
+
+  for(let i = 0; i < sents.length; i += BATCH){
+    const batch = sents.slice(i, i + BATCH);
+    const ld = document.createElement('div');
+    ld.className = 'loading-msg';
+    ld.id = 'ld' + i;
+    ld.innerHTML = `<i class="ti ti-sparkles" style="color:#1D9E75"></i> AI が文 ${i+1}〜${Math.min(i+BATCH, sents.length)} を解析中...`;
+    c.appendChild(ld);
+
+    try{
+      const parsed = await analyzeWithGemini(batch);
+      document.getElementById('ld'+i)?.remove();
+
+      parsed.forEach((sent, j) => {
+        // Convert Gemini phrase format to our format
+        const phrases = (sent.phrases || []).map(p => ({
+          words: p.text.split(' ').filter(w => w.length > 0),
+          role: p.role,
+          text: p.text
+        }));
+        // Add punctuation from original sentence
+        const origSent = batch[j] || '';
+        const lastChar = origSent.trim().slice(-1);
+        if(['.','!','?',',',';',':'].includes(lastChar)){
+          phrases.push({words:[lastChar], role:'PUNCT'});
+        }
+        addSent({phrases, sentenceType: sent.sentenceType || 'SV'}, allResults.length + j);
+      });
+      allResults.push(...parsed);
+    } catch(e){
+      const ld = document.getElementById('ld'+i);
+      if(ld){
+        ld.className = 'err-msg';
+        ld.innerHTML = `<i class="ti ti-alert-circle"></i> 解析失敗: ${e.message}`;
+      }
+      // Fallback to rule-based for this batch
+      batch.forEach((sent, j) => {
+        const {phrases, sentenceType} = buildPhrases(sent);
+        addSent({phrases, sentenceType}, allResults.length + j);
+        allResults.push({sentenceType});
+      });
+    }
+  }
 }
 
 function addSent(sent,si){
-  const container=document.getElementById('sentences');
-  const block=document.createElement('div');block.className='sent-b';
-  const meta=document.createElement('div');meta.className='sent-m';
-  meta.innerHTML=`<span class="sent-n">文 ${si+1}</span><span class="stype">${STYPES[sent.sentenceType]||''}</span>`;
+  const container = document.getElementById('sentences');
+  const block = document.createElement('div'); block.className = 'sent-b';
+  const meta = document.createElement('div'); meta.className = 'sent-m';
+  meta.innerHTML = `<span class="sent-n">文 ${si+1}</span><span class="stype">${STYPES[sent.sentenceType]||''}</span>`;
   block.appendChild(meta);
-  const render=document.createElement('div');render.className='sent-r';
+  const render = document.createElement('div'); render.className = 'sent-r';
 
-  (sent.phrases||[]).forEach(phrase=>{
-    if(phrase.role==="PUNCT"){
-      const s=document.createElement('span');
-      s.textContent=phrase.words.join('');
-      s.style.color='#9ca3af';
+  (sent.phrases||[]).forEach(phrase => {
+    if(phrase.role === 'PUNCT'){
+      const s = document.createElement('span');
+      s.textContent = phrase.words ? phrase.words.join('') : phrase.text || '';
+      s.style.color = '#9ca3af';
       render.appendChild(s);
       return;
     }
-    const r=phrase.role.toUpperCase();
+    const r = phrase.role.toUpperCase();
+    // Support both words[] array and text string formats
+    const wordList = phrase.words && phrase.words.length > 0
+      ? phrase.words
+      : (phrase.text || '').split(' ').filter(w => w.length > 0);
+    if(!wordList.length) return;
 
-    // Wrap entire phrase in a colored underline container
-    const phraseSpan=document.createElement('span');
-    phraseSpan.className='phrase-wrap u'+r;
-    phraseSpan.style.display='inline';
+    // Check AWL
+    const hasAWL = wordList.some(w => AWL.has(w.toLowerCase().replace(/[^a-z]/g,'')));
 
-    // Render each word individually so each is clickable
-    phrase.words.forEach((word,wi)=>{
-      const isAWL=AWL.has(word.toLowerCase().replace(/[^a-z]/g,''));
-      const wordSpan=document.createElement('span');
-      wordSpan.className='word-clickable'+(isAWL?' awl':'');
-      // Show label only on last word of phrase
-      const isLast=(wi===phrase.words.length-1);
+    // Phrase wrapper with underline
+    const phraseSpan = document.createElement('span');
+    phraseSpan.className = 'phrase-wrap u' + r;
+
+    wordList.forEach((word, wi) => {
+      if(!word.trim()) return;
+      const isAWL = AWL.has(word.toLowerCase().replace(/[^a-z]/g,''));
+      const wordSpan = document.createElement('span');
+      wordSpan.className = 'word-clickable' + (isAWL ? ' awl' : '');
+      const isLast = (wi === wordList.length - 1);
       if(isLast){
-        wordSpan.innerHTML=word+`<span class="lb l${r}">${r}</span>`;
-      }else{
-        wordSpan.textContent=word;
+        wordSpan.innerHTML = word + `<span class="lb l${r}">${r}</span>`;
+      } else {
+        wordSpan.textContent = word;
       }
-      wordSpan.addEventListener('click',e=>{
+      wordSpan.addEventListener('click', e => {
         e.stopPropagation();
-        showP(e,word,r,isAWL);
+        showP(e, word, r, isAWL);
       });
       phraseSpan.appendChild(wordSpan);
-      if(wi<phrase.words.length-1){
+      if(wi < wordList.length - 1){
         phraseSpan.appendChild(document.createTextNode(' '));
       }
     });
@@ -803,7 +924,18 @@ function addSent(sent,si){
     render.appendChild(phraseSpan);
     render.appendChild(document.createTextNode(' '));
   });
-  block.appendChild(render);container.appendChild(block);
+
+  block.appendChild(render);
+  container.appendChild(block);
+
+  // Sentence feedback
+  const tips = sentFeedback(sent.phrases||[], sent.sentenceType, '');
+  if(tips.length > 0){
+    const fb = document.createElement('div');
+    fb.className = 'sent-fb';
+    fb.textContent = tips[0];
+    block.appendChild(fb);
+  }
 }
 
 // POPUP & DICTIONARY
@@ -954,8 +1086,7 @@ let histDB=JSON.parse(localStorage.getItem('ga_hist')||'[]');
 function saveSnapshot(){
   const text=document.getElementById('inputText').value.trim();
   if(!text){alert('テキストを入力してください');return;}
-  // Ask for a title
-  const title=prompt('この分析にタイトルをつけてください（省略可）','') ;
+  const title = new Date().toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) + ' — ' + text.slice(0,20).replace(/\n/g,' ');
   const st=computeStats(text);
   const snap={
     id:Date.now(),
@@ -1100,25 +1231,8 @@ function sentFeedback(phrases,sentType,text){
 }
 
 // Override addSent to include feedback + reading ease display
-const _origAnalyze=analyze;
-analyze=function(){
-  _origAnalyze();
-  // Add reading ease after result
-  const text=document.getElementById('inputText').value.trim();
-  if(!text)return;
-  const score=fleschScore(text);
-  if(score!==null){
-    const{label,color}=fleschLabel(score);
-    const existing=document.getElementById('fleschCard');
-    if(existing)existing.remove();
-    const card=document.createElement('div');
-    card.id='fleschCard';
-    card.className='card';
-    card.style.padding='.875rem 1.25rem';
-    card.innerHTML=`<div class="sec-t" style="margin-bottom:6px"><i class="ti ti-gauge"></i> 読みやすさスコア（Flesch）</div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span style="font-size:24px;font-weight:700;color:${color}">${score}</span>
-        <span style="font-size:13px;color:${color};font-weight:500">${label}</span>
+// Flesch is now called inside analyze directly
+font-weight:500">${label}</span>
         <span style="font-size:12px;color:var(--gr)">（0=最難 / 100=最易）</span>
       </div>
       <div class="re-bar"><div class="re-fill" style="width:${score}%;background:${color}"></div></div>`;
@@ -1127,21 +1241,7 @@ analyze=function(){
   }
 };
 
-// Override addSent to add feedback
-const _origAddSent=addSent;
-addSent=function(sent,si){
-  _origAddSent(sent,si);
-  const blocks=document.getElementById('sentences').querySelectorAll('.sent-b');
-  const block=blocks[blocks.length-1];
-  if(!block)return;
-  const tips=sentFeedback(sent.phrases||[],sent.sentenceType,'');
-  if(tips.length>0){
-    const fb=document.createElement('div');
-    fb.className='sent-fb';
-    fb.textContent=tips[0];
-    block.appendChild(fb);
-  }
-};
+// Sentence feedback is now built into addSent
 
 // ===== ENHANCED POPUP (pronunciation + word level + AWL suggestion + collocations) =====
 const _origFetchDict=fetchDict;
@@ -1194,6 +1294,120 @@ fetchDict=async function(word){
     }
   }catch{}
 };
+
+
+// ===== GEMINI API =====
+let GEMINI_KEY = localStorage.getItem('ga_gemini_key') || '';
+
+function openKeyModal(){
+  document.getElementById('geminiKeyInput').value = GEMINI_KEY ? '********' : '';
+  document.getElementById('keyStatusMsg').textContent = GEMINI_KEY ? '✅ AIキーが設定されています' : '';
+  document.getElementById('keyStatusMsg').style.color = '#1D9E75';
+  document.getElementById('keyBD').classList.add('show');
+  document.getElementById('keySH').classList.add('show');
+}
+function closeKeyModal(){
+  document.getElementById('keyBD').classList.remove('show');
+  document.getElementById('keySH').classList.remove('show');
+}
+function saveGeminiKey(){
+  const k = document.getElementById('geminiKeyInput').value.trim();
+  if(!k || k === '********'){
+    document.getElementById('keyStatusMsg').textContent = 'APIキーを入力してください';
+    document.getElementById('keyStatusMsg').style.color = '#dc2626';
+    return;
+  }
+  GEMINI_KEY = k;
+  localStorage.setItem('ga_gemini_key', k);
+  updateAIBtn();
+  document.getElementById('keyStatusMsg').textContent = '✅ 保存しました！AI分析が有効になりました';
+  document.getElementById('keyStatusMsg').style.color = '#1D9E75';
+  setTimeout(closeKeyModal, 1500);
+}
+function clearGeminiKey(){
+  if(!confirm('AIキーを削除しますか？'))return;
+  GEMINI_KEY = '';
+  localStorage.removeItem('ga_gemini_key');
+  document.getElementById('geminiKeyInput').value = '';
+  document.getElementById('keyStatusMsg').textContent = 'キーを削除しました';
+  document.getElementById('keyStatusMsg').style.color = '#6b7280';
+  updateAIBtn();
+}
+function updateAIBtn(){
+  const btn = document.getElementById('aiToggleBtn');
+  if(GEMINI_KEY){
+    btn.style.background = '#E1F5EE';
+    btn.style.color = '#085041';
+    btn.style.borderColor = '#1D9E75';
+    btn.innerHTML = '<i class="ti ti-sparkles" style="font-size:13px;color:#1D9E75"></i> AI分析 ON';
+  } else {
+    btn.style.background = '#f3f4f6';
+    btn.style.color = '#6b7280';
+    btn.style.borderColor = '#e5e7eb';
+    btn.innerHTML = '<i class="ti ti-sparkles" style="font-size:13px"></i> AI分析';
+  }
+}
+updateAIBtn();
+
+async function callGemini(prompt){
+  const r = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
+    {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        contents: [{parts: [{text: prompt}]}],
+        generationConfig: {temperature: 0.1, maxOutputTokens: 2048}
+      })
+    }
+  );
+  if(!r.ok) throw new Error('Gemini API error: ' + r.status);
+  const d = await r.json();
+  return d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+function extractJSON(raw){
+  // Try to find JSON array
+  let s = raw.indexOf('['), e = raw.lastIndexOf(']');
+  if(s !== -1 && e > s) return JSON.parse(raw.slice(s, e+1));
+  // Try JSON object
+  s = raw.indexOf('{'); e = raw.lastIndexOf('}');
+  if(s !== -1 && e > s) return JSON.parse(raw.slice(s, e+1));
+  throw new Error('JSON not found');
+}
+
+async function analyzeWithGemini(sentences){
+  const prompt = `You are an English grammar expert. Analyze each sentence and identify SVOC+M phrase groups.
+
+Return ONLY a valid JSON array. Each sentence should have:
+- "sentence": the original sentence
+- "sentenceType": one of SV, SVC, SVO, SVOO, SVOC
+- "phrases": array of phrase objects with "text" (the phrase) and "role" (S, V, O, C, or M)
+
+Example:
+[{
+  "sentence": "This paper contributes to debate on social constructionism.",
+  "sentenceType": "SVO",
+  "phrases": [
+    {"text": "This paper", "role": "S"},
+    {"text": "contributes", "role": "V"},
+    {"text": "to debate on social constructionism", "role": "M"}
+  ]
+}]
+
+Rules:
+- Group words into meaningful phrases (noun phrases, verb phrases, prepositional phrases)
+- S = subject (noun phrase), V = verb (verb phrase including auxiliaries), O = object (noun phrase), C = complement (adjective/noun after linking verb), M = modifier (prepositional phrases, adverbial phrases, adjectives before nouns)
+- "to + verb phrase" constructions are usually M
+- Prepositional phrases (in/on/at/through/by/for...) are M
+- Start response with [
+
+Sentences to analyze:
+${sentences.map((s,i) => `${i+1}. ${s.trim()}`).join('\n')}`;
+
+  const raw = await callGemini(prompt);
+  return extractJSON(raw);
+}
 
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 </script>
