@@ -495,7 +495,7 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
       </button>
     </div>
 
-</div></div>
+</div></div></div>
 
 <!-- ABOUT -->
 <div class="panel" id="panel-about"><div class="body">
@@ -2164,7 +2164,23 @@ function showQC(){
 }
 function showAns(){document.getElementById("qA").style.display="block";document.getElementById("qBs").style.display="flex";}
 function qN(ok){updateProgress('quizTotal');if(ok)updateProgress('quizCorrect');if(!ok){const o=vDB.find(w=>w.word===qQ[qI].word);if(o){o.forgotten=(o.forgotten||0)+1;saveV();}}qI++;showQC();}
-function stopQ(){document.getElementById("quizArea").style.display="none";renderVL();}
+function stopQ(){
+  const qa = document.getElementById("quizArea");
+  qa.style.display="none";
+  // Restore quiz HTML structure
+  qa.innerHTML = `<div class="qcard">
+    <div class="qprog"><div class="qbar" id="qBar"></div></div>
+    <div class="qp" id="qP"></div>
+    <div class="qw" id="qW">—</div><div class="qh" id="qH"></div>
+    <button class="btn" onclick="showAns()"><i class="ti ti-eye"></i> 答えを見る</button>
+    <div class="qa" id="qA"></div>
+    <div class="qbtns" id="qBs" style="display:none">
+      <button class="btn btn-danger" onclick="qN(false)"><i class="ti ti-x"></i> まだ</button>
+      <button class="btn btn-p" onclick="qN(true)"><i class="ti ti-check"></i> 覚えた</button>
+    </div>
+  </div>`;
+  renderVL();
+}
 
 // TOOLS
 async function doCopy(){
@@ -2507,21 +2523,12 @@ function shareVocabURL(){
     alert('単語帳が空です。単語を追加してから共有してください。');
     return;
   }
-  // Compress vocab data to URL-safe base64
-  try{
-    const data = JSON.stringify(vDB);
-    const encoded = btoa(encodeURIComponent(data));
-    const baseURL = window.location.origin + window.location.pathname;
-    currentShareURL = baseURL + '?vocab=' + encoded;
-    document.getElementById('shareURLDisplay').textContent = currentShareURL;
-  }catch(e){
-    // If data too large, only share word list
-    const simple = vDB.map(v=>({word:v.word,role:v.role,ja:v.ja,en_def:v.en_def}));
-    const encoded = btoa(encodeURIComponent(JSON.stringify(simple)));
-    const baseURL = window.location.origin + window.location.pathname;
-    currentShareURL = baseURL + '?vocab=' + encoded;
-    document.getElementById('shareURLDisplay').textContent = currentShareURL;
-  }
+  // Only share essential data to keep URL short
+  const slim = vDB.map(v=>({w:v.word,r:v.role,j:v.ja||''}));
+  const encoded = btoa(encodeURIComponent(JSON.stringify(slim)));
+  const baseURL = window.location.origin + window.location.pathname;
+  currentShareURL = baseURL + '?vocab=' + encoded;
+  document.getElementById('shareURLDisplay').textContent = currentShareURL;
   document.getElementById('shareBD').classList.add('show');
   document.getElementById('shareSH').classList.add('show');
 }
@@ -2579,7 +2586,11 @@ function loadVocabFromURL(){
   if(!vocabParam) return;
 
   try{
-    const data = JSON.parse(decodeURIComponent(atob(vocabParam)));
+    let rawData;
+    try{ rawData = JSON.parse(decodeURIComponent(atob(vocabParam))); }
+    catch(e){ rawData = []; }
+    // Handle both old format {word,role,ja} and new slim format {w,r,j}
+    const data = rawData.map(v => v.w ? {word:v.w,role:v.r||'M',ja:v.j||'',en_def:'',isAWL:AWL.has((v.w||'').toLowerCase()),added:Date.now(),forgotten:0} : v);
     if(!Array.isArray(data) || data.length === 0) return;
 
     // Show confirmation before importing
@@ -2987,36 +2998,68 @@ function closeTTS(){
   document.getElementById('ttsSH').classList.remove('show');
 }
 
+var ttsSentences = [];
+var ttsSentIdx = 0;
+var ttsIsPaused = false;
+
+function ttsSplitSentences(text){
+  return text.match(/[^.!?]+[.!?]+/g) || [text];
+}
+
 function ttsPlay(){
   var text = document.getElementById('inputText').value.trim();
   if(!text) return;
+  if(ttsIsPaused){ ttsSynth.resume(); ttsIsPaused = false; ttsPauseBtn('pause'); return; }
   ttsStop();
-  var utt = new SpeechSynthesisUtterance(text);
+  ttsSentences = ttsSplitSentences(text);
+  ttsSentIdx = 0;
+  ttsPlayNext();
+}
+
+function ttsPlayNext(){
+  if(ttsSentIdx >= ttsSentences.length){ ttsStop(); return; }
+  var sent = ttsSentences[ttsSentIdx].trim();
+  if(!sent){ ttsSentIdx++; ttsPlayNext(); return; }
+  var utt = new SpeechSynthesisUtterance(sent);
   utt.rate = parseFloat(document.getElementById('ttsRate').value);
   var idx = document.getElementById('ttsVoice').value;
   if(ttsVoiceList[idx]) utt.voice = ttsVoiceList[idx];
-  utt.onstart = function(){
-    document.getElementById('ttsProgress').style.display = 'block';
-    document.getElementById('ttsPlayBtn').innerHTML = '<i class="ti ti-volume"></i> 再生中...';
-  };
-  utt.onend = utt.onerror = function(){
-    document.getElementById('ttsProgress').style.display = 'none';
-    document.getElementById('ttsPlayBtn').innerHTML = '<i class="ti ti-player-play"></i> 再生';
-  };
+  var total = ttsSentences.length;
+  var cur = ttsSentIdx + 1;
+  document.getElementById('ttsProgress').style.display = 'block';
+  document.getElementById('ttsProgress').innerHTML = '<i class="ti ti-volume"></i> 文 ' + cur + ' / ' + total + ': ' + sent.slice(0,40) + (sent.length>40?'...':'');
+  document.getElementById('ttsPlayBtn').innerHTML = '<i class="ti ti-volume"></i> 再生中 (' + cur + '/' + total + ')';
+  utt.onend = function(){ if(!ttsIsPaused){ ttsSentIdx++; ttsPlayNext(); } };
+  utt.onerror = function(){ ttsSentIdx++; ttsPlayNext(); };
   ttsSynth.speak(utt);
 }
 
 function ttsPause(){
-  if(ttsSynth.speaking && !ttsSynth.paused) ttsSynth.pause();
-  else if(ttsSynth.paused) ttsSynth.resume();
+  if(ttsSynth.speaking && !ttsSynth.paused){
+    ttsSynth.pause(); ttsIsPaused = true;
+    document.getElementById('ttsPlayBtn').innerHTML = '<i class="ti ti-player-play"></i> 再開';
+  } else if(ttsSynth.paused || ttsIsPaused){
+    ttsSynth.resume(); ttsIsPaused = false;
+    document.getElementById('ttsPlayBtn').innerHTML = '<i class="ti ti-volume"></i> 再生中...';
+    ttsPlayNext();
+  }
 }
 
+function ttsPauseBtn(mode){}
+
 function ttsStop(){
-  ttsSynth.cancel();
+  ttsSynth.cancel(); ttsIsPaused = false; ttsSentIdx = 0;
   var p = document.getElementById('ttsProgress');
-  if(p) p.style.display = 'none';
+  if(p){ p.style.display = 'none'; p.innerHTML = '<i class="ti ti-loader"></i> 読み上げ中...'; }
   var b = document.getElementById('ttsPlayBtn');
   if(b) b.innerHTML = '<i class="ti ti-player-play"></i> 再生';
+}
+
+function ttsPlaySentence(idx){
+  ttsStop();
+  ttsSentences = ttsSplitSentences(document.getElementById('inputText').value.trim());
+  ttsSentIdx = idx;
+  ttsPlayNext();
 }
 
 if(ttsSynth.onvoiceschanged !== undefined) ttsSynth.onvoiceschanged = loadTTSVoices;
