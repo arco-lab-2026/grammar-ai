@@ -1840,6 +1840,8 @@ function showPOSWithPrompt(sents, text){
   });
 }
 
+const nlpPOSCache = {};
+
 function getPOS(word){
   // Use compromise.js if available for better accuracy
   if(typeof nlp !== 'undefined'){
@@ -1859,8 +1861,6 @@ function getPOS(word){
   }
   return getPOSFallback(word);
 }
-
-const nlpPOSCache = {};
 
 function getPOSFallback(word){
   const wl = word.toLowerCase();
