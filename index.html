@@ -1992,16 +1992,49 @@ async function fetchDict(word){
     if(!r.ok)throw new Error();
     const data=await r.json();
     const meaning=data[0]?.meanings?.[0];const def=meaning?.definitions?.[0];
-    const en_def=def?.definition||"";const en_ex=def?.example||"";
-    const phonetic=data[0]?.phonetic||data[0]?.phonetics?.find(p=>p.text)?.text||"";
+    const en_def=def?.definition||'';const en_ex=def?.example||'';
+    const phonetic=data[0]?.phonetic||data[0]?.phonetics?.find(p=>p.text)?.text||'';
+    const audioUrl=data[0]?.phonetics?.find(p=>p.audio&&p.audio.length>0)?.audio||'';
     if(curP){curP.en_def=en_def;curP.en_ex=en_ex;curP.phonetic=phonetic;}
-    if(xl==="en"){document.getElementById("pDef").textContent=en_def||"—";document.getElementById("pEx").textContent=en_ex||phonetic;}
-    else await fetchJA(word,en_def,en_ex);
+    curPronUrl=audioUrl;
+    // Show phonetic
+    const pPhEl=document.getElementById('pPhonetic');
+    const pPhTxt=document.getElementById('pPhoneticTxt');
+    if(pPhEl&&(phonetic||audioUrl)){
+      if(pPhTxt) pPhTxt.textContent=phonetic;
+      pPhEl.style.display='flex';pPhEl.style.alignItems='center';pPhEl.style.gap='6px';
+    }
+    // Word level badge
+    const lv=wordLevel(word);
+    const pwBadgeEl=document.getElementById('pwBadge');
+    if(pwBadgeEl){
+      pwBadgeEl.innerHTML='';
+      if(lv){const badge=document.createElement('span');badge.className='word-level '+lv.cls;badge.textContent=lv.label;pwBadgeEl.appendChild(badge);}
+    }
+    // AWL suggestion
+    const sug=awlSuggestion(word);
+    const oldSug=document.getElementById('awlSuggestBox');
+    if(oldSug)oldSug.remove();
+    if(sug){
+      const box=document.createElement('div');box.id='awlSuggestBox';box.className='awl-suggest';
+      box.innerHTML='<i class="ti ti-bulb" style="font-size:12px"></i> より学術的: '+sug;
+      const pDefEl=document.getElementById('pDef');
+      if(pDefEl) pDefEl.parentNode.insertBefore(box,pDefEl.nextSibling);
+    }
+    // Show definition
+    if(xl==='en'){
+      document.getElementById('pDef').textContent=en_def||'—';
+      document.getElementById('pEx').textContent=en_ex||(phonetic?`発音: ${phonetic}`:'');
+    } else {
+      await fetchJA(word,en_def,en_ex);
+    }
   }catch{
-    document.getElementById("pDef").textContent="定義が見つかりませんでした";document.getElementById("pEx").textContent="";
-    if(curP)curP.en_def="Not found";
+    document.getElementById('pDef').textContent='定義が見つかりませんでした';
+    document.getElementById('pEx').textContent='';
+    if(curP)curP.en_def='Not found';
   }
 }
+
 async function fetchJA(word,en_def,en_ex){
   try{
     const r=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|ja`);
@@ -2028,7 +2061,7 @@ function toggleBM(){
   saveV();
 }
 function closeP(){document.getElementById("popBD").classList.remove("show");document.getElementById("popSH").classList.remove("show");}
-document.addEventListener("click",e=>{if(document.getElementById("popSH").classList.contains("show")&&!document.getElementById("popSH").contains(e.target)&&!e.target.closest(".tok"))closeP();});
+document.addEventListener("click",e=>{if(document.getElementById("popSH").classList.contains("show")&&!document.getElementById("popSH").contains(e.target)&&!e.target.closest(".tok")&&!e.target.closest(".word-clickable"))closeP();});
 
 // VOCAB
 function renderVL(){
@@ -2271,24 +2304,7 @@ function sentFeedback(phrases,sentType,text){
 // Sentence feedback is now built into addSent
 
 // ===== ENHANCED POPUP (pronunciation + word level + AWL suggestion + collocations) =====
-const _origFetchDict=fetchDict;
-fetchDict=async function(word){
-  await _origFetchDict(word);
-  // Word level badge
-  const lv=wordLevel(word);
-  const pwBadgeEl=document.getElementById('pwBadge');
-  pwBadgeEl.innerHTML="";
-  if(lv){const badge=document.createElement('span');badge.className='word-level '+lv.cls;badge.textContent=lv.label;pwBadgeEl.appendChild(badge);}
-  // AWL replacement suggestion
-  const sug=awlSuggestion(word);
-  const sugEl=document.getElementById('awlSuggestBox');
-  if(sugEl)sugEl.remove();
-  if(sug){
-    const box=document.createElement('div');box.id='awlSuggestBox';box.className='awl-suggest';
-    box.innerHTML='<i class="ti ti-bulb" style="font-size:12px"></i> より学術的: '+sug;
-    document.getElementById('pDef').parentNode.insertBefore(box,document.getElementById('pDef').nextSibling);
-  }
-};
+
 
 // Enhance showP to show phonetic
 const _origShowP=showP;
@@ -2298,29 +2314,7 @@ showP=function(e,word,role,isAWL){
   _origShowP(e,word,role,isAWL);
 };
 
-const _origFetchDictInner=window.fetchDict;
-const __origFetchDict=fetchDict;
-fetchDict=async function(word){
-  await __origFetchDict(word);
-  // Get pronunciation URL
-  try{
-    const r=await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(word));
-    if(r.ok){
-      const data=await r.json();
-      const phonetic=data[0]?.phonetics?.find(p=>p.audio&&p.audio.length>0);
-      if(phonetic){
-        curPronUrl=phonetic.audio;
-        const txt=data[0]?.phonetic||data[0]?.phonetics?.find(p=>p.text)?.text||'';
-        if(txt||curPronUrl){
-          document.getElementById('pPhoneticTxt').textContent=txt;
-          document.getElementById('pPhonetic').style.display='flex';
-          document.getElementById('pPhonetic').style.alignItems='center';
-          document.getElementById('pPhonetic').style.gap='6px';
-        }
-      }
-    }
-  }catch{}
-};
+
 
 
 // ===== GEMINI API =====
@@ -2706,57 +2700,82 @@ function highlightPhrasalVerbs(text){
 function showSlashReading(){
   const text = document.getElementById('inputText').value.trim();
   if(!text){ alert(currentLang==='en'?'Please enter text first.':'テキストを入力してください'); return; }
-
   const existing = document.getElementById('slashArea');
   if(existing){ existing.remove(); return; }
 
   const sents = parseSents(text);
-  const slashHTML = sents.map(sent => {
-    // Split into chunks using compromise if available, else simple split
-    const chunks = slashSplit(sent);
-    return chunks.join(' <span style="color:#1D9E75;font-weight:700">/</span> ');
-  }).join('<br><br>');
-
   const area = document.createElement('div');
   area.id = 'slashArea';
   area.className = 'card';
   area.style.marginBottom = '.875rem';
-  area.innerHTML = `
-    <div class="sec-t" style="margin-bottom:.75rem">
+
+  const header = document.createElement('div');
+  header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem';
+  header.innerHTML = `
+    <div class="sec-t" style="margin-bottom:0">
       <i class="ti ti-git-branch"></i>
-      <span>${t('slashTitle')}</span>
-      <button onclick="document.getElementById('slashArea').remove()" class="btn btn-sm" style="margin-left:auto;padding:2px 8px">✕</button>
+      <span data-i18n="slashTitle">${(typeof t==='function'?t('slashTitle'):'')||'スラッシュリーディング + 品詞'}</span>
     </div>
-    <div style="font-size:14px;color:var(--gr);margin-bottom:.75rem">${t('slashDesc')}</div>
-    <div style="font-size:17px;line-height:2.5">${slashHTML}</div>`;
+    <button onclick="document.getElementById('slashArea').remove()" class="btn btn-sm" style="padding:2px 8px">✕</button>`;
+  area.appendChild(header);
+
+  const desc = document.createElement('div');
+  desc.style.cssText = 'font-size:13px;color:var(--gr);margin-bottom:.875rem';
+  desc.textContent = (typeof t==='function'?t('slashDesc'):'')||'フレーズごとに / で区切り・品詞タグを同時表示';
+  area.appendChild(desc);
+
+  // Render each sentence with BOTH slash marks AND POS tags
+  sents.forEach((sent, si) => {
+    const sentDiv = document.createElement('div');
+    sentDiv.style.cssText = 'margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid #f3f4f6;font-size:16px;line-height:3';
+    sentDiv.style.overflowX = 'auto';
+
+    const chunks = slashSplit(sent);
+    chunks.forEach((chunk, ci) => {
+      // Render each word in chunk with POS tag
+      const words = chunk.match(/([a-zA-Z']+)|([^a-zA-Z'\s]+)/g) || [];
+      words.forEach((word, wi) => {
+        if(!/[a-zA-Z]/.test(word)){
+          const p = document.createElement('span');
+          p.textContent = word; p.style.color = '#9ca3af';
+          sentDiv.appendChild(p);
+          return;
+        }
+        const pos = (typeof getPOS === 'function') ? getPOS(word) : {label:'名詞',color:'#1D9E75'};
+        const isAWL = AWL.has(word.toLowerCase().replace(/[^a-z]/g,''));
+        const span = document.createElement('span');
+        span.className = 'word-clickable' + (isAWL?' awl':'');
+        span.style.cssText = `display:inline-block;cursor:pointer;margin:0 1px;padding:2px 1px;border-bottom:2px solid ${pos.color}`;
+        span.innerHTML = word + `<span style="display:block;font-size:9px;font-weight:600;text-align:center;color:${pos.color};line-height:1;margin-top:1px">${pos.label}</span>`;
+        span.addEventListener('click', (function(w,isA){return function(e){showP(e,w,'M',isA);};})(word,isAWL));
+        sentDiv.appendChild(span);
+        if(wi < words.length-1) sentDiv.appendChild(document.createTextNode(' '));
+      });
+
+      // Add slash between chunks (not after last)
+      if(ci < chunks.length-1){
+        const slash = document.createElement('span');
+        slash.style.cssText = 'color:#1D9E75;font-weight:700;margin:0 4px;font-size:18px';
+        slash.textContent = '/';
+        sentDiv.appendChild(slash);
+      }
+    });
+
+    // Add period/ending punctuation
+    const lastChar = sent.trim().slice(-1);
+    if(['.','!','?'].includes(lastChar)){
+      const p = document.createElement('span');
+      p.textContent = lastChar; p.style.color = '#9ca3af';
+      sentDiv.appendChild(p);
+    }
+
+    area.appendChild(sentDiv);
+  });
 
   const resultArea = document.getElementById('resultArea');
   resultArea.parentNode.insertBefore(area, resultArea);
   area.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
-
-function slashSplit(sent){
-  // Split on prepositions, conjunctions, and phrase boundaries
-  const words = sent.trim().split(/\s+/);
-  const chunks = [];
-  let current = [];
-  const SPLIT_WORDS = new Set(['in','on','at','to','for','with','by','from','of','about','as','into','through','during','before','after','above','below','between','among','under','over','near','around','along','across','within','without','despite','towards','toward','upon','that','which','who','when','where','while','although','because','since','unless','until','if','though','whereas','however','therefore','and','but','or','nor','so']);
-
-  for(let i=0; i<words.length; i++){
-    const wl = words[i].toLowerCase().replace(/[^a-z]/g,'');
-    current.push(words[i]);
-    // Split before prepositions/conjunctions (but not at start)
-    if(current.length >= 2 && SPLIT_WORDS.has(wl) && i < words.length-1){
-      // Pop the current word, save chunk, start new with it
-      current.pop();
-      if(current.length > 0) chunks.push(current.join(' '));
-      current = [words[i]];
-    }
-  }
-  if(current.length > 0) chunks.push(current.join(' '));
-  return chunks.filter(c=>c.trim().length>0);
-}
-
 // Phrasal verb popup
 function showPVPopup(e, pv, meaning){
   e.stopPropagation();
