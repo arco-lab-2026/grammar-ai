@@ -14,7 +14,6 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/compromise@14.14.2/builds/compromise.min.js"></script>
 <style>
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -334,10 +333,11 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
   </div>
   <div class="btn-row">
     <button class="btn btn-p" onclick="analyze()"><i class="ti ti-search"></i> Analyze</button>
+    <button class="btn" onclick="showSlashReading()" style="background:#e0f2fe;color:#0369a1;border-color:#7dd3fc"><i class="ti ti-git-branch"></i> スラッシュ表示</button>
+    <button class="btn" onclick="toggleTTS()" id="ttsBtn" style="background:#f0fdf9;color:#065f46;border-color:#6ee7b7" title="読み上げ"><i class="ti ti-volume"></i> 読み上げ</button>
     <button class="btn" onclick="clearAll()"><i class="ti ti-x"></i> Clear</button>
     <button class="btn" onclick="saveSnapshot()"><i class="ti ti-camera"></i> 保存</button>
     <button class="btn" onclick="showHistory()"><i class="ti ti-history"></i> 履歴</button>
-    <button class="btn" onclick="showSlashReading()" style="background:#e0f2fe;color:#0369a1;border-color:#7dd3fc"><i class="ti ti-git-branch"></i> スラッシュ表示</button>
   </div>
   <div class="stats" id="statsRow" style="display:none">
     <div class="sc"><div class="sl" data-i18n="statsWords">Words</div><div class="sv" id="sw_"></div></div>
@@ -601,9 +601,12 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
 <div class="pop-bd" id="histBD" onclick="closeHistory()"></div>
 <div class="pop-sh" id="histSH" style="max-height:85vh;overflow-y:auto;width:min(600px,95vw)">
   <div class="pop-h"></div>
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;flex-wrap:wrap;gap:8px">
     <div style="font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px"><i class="ti ti-history"></i> 分析履歴</div>
     <button class="btn btn-sm" onclick="clearAllHistory()" style="color:#dc2626;border-color:#fca5a5"><i class="ti ti-trash"></i> 全消去</button>
+  </div>
+  <div style="font-size:12px;color:#9ca3af;margin-bottom:.875rem;padding:6px 10px;background:#f9fafb;border-radius:8px">
+    <i class="ti ti-info-circle" style="font-size:11px"></i> 最大50件まで保存。超えると古いものから自動削除されます。ブラウザのデータを消去すると全て削除されます。
   </div>
   <div style="margin-bottom:.875rem;position:relative">
     <i class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:16px"></i>
@@ -640,6 +643,47 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
     <button class="btn" onclick="clearGeminiKey()" style="color:#dc2626;border-color:#fca5a5"><i class="ti ti-trash"></i></button>
   </div>
   <div id="keyStatusMsg" style="font-size:13px;margin-top:.75rem;min-height:18px"></div>
+</div>
+
+
+<!-- TTS MODAL -->
+<div class="pop-bd" id="ttsBD" onclick="closeTTS()"></div>
+<div class="pop-sh" id="ttsSH" style="max-height:80vh">
+  <div class="pop-h"></div>
+  <div style="font-size:17px;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:8px">
+    <i class="ti ti-volume" style="color:#1D9E75"></i> 読み上げ（Text to Speech）
+  </div>
+  <!-- Controls -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap">
+    <button id="ttsPlayBtn" onclick="ttsPlay()" class="btn btn-p" style="flex:1;justify-content:center;min-width:100px">
+      <i class="ti ti-player-play"></i> 再生
+    </button>
+    <button onclick="ttsPause()" class="btn" style="flex:1;justify-content:center;min-width:80px">
+      <i class="ti ti-player-pause"></i> 一時停止
+    </button>
+    <button onclick="ttsStop()" class="btn btn-danger" style="flex:1;justify-content:center;min-width:80px">
+      <i class="ti ti-player-stop"></i> 停止
+    </button>
+  </div>
+  <!-- Speed -->
+  <div style="margin-bottom:1rem">
+    <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:.375rem">速度 <span id="ttsRateLabel">1.0×</span></div>
+    <input type="range" id="ttsRate" min="0.5" max="2" step="0.1" value="1"
+      oninput="document.getElementById('ttsRateLabel').textContent=parseFloat(this.value).toFixed(1)+'×'"
+      style="width:100%;accent-color:#1D9E75">
+  </div>
+  <!-- Voice -->
+  <div style="margin-bottom:1rem">
+    <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:.375rem">音声</div>
+    <select id="ttsVoice" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--tx)"></select>
+  </div>
+  <!-- Progress -->
+  <div id="ttsProgress" style="font-size:12px;color:var(--gr);padding:6px 10px;background:#f9fafb;border-radius:8px;display:none">
+    <i class="ti ti-loader" style="font-size:11px"></i> 読み上げ中...
+  </div>
+  <div style="font-size:11px;color:#9ca3af;margin-top:.75rem">
+    ※ ブラウザの音声合成（Web Speech API）を使用します。音声はデバイスにより異なります。
+  </div>
 </div>
 
 <!-- POPUP -->
@@ -1066,6 +1110,14 @@ const I18N_EXT = {
     dev_title: 'From the developer',
     dev_msg: 'This app was made to help students and researchers write better academic English. Completely free to use.',
     dev_tip: 'If this app helped you, I\'d love your support ☕',
+    toolGrammarlyDesc: 'Checks grammar and spelling in real time. Best for final checks before submission.',
+    toolRewordifyDesc: 'Simplifies difficult words automatically. Text is auto-filled from GrammarAI.',
+    toolVocabProfileDesc: 'Classifies vocabulary by frequency level (K1/K2/AWL). Shows academic vocabulary percentage.',
+    toolAWLDesc: 'Reference for the Academic Word List (570 words). Use with GrammarAI AWL highlighting.',
+    toolAnalyzeMyWritingDesc: 'Statistical analysis of readability, vocabulary level, and sentence structure.',
+    toolPaperRaterDesc: 'Auto-scores essays on grammar, vocabulary, structure, and originality.',
+    toolGPTZeroDesc: 'Detects whether text was written by AI or a human.',
+    toolChatPDFDesc: 'Upload a PDF and ask questions about it. Great for literature reviews.',
   },
   zh: {
     heroTitle: '可视化英语学术写作语法',
@@ -1147,6 +1199,14 @@ const I18N_EXT = {
     dev_title: '开发者寄语',
     dev_msg: '这个应用是为了帮助学生和研究者更好地写英语学术文章而开发的。完全免费使用。',
     dev_tip: '如果这个应用对您有帮助，欢迎支持开发者 ☕',
+    toolGrammarlyDesc: '实时检查语法和拼写，提交前最终检查的标准工具。',
+    toolRewordifyDesc: '自动简化难词，文本从GrammarAI自动填充。',
+    toolVocabProfileDesc: '按频率级别分类词汇，显示学术词汇占比。',
+    toolAWLDesc: '学术词汇表（570词）参考页面，与GrammarAI的AWL功能配合使用。',
+    toolAnalyzeMyWritingDesc: '对可读性、词汇水平和句子结构进行统计分析。',
+    toolPaperRaterDesc: '从语法、词汇、结构和原创性等方面自动评分论文。',
+    toolGPTZeroDesc: '检测文本是否由AI写成。',
+    toolChatPDFDesc: '上传PDF并与AI对话，快速理解论文内容。',
   },
   es: {
     heroTitle: 'Visualiza la gramática del inglés académico',
@@ -1228,6 +1288,14 @@ const I18N_EXT = {
     dev_title: 'Del desarrollador',
     dev_msg: 'Esta app fue creada para ayudar a estudiantes e investigadores a escribir mejor inglés académico. Completamente gratis.',
     dev_tip: 'Si esta app te ayudó, ¡me encantaría tu apoyo! ☕',
+    toolGrammarlyDesc: 'Verifica gramática y ortografía en tiempo real. Ideal para revisiones finales.',
+    toolRewordifyDesc: 'Simplifica palabras difíciles automáticamente. El texto se rellena desde GrammarAI.',
+    toolVocabProfileDesc: 'Clasifica el vocabulario por nivel de frecuencia y muestra el porcentaje académico.',
+    toolAWLDesc: 'Referencia de la Lista de Palabras Académicas (570 palabras).',
+    toolAnalyzeMyWritingDesc: 'Análisis estadístico de legibilidad, vocabulario y estructura de oraciones.',
+    toolPaperRaterDesc: 'Califica ensayos automáticamente en gramática, vocabulario, estructura y originalidad.',
+    toolGPTZeroDesc: 'Detecta si el texto fue escrito por IA o humanos.',
+    toolChatPDFDesc: 'Sube un PDF y hazle preguntas. Perfecto para revisiones de literatura.',
   },
   ko: {
     heroTitle: '학술 영작문의 문법을 시각화',
@@ -1309,6 +1377,14 @@ const I18N_EXT = {
     dev_title: '개발자로부터',
     dev_msg: '이 앱은 학생과 연구자가 더 나은 영어 학술 문장을 쓸 수 있도록 돕기 위해 제작되었습니다. 완전 무료입니다.',
     dev_tip: '이 앱이 도움이 되었다면 응원해주세요 ☕',
+    toolGrammarlyDesc: '실시간으로 문법과 철자를 검사합니다. 제출 전 최종 확인에 최적입니다.',
+    toolRewordifyDesc: '어려운 단어를 자동으로 쉽게 바꿔줍니다. GrammarAI에서 텍스트가 자동 입력됩니다.',
+    toolVocabProfileDesc: '텍스트의 어휘를 빈도 수준별로 분류하여 학술 어휘 비율을 표시합니다.',
+    toolAWLDesc: '학술 단어 목록(570개) 참조 페이지입니다.',
+    toolAnalyzeMyWritingDesc: '가독성, 어휘 수준, 문장 구조를 통계적으로 분석합니다.',
+    toolPaperRaterDesc: '문법, 어휘, 구조, 독창성 등의 관점에서 논문을 자동 채점합니다.',
+    toolGPTZeroDesc: '텍스트가 AI에 의해 작성되었는지 판단합니다.',
+    toolChatPDFDesc: 'PDF를 업로드하고 AI와 대화할 수 있습니다.',
   },
 };
 
@@ -1466,7 +1542,7 @@ let curP=null,xl="en",qQ=[],qI=0,pdfTxt="";
 
 function saveV(){localStorage.setItem("ga_v",JSON.stringify(vDB));updB();}
 function updB(){const n=vDB.length;const b=document.getElementById("vBadge");b.textContent=n;b.style.display=n>0?"inline":"none";document.getElementById("vSub").textContent=n+" words";}
-// updB() moved to DOMContentLoaded
+updB();
 
 function swT(name,el){document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));el.classList.add("active");document.getElementById("panel-"+name).classList.add("active");if(name==="vocab")renderVL();}
 function swI(m){["text","pdf"].forEach(x=>{document.getElementById("imt-"+x).classList.toggle("active",x===m);document.getElementById("inp-"+x).style.display=x===m?"block":"none";});}
@@ -1736,20 +1812,8 @@ function analyze(){
   if(GEMINI_KEY){
     analyzeWithAI(sents);
   } else {
-    // Use compromise.js for SVOC if available, else POS preview
-    if(typeof nlp !== 'undefined'){
-      const container = document.getElementById('sentences');
-      const banner = document.createElement('div');
-      banner.style.cssText = 'background:linear-gradient(135deg,#E1F5EE,#dbeafe);border:1px solid #1D9E75;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem';
-      banner.innerHTML = '<div style="display:flex;align-items:center;gap:10px"><i class="ti ti-sparkles" style="font-size:20px;color:#1D9E75"></i><div><div style="font-size:13px;font-weight:700;color:#085041">compromise.jsによるSVOC解析（プレビュー）</div><div style="font-size:12px;color:#065f46;margin-top:2px">AI設定でさらに精度が向上します <button onclick="openKeyModal()" style="background:#1D9E75;color:#fff;border:none;border-radius:6px;padding:2px 10px;font-size:11px;cursor:pointer;margin-left:6px">AI設定（無料）</button></div></div></div>';
-      container.appendChild(banner);
-      sents.forEach((sent, si) => {
-        const result = analyzeWithCompromise(sent);
-        addSent(result, si);
-      });
-    } else {
-      showPOSWithPrompt(sents, text);
-    }
+    // No API key: show POS tags + slash reading (no SVOC)
+    showPOSWithPrompt(sents, text);
   }
 }
 
@@ -1840,29 +1904,7 @@ function showPOSWithPrompt(sents, text){
   });
 }
 
-const nlpPOSCache = {};
-
 function getPOS(word){
-  // Use compromise.js if available for better accuracy
-  if(typeof nlp !== 'undefined'){
-    const wl = word.toLowerCase();
-    if(nlpPOSCache[wl]) return nlpPOSCache[wl];
-    try{
-      const doc = nlp(word);
-      let r;
-      if(doc.verbs().length > 0) r = {label:'動詞', color:'#1a73e8'};
-      else if(doc.adjectives().length > 0) r = {label:'形容詞', color:'#D85A30'};
-      else if(doc.adverbs().length > 0) r = {label:'副詞', color:'#BA7517'};
-      else if(doc.nouns().length > 0) r = {label:'名詞', color:'#1D9E75'};
-      else r = getPOSFallback(word);
-      nlpPOSCache[wl] = r;
-      return r;
-    }catch(e){}
-  }
-  return getPOSFallback(word);
-}
-
-function getPOSFallback(word){
   const wl = word.toLowerCase();
   if(BE.has(wl) || AUX_V.has(wl) || LINK_V.has(wl) || TRANS_V.has(wl)) return {label:'動詞', color:'#1a73e8'};
   if(ART.has(wl) || DET.has(wl)) return {label:'冠詞', color:'#9ca3af'};
@@ -2362,107 +2404,6 @@ showP=function(e,word,role,isAWL){
 
 
 
-
-// ===== COMPROMISE.JS SVOC ANALYZER =====
-function analyzeWithCompromise(sent){
-  if(typeof nlp === 'undefined') return buildPhrases(sent);
-  try{
-    const doc = nlp(sent);
-    const phrases = [];
-    let foundS=false, foundV=false, oCount=0, isLinking=false;
-    const terms = doc.terms().json();
-    let i = 0;
-    while(i < terms.length){
-      const term = terms[i];
-      const word = term.text;
-      const wl = word.toLowerCase();
-      const tags = term.tags || [];
-      if(/^[^a-zA-Z']/.test(word)){ i++; continue; }
-      // Determine POS from compromise tags
-      const isNoun = tags.includes('Noun') || tags.includes('ProperNoun');
-      const isVerb = tags.includes('Verb') || tags.includes('Auxiliary') || BE.has(wl) || AUX_V.has(wl);
-      const isAdj2 = tags.includes('Adjective') || tags.includes('Adverb');
-      const isPrep = PREP.has(wl) || tags.includes('Preposition');
-      const isConj = CONJ.has(wl) || tags.includes('Conjunction');
-      const isDet = ART.has(wl) || DET.has(wl) || tags.includes('Determiner');
-      if(isPrep || isConj){
-        // Collect full prepositional phrase as M
-        const mWords = [word]; i++;
-        while(i < terms.length){
-          const nw = terms[i].text; const nwl = nw.toLowerCase();
-          if(PREP.has(nwl)||CONJ.has(nwl)||/^[^a-zA-Z']/.test(nw)) break;
-          mWords.push(nw); i++;
-          const nTags = terms[i-1].tags||[];
-          if(nTags.includes('Noun')||nTags.includes('ProperNoun')) break;
-        }
-        phrases.push({words:mWords, role:'M'});
-        continue;
-      }
-      if(!foundS && !foundV && (isNoun || isDet || isAdj2)){
-        // Subject phrase
-        const sWords = [word]; i++;
-        while(i < terms.length){
-          const nw = terms[i]; const nwl = nw.text.toLowerCase();
-          const nTags = nw.tags||[];
-          if(PREP.has(nwl)||CONJ.has(nwl)||/^[^a-zA-Z']/.test(nw.text)) break;
-          if(nTags.includes('Verb')||BE.has(nwl)||AUX_V.has(nwl)) break;
-          sWords.push(nw.text); i++;
-          if(nTags.includes('Noun')||nTags.includes('ProperNoun')) break;
-        }
-        foundS=true;
-        phrases.push({words:sWords, role:'S'});
-        continue;
-      }
-      if(foundS && !foundV && isVerb){
-        // Verb phrase
-        const vWords = [word]; i++;
-        while(i < terms.length){
-          const nw = terms[i]; const nwl = nw.text.toLowerCase();
-          const nTags = nw.tags||[];
-          if(nTags.includes('Verb')||BE.has(nwl)||AUX_V.has(nwl)){
-            vWords.push(nw.text); i++;
-          } else break;
-        }
-        foundV=true;
-        isLinking = vWords.some(v=>BE.has(v.toLowerCase())||LINK_V.has(v.toLowerCase()));
-        phrases.push({words:vWords, role:'V'});
-        continue;
-      }
-      if(foundV){
-        const ocWords = [word]; i++;
-        while(i < terms.length){
-          const nw = terms[i]; const nwl = nw.text.toLowerCase();
-          const nTags = nw.tags||[];
-          if(PREP.has(nwl)||CONJ.has(nwl)||/^[^a-zA-Z']/.test(nw.text)) break;
-          if(nTags.includes('Verb')||BE.has(nwl)) break;
-          ocWords.push(nw.text); i++;
-          if(nTags.includes('Noun')||nTags.includes('Adjective')) break;
-        }
-        const role = (isLinking && oCount===0) ? 'C' : (oCount===0?'O':'O');
-        oCount++;
-        phrases.push({words:ocWords, role});
-        continue;
-      }
-      phrases.push({words:[word], role:'M'}); i++;
-    }
-    const roles = phrases.map(p=>p.role);
-    const hasS=roles.includes('S'), hasV=roles.includes('V');
-    const oC=roles.filter(r=>r==='O').length, hasC=roles.includes('C');
-    let st='SV';
-    if(hasS&&hasV){
-      if(oC>=2)st='SVOO';
-      else if(oC>=1&&hasC)st='SVOC';
-      else if(oC>=1)st='SVO';
-      else if(hasC)st='SVC';
-    }
-    if(phrases.length===0) return buildPhrases(sent);
-    return {phrases, sentenceType:st};
-  }catch(e){
-    console.warn('compromise SVOC error:',e);
-    return buildPhrases(sent);
-  }
-}
-
 // ===== GEMINI API =====
 // GEMINI_KEY moved to top
 
@@ -2514,7 +2455,7 @@ function updateAIBtn(){
     btn.innerHTML = '<i class="ti ti-sparkles" style="font-size:13px"></i> AI分析';
   }
 }
-// updateAIBtn() moved to DOMContentLoaded
+updateAIBtn();
 
 async function callGemini(prompt){
   const r = await fetch(
@@ -2889,16 +2830,7 @@ function showSlashReading(){
 
   const header = document.createElement('div');
   header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem';
-  header.appendChild((() => {
-    const hLeft = document.createElement('div');
-    hLeft.className = 'sec-t'; hLeft.style.marginBottom = '0';
-    hLeft.innerHTML = '<i class="ti ti-git-branch"></i> スラッシュリーディング＋品詞';
-    return hLeft;
-  })());
-  const hClose = document.createElement('button');
-  hClose.className = 'btn btn-sm'; hClose.style.padding = '2px 8px';
-  hClose.textContent = '✕';
-  hClose.onclick = () => { const el = document.getElementById('slashArea'); if(el) el.remove(); };
+  header.innerHTML = '<div class="sec-t" style="margin-bottom:0"><i class="ti ti-git-branch"></i> スラッシュリーディング＋品詞</div><button onclick="document.getElementById('slashArea').remove()" class="btn btn-sm" style="padding:2px 8px">✕</button>';
   area.appendChild(header);
 
   sents.forEach((sent) => {
@@ -3036,7 +2968,7 @@ function shareOnX(){
 
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 // Apply language and init on full load
-window.addEventListener('DOMContentLoaded', ()=>{ updB(); updateAIBtn(); applyLang(); renderProgress(); loadVocabFromURL(); });
+window.addEventListener('DOMContentLoaded', ()=>{ applyLang(); renderProgress(); loadVocabFromURL(); });
 
 </script>
 </body>
