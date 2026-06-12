@@ -13,6 +13,7 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--g:#1D9E75;--gd:#0F6E56;--gl:#E1F5EE;--bd:#e5e7eb;--bg:#f7f8fa;--tx:#1a1a1a;--gr:#6b7280;--sb:env(safe-area-inset-bottom,0px)}
@@ -172,6 +173,20 @@ textarea{width:100%;border:none;outline:none;font-size:15px;resize:vertical;min-
 /* Remove underline from individual word spans inside phrase */
 .phrase-wrap .uS,.phrase-wrap .uV,.phrase-wrap .uO,.phrase-wrap .uC,.phrase-wrap .uM{border-bottom:none}
 
+
+
+/* PHRASAL VERB */
+.pv-highlight{background:#dbeafe;border-radius:3px;padding:0 2px;cursor:pointer;border-bottom:2px solid #1a73e8;font-weight:500}
+.pv-highlight:hover{background:#bfdbfe}
+body.dark .pv-highlight{background:#1e3a5f;border-bottom-color:#60a5fa}
+
+/* LANG OPTIONS */
+.lang-opt{padding:12px;border:1px solid var(--bd);border-radius:9px;background:#fff;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--tx);transition:all .15s;text-align:center}
+.lang-opt:hover{border-color:var(--g);background:var(--gl)}
+.lang-opt.active{border-color:var(--g);background:var(--gl);color:var(--gd);font-weight:700}
+body.dark .lang-opt{background:#1e1e1e;color:#e5e5e5}
+body.dark .lang-opt:hover{background:#0d2e22}
+
 /* DARK MODE */
 body.dark{background:#111 !important;color:#e5e5e5 !important}
 body.dark .card,body.dark .tcard,body.dark .qcard,body.dark .sc{background:#1e1e1e !important;border-color:#333 !important;color:#e5e5e5 !important}
@@ -212,7 +227,8 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
   <div><div class="hdr-t">GrammarAI</div><div class="hdr-s">英文法アナライザー</div></div>
   <div style="display:flex;align-items:center;gap:8px">
     <button id="aiToggleBtn" onclick="openKeyModal()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#f3f4f6;color:#6b7280;border-radius:8px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;cursor:pointer;white-space:nowrap"><i class="ti ti-sparkles" style="font-size:13px"></i> AI分析</button>
-    <a href="https://www.buymeacoffee.com/" target="_blank" id="tipBtn" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#FFDD00;color:#000;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;border:none;cursor:pointer;white-space:nowrap" title="開発者にチップを送る">☕ チップを送る</a><button id="darkBtn" onclick="toggleDark()" style="background:none;border:1px solid var(--bd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:13px;color:var(--gr);display:flex;align-items:center;gap:5px"><i class="ti ti-moon" id="darkIcon"></i><span id="darkLabel">ダーク</span></button><span class="free-b">完全無料</span></div>
+    <button id="langBtn" onclick="openLangModal()" style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:#f3f4f6;color:#6b7280;border-radius:8px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;cursor:pointer;white-space:nowrap">🌐 <span id="langLabel">日本語</span></button>
+    <button id="tipMenuBtn" onclick="toggleTipMenu()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#FFDD00;color:#000;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;white-space:nowrap" title="開発者を応援する">☕ <span id="tipBtnLabel">応援する</span></button><button id="darkBtn" onclick="toggleDark()" style="background:none;border:1px solid var(--bd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:13px;color:var(--gr);display:flex;align-items:center;gap:5px"><i class="ti ti-moon" id="darkIcon"></i><span id="darkLabel">ダーク</span></button><span class="free-b">完全無料</span></div>
 </div>
 
 <!-- GEMINI KEY MODAL -->
@@ -246,13 +262,45 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
 <div class="app-layout">
 <div class="tabs">
   <button class="tab active" onclick="swT('analyze',this)"><i class="ti ti-analyze"></i>Analyze</button>
+  <button class="tab" onclick="swT('about',this)"><i class="ti ti-info-circle"></i>使い方</button>
   <button class="tab" onclick="swT('vocab',this)"><i class="ti ti-bookmark"></i>単語帳<span class="tbadge" id="vBadge" style="display:none">0</span></button>
   <button class="tab" onclick="swT('tools',this)"><i class="ti ti-tools"></i>Tools</button>
-  <button class="tab" onclick="swT('about',this)"><i class="ti ti-info-circle"></i>使い方</button>
 </div>
 <div class="panels-wrap">
 <!-- ANALYZE -->
 <div class="panel active" id="panel-analyze"><div class="body">
+
+  <!-- HERO - shown only when no analysis done yet -->
+  <div id="heroSection" class="card" style="background:linear-gradient(135deg,#f0fdf9,#eff6ff);border-color:#1D9E75;margin-bottom:1.25rem">
+    <div style="font-size:18px;font-weight:700;margin-bottom:.5rem;color:#085041">英語論文・レポートの文法を可視化</div>
+    <div style="font-size:13px;color:#065f46;line-height:1.8;margin-bottom:1rem">
+      英文を貼り付けるだけで以下を自動分析します：
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:1rem">
+      <div style="background:#fff;border-radius:9px;padding:10px 12px;border:1px solid #d1fae5">
+        <div style="font-size:13px;font-weight:600;color:#065f46;margin-bottom:2px"><i class="ti ti-analyze" style="font-size:14px"></i> SVOC+M分析</div>
+        <div style="font-size:11px;color:#6b7280">文の構造をフレーズ単位で色分け表示</div>
+      </div>
+      <div style="background:#fff;border-radius:9px;padding:10px 12px;border:1px solid #d1fae5">
+        <div style="font-size:13px;font-weight:600;color:#065f46;margin-bottom:2px"><i class="ti ti-award" style="font-size:14px"></i> CEFRレベル</div>
+        <div style="font-size:11px;color:#6b7280">A1〜C2の難易度を自動推定</div>
+      </div>
+      <div style="background:#fff;border-radius:9px;padding:10px 12px;border:1px solid #d1fae5">
+        <div style="font-size:13px;font-weight:600;color:#065f46;margin-bottom:2px"><i class="ti ti-school" style="font-size:14px"></i> AWL語彙</div>
+        <div style="font-size:11px;color:#6b7280">学術語彙570語を自動ハイライト</div>
+      </div>
+      <div style="background:#fff;border-radius:9px;padding:10px 12px;border:1px solid #d1fae5">
+        <div style="font-size:13px;font-weight:600;color:#065f46;margin-bottom:2px"><i class="ti ti-bookmark" style="font-size:14px"></i> 単語帳</div>
+        <div style="font-size:11px;color:#6b7280">クリックで辞書・苦手単語を保存</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:#065f46;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <span style="background:#dcfce7;padding:2px 8px;border-radius:10px;font-weight:600">✅ 完全無料</span>
+      <span style="background:#dcfce7;padding:2px 8px;border-radius:10px;font-weight:600">✅ 登録不要</span>
+      <span style="background:#dcfce7;padding:2px 8px;border-radius:10px;font-weight:600">✅ URLを開くだけ</span>
+    </div>
+  </div>
+
   <div class="imode">
     <button class="imt active" id="imt-text" onclick="swI('text')"><i class="ti ti-text-size"></i> テキスト入力</button>
     <button class="imt" id="imt-pdf" onclick="swI('pdf')"><i class="ti ti-file-type-pdf"></i> PDF→テキスト変換</button>
@@ -286,6 +334,9 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
     <button class="btn" onclick="clearAll()"><i class="ti ti-x"></i> Clear</button>
     <button class="btn" onclick="saveSnapshot()"><i class="ti ti-camera"></i> 保存</button>
     <button class="btn" onclick="showHistory()"><i class="ti ti-history"></i> 履歴</button>
+    <button class="btn" onclick="shareOnX()" style="background:#000;color:#fff;border-color:#000"><i class="ti ti-brand-x"></i> シェア</button>
+    <button class="btn" onclick="showSlashReading()" style="background:#e0f2fe;color:#0369a1;border-color:#7dd3fc"><i class="ti ti-git-branch"></i> スラッシュ表示</button>
+    <button class="btn" onclick="exportAsPNG()" style="background:#f3f4f6;color:#374151;border-color:#d1d5db"><i class="ti ti-camera"></i> PNG保存</button>
   </div>
   <div class="stats" id="statsRow" style="display:none">
     <div class="sc"><div class="sl">Words</div><div class="sv" id="sw_"></div></div>
@@ -298,12 +349,12 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
   <div id="cefrArea" style="display:none;margin-bottom:.875rem"></div>
   <div class="card" id="resultArea" style="display:none">
     <div class="legend">
-      <span style="font-size:11px;font-weight:600;color:#374151">SVOC:</span>
-      <div class="leg"><div class="ll" style="background:#1D9E75"></div><span style="color:#1D9E75;font-weight:700;font-size:11px">S</span> 主語</div>
-      <div class="leg"><div class="ll" style="background:#1a73e8"></div><span style="color:#1a73e8;font-weight:700;font-size:11px">V</span> 動詞</div>
-      <div class="leg"><div class="ll" style="background:#D85A30"></div><span style="color:#D85A30;font-weight:700;font-size:11px">O</span> 目的語</div>
-      <div class="leg"><div class="ll" style="background:#BA7517"></div><span style="color:#BA7517;font-weight:700;font-size:11px">C</span> 補語</div>
-      <div class="leg"><div class="ll" style="background:#7F77DD;height:0;border-bottom:3px dotted #7F77DD"></div><span style="color:#7F77DD;font-weight:700;font-size:11px">M</span> 修飾語</div>
+      <span style="font-size:11px;font-weight:600;color:#374151">SVOC+M:</span>
+      <div class="leg"><span style="display:inline-block;border-bottom:3px solid #1D9E75;padding:0 4px;font-size:12px">S</span><span style="font-size:11px;color:#1D9E75;margin-left:2px">主語</span></div>
+      <div class="leg"><span style="display:inline-block;border-bottom:3px solid #1a73e8;padding:0 4px;font-size:12px">V</span><span style="font-size:11px;color:#1a73e8;margin-left:2px">動詞</span></div>
+      <div class="leg"><span style="display:inline-block;border-bottom:3px solid #D85A30;padding:0 4px;font-size:12px">O</span><span style="font-size:11px;color:#D85A30;margin-left:2px">目的語</span></div>
+      <div class="leg"><span style="display:inline-block;border-bottom:3px solid #BA7517;padding:0 4px;font-size:12px">C</span><span style="font-size:11px;color:#BA7517;margin-left:2px">補語</span></div>
+      <div class="leg"><span style="display:inline-block;border-bottom:3px dotted #7F77DD;padding:0 4px;font-size:12px">M</span><span style="font-size:11px;color:#7F77DD;margin-left:2px">修飾語</span></div>
       <span style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--gr)"><span class="awl-sw"></span> AWL語彙</span>
     </div>
     <div id="sentences"></div>
@@ -312,14 +363,40 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
 
 <!-- VOCAB -->
 <div class="panel" id="panel-vocab"><div class="body">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;flex-wrap:wrap;gap:8px">
-    <div><div style="font-size:16px;font-weight:600">苦手単語帳</div><div style="font-size:13px;color:var(--gr)" id="vSub">0 words</div></div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-p" onclick="startQ()"><i class="ti ti-cards"></i> Quiz</button>
-      <button class="btn btn-danger" onclick="clearV()"><i class="ti ti-trash"></i></button>
-      <button class="btn" onclick="exportV()"><i class="ti ti-download"></i></button>
+
+  <!-- Device sync banner -->
+  <div style="background:linear-gradient(135deg,#eff6ff,#f0fdf9);border:1px solid #93c5fd;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem;display:flex;align-items:flex-start;gap:12px">
+    <i class="ti ti-devices" style="font-size:24px;color:#1d4ed8;flex-shrink:0;margin-top:2px"></i>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:700;color:#1e3a5f;margin-bottom:3px">📱💻 スマホ・PCで同じ単語帳を使うには</div>
+      <div style="font-size:13px;color:#374151;line-height:1.7;margin-bottom:.75rem">
+        「共有」ボタンを押すとURLが生成されます。そのURLを別のデバイスで開くだけで単語帳が引き継がれます。<br>
+        <span style="font-size:12px;color:#6b7280">Airdrop・LINE・メール・メモ帳などで共有できます</span>
+      </div>
+      <button onclick="shareVocabURL()" class="btn btn-p" style="font-size:13px;padding:7px 14px">
+        <i class="ti ti-share"></i> 共有URLを生成する
+      </button>
     </div>
   </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;flex-wrap:wrap;gap:8px">
+    <div>
+      <div style="font-size:16px;font-weight:600">苦手単語帳</div>
+      <div style="font-size:13px;color:var(--gr)" id="vSub">0 words</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-p" onclick="startQ()"><i class="ti ti-cards"></i> Quiz</button>
+      <button class="btn" onclick="shareVocabURL()" title="他のデバイスに共有"><i class="ti ti-share"></i> 共有</button>
+      <button class="btn" onclick="exportV()" title="CSVダウンロード"><i class="ti ti-download"></i></button>
+      <button class="btn btn-danger" onclick="clearV()"><i class="ti ti-trash"></i></button>
+    </div>
+  </div>
+  <!-- PROGRESS -->
+  <div class="card" style="margin-bottom:.875rem">
+    <div class="sec-t" style="margin-bottom:.75rem"><i class="ti ti-chart-bar"></i> 学習記録</div>
+    <div id="progressArea"></div>
+  </div>
+
   <div id="quizArea" style="display:none">
     <div class="qcard">
       <div class="qw" id="qW">—</div><div class="qh" id="qH"></div>
@@ -484,16 +561,33 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
       </div>
     </div>
     <div>
+      <div class="ab-t"><i class="ti ti-message-circle"></i> フィードバック</div>
+      <div class="ab-tx" style="margin-bottom:.875rem">バグの報告・機能リクエストはこちらからお気軽にどうぞ。</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem">
+        <a href="https://github.com/arco-lab-2026/grammar-ai/issues" target="_blank" class="btn btn-sm" style="text-decoration:none;background:#f3f4f6;color:#374151"><i class="ti ti-brand-github"></i> GitHub Issues</a>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSfbq_L_kq4IRFsPKyjo8xTZGhGiNOmWMnqITJ-eiNnIVos3ww/viewform" target="_blank" class="btn btn-sm" style="text-decoration:none;background:#f3f4f6;color:#374151"><i class="ti ti-forms"></i> フィードバックフォーム</a>
+      </div>
       <div class="ab-t"><i class="ti ti-heart"></i> 開発者より</div>
       <div class="ab-tx">このアプリは、英語学習と論文執筆の効率を高めたいという思いから制作しました。SVOC分析・単語学習・外部ツール連携をひとつにまとめることで、英語の文章を深く理解する手助けができれば幸いです。完全無料でご利用いただけます。</div>
       <div style="margin-top:.875rem;padding:.875rem;background:#fffbeb;border-radius:10px;border:1px solid #fcd34d">
         <div style="font-size:13px;color:#92400e;margin-bottom:.5rem">このアプリが役に立ったら、コーヒー1杯分の支援をいただけると嬉しいです ☕</div>
-        <a href="https://www.buymeacoffee.com/" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#FFDD00;color:#000;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none">☕ Buy Me a Coffee</a>
+        <a href="https://www.buymeacoffee.com/sasasasae0e" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#FFDD00;color:#000;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none">☕ Buy Me a Coffee</a>
         <div style="font-size:11px;color:#b45309;margin-top:.5rem">※ URLは buymeacoffee.com でアカウント作成後に設定してください</div>
       </div>
     </div>
   </div>
 </div></div>
+
+
+<!-- FOOTER -->
+<div style="text-align:center;padding:1.5rem 1.25rem 2rem;border-top:1px solid var(--bd);background:var(--bg)" id="appFooter">
+  <div style="font-size:13px;color:var(--gr);margin-bottom:.75rem">GrammarAI — 完全無料の英語文法アナライザー</div>
+  <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:.875rem">
+    <a href="https://github.com/arco-lab-2026/grammar-ai/issues" target="_blank" style="font-size:12px;color:var(--gr);text-decoration:none;display:flex;align-items:center;gap:4px"><i class="ti ti-brand-github"></i> フィードバック</a>
+    <a href="https://www.buymeacoffee.com/sasasasae0e" target="_blank" style="font-size:12px;color:#92400e;text-decoration:none;display:flex;align-items:center;gap:4px">☕ 開発者を支援</a>
+  </div>
+  <button onclick="shareOnX()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#000;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit"><i class="ti ti-brand-x"></i> Xでシェアする</button>
+</div>
 
 </div><!-- /panels-wrap -->
 </div><!-- /app-layout -->
@@ -504,6 +598,78 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
   <div class="pop-h"></div>
   <div style="font-size:17px;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:8px"><i class="ti ti-history"></i> 分析履歴</div>
   <div id="histList"></div>
+</div>
+
+
+
+<!-- TIP MENU -->
+<div id="tipMenu" style="display:none;position:fixed;top:57px;right:1.25rem;z-index:100;background:#fff;border:1px solid var(--bd);border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.12);padding:.75rem;min-width:260px">
+  <div style="font-size:12px;font-weight:600;color:var(--gr);margin-bottom:.5rem;padding:0 4px" id="tipMenuTitle">開発者を応援する ☕</div>
+  <a id="ofuseBtn" href="https://ofuse.me/5ec3d56a" target="_blank" onclick="closeTipMenu()" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;text-decoration:none;color:var(--tx);background:#f0f9ff;border:1px solid #bae6fd;margin-bottom:6px">
+    <span style="font-size:20px">🇯🇵</span>
+    <div>
+      <div style="font-size:13px;font-weight:600" id="ofuseBtnTitle">OFUSE</div>
+      <div style="font-size:11px;color:var(--gr)" id="ofuseBtnDesc">日本円・PayPay等対応 ← おすすめ</div>
+    </div>
+  </a>
+  <a id="bmcBtn" href="https://buymeacoffee.com/sasasasae0e" target="_blank" onclick="closeTipMenu()" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;text-decoration:none;color:var(--tx);background:#fffbeb;border:1px solid #fcd34d">
+    <span style="font-size:20px">🌍</span>
+    <div>
+      <div style="font-size:13px;font-weight:600" id="bmcBtnTitle">Buy Me a Coffee</div>
+      <div style="font-size:11px;color:var(--gr)" id="bmcBtnDesc">クレジットカード・海外向け</div>
+    </div>
+  </a>
+</div>
+<div id="tipMenuBD" style="display:none;position:fixed;inset:0;z-index:99" onclick="closeTipMenu()"></div>
+
+<!-- LANG MODAL -->
+<div class="pop-bd" id="langBD" onclick="closeLangModal()"></div>
+<div class="pop-sh" id="langSH" style="max-height:70vh">
+  <div class="pop-h"></div>
+  <div style="font-size:17px;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:8px">🌐 <span id="langModalTitle">表示言語を選択</span></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="langOptions">
+    <button onclick="setLang('ja')" class="lang-opt" data-lang="ja">🇯🇵 日本語</button>
+    <button onclick="setLang('en')" class="lang-opt" data-lang="en">🇺🇸 English</button>
+    <button onclick="setLang('zh')" class="lang-opt" data-lang="zh">🇨🇳 中文</button>
+    <button onclick="setLang('es')" class="lang-opt" data-lang="es">🇪🇸 Español</button>
+    <button onclick="setLang('ko')" class="lang-opt" data-lang="ko">🇰🇷 한국어</button>
+  </div>
+</div>
+
+<!-- VOCAB SHARE MODAL -->
+<div class="pop-bd" id="shareBD" onclick="closeShareModal()"></div>
+<div class="pop-sh" id="shareSH" style="max-height:80vh">
+  <div class="pop-h"></div>
+  <div style="font-size:17px;font-weight:700;margin-bottom:.875rem;display:flex;align-items:center;gap:8px">
+    <i class="ti ti-share" style="color:#1D9E75"></i> 単語帳を別のデバイスに共有
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1rem">
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:#f0fdf9;border-radius:9px">
+      <span style="font-size:18px;flex-shrink:0">①</span>
+      <div style="font-size:13px;color:#065f46;line-height:1.6">下の「URLをコピー」を押す</div>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:#f0fdf9;border-radius:9px">
+      <span style="font-size:18px;flex-shrink:0">②</span>
+      <div style="font-size:13px;color:#065f46;line-height:1.6">Airdrop・LINE・メール・メモなどで別のデバイスに送る</div>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:#f0fdf9;border-radius:9px">
+      <span style="font-size:18px;flex-shrink:0">③</span>
+      <div style="font-size:13px;color:#065f46;line-height:1.6">別のデバイスでそのURLを開くと単語帳が自動で引き継がれる</div>
+    </div>
+  </div>
+  <div style="background:var(--bg);border:1px solid var(--bd);border-radius:9px;padding:.75rem;margin-bottom:.875rem;word-break:break-all;font-size:12px;color:var(--gr);line-height:1.6" id="shareURLDisplay">
+    URLを生成中...
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn btn-p" onclick="copyShareURL()" id="copyShareBtn"><i class="ti ti-copy"></i> URLをコピー</button>
+    <button class="btn" onclick="shareViaNavigator()"><i class="ti ti-share-2"></i> 共有メニューを開く</button>
+  </div>
+  <div id="shareMsg" style="font-size:13px;color:#1D9E75;margin-top:.75rem;display:none"></div>
+  <div style="margin-top:1rem;padding:.75rem;background:#fffbeb;border-radius:9px;border:1px solid #fcd34d">
+    <div style="font-size:12px;color:#92400e;line-height:1.6">
+      <strong>⚠ 注意：</strong>このURLには単語帳の全データが含まれています。信頼できる人にだけ送ってください。URLを開いた端末の単語帳に追加されます。
+    </div>
+  </div>
 </div>
 
 <!-- POPUP -->
@@ -777,6 +943,7 @@ function buildPhrases(sent){
 function analyze(){
   const text = document.getElementById('inputText').value.trim();
   if(!text) return;
+
   const st = computeStats(text);
   ['sw_','sc_','ss_','su_','sa_','sawl_'].forEach((id,i) => {
     document.getElementById(id).textContent = [st.words,st.chars,st.sents,st.unique,st.avg,st.awl][i];
@@ -784,14 +951,20 @@ function analyze(){
   document.getElementById('statsRow').style.display = 'grid';
   document.getElementById('resultArea').style.display = 'block';
   document.getElementById('cefrArea').style.display = 'none';
-  document.getElementById('sentences').innerHTML = '';
+  // Hide hero after first analysis
+  const hero = document.getElementById('heroSection');
+  if(hero) hero.style.display = 'none';
+  updateProgress('analyze');
+
+  // Remove old Flesch card
+  const oldFlesch = document.getElementById('fleschCard');
+  if(oldFlesch) oldFlesch.remove();
+
   renderCEFR(text);
 
   // Flesch reading ease
   const score = fleschScore(text);
   if(score !== null){
-    const existing = document.getElementById('fleschCard');
-    if(existing) existing.remove();
     const {label, color} = fleschLabel(score);
     const card = document.createElement('div');
     card.id = 'fleschCard'; card.className = 'card';
@@ -807,19 +980,96 @@ function analyze(){
     resultArea.parentNode.insertBefore(card, resultArea);
   }
 
+  document.getElementById('sentences').innerHTML = '';
   const sents = parseSents(text);
 
   if(GEMINI_KEY){
-    // AI-powered analysis
     analyzeWithAI(sents);
   } else {
-    // Rule-based fallback
-    sents.forEach((sent, si) => {
-      const {phrases, sentenceType} = buildPhrases(sent);
-      addSent({phrases, sentenceType}, si);
-    });
+    // Show POS tagging + prompt to set up API
+    showPOSWithPrompt(sents, text);
   }
 }
+
+function showPOSWithPrompt(sents, text){
+  const container = document.getElementById('sentences');
+
+  // API prompt banner
+  const banner = document.createElement('div');
+  banner.style.cssText = 'background:linear-gradient(135deg,#E1F5EE,#dbeafe);border:1px solid #1D9E75;border-radius:12px;padding:1.25rem;margin-bottom:1.25rem';
+  banner.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:12px">
+      <i class="ti ti-sparkles" style="font-size:28px;color:#1D9E75;flex-shrink:0;margin-top:2px"></i>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:700;color:#085041;margin-bottom:4px">SVOC分析にはAI設定が必要です</div>
+        <div style="font-size:13px;color:#065f46;line-height:1.7;margin-bottom:.875rem">
+          正確な文法分析のため、Gemini APIキーの設定が必要です。<br>
+          <strong>完全無料</strong>・クレジットカード不要・1日1,500回まで利用できます。
+        </div>
+        <button onclick="openKeyModal()" class="btn btn-p" style="font-size:13px;padding:7px 16px">
+          <i class="ti ti-sparkles"></i> 無料のAPIキーを設定する（5分）
+        </button>
+        <div style="font-size:11px;color:#065f46;margin-top:.5rem;opacity:.8">
+          設定後は高精度なSVOC分析・文型分類が使えます
+        </div>
+      </div>
+    </div>`;
+  container.appendChild(banner);
+
+  // Show POS tagging as preview
+  const posHeader = document.createElement('div');
+  posHeader.style.cssText = 'font-size:12px;color:var(--gr);margin-bottom:.875rem;display:flex;align-items:center;gap:6px';
+  posHeader.innerHTML = '<i class="ti ti-tag"></i> 品詞タグ付け（プレビュー） — SVOC分析はAI設定後に使えます';
+  container.appendChild(posHeader);
+
+  sents.forEach((sent, si) => {
+    const block = document.createElement('div');
+    block.className = 'sent-b';
+    const meta = document.createElement('div');
+    meta.className = 'sent-m';
+    meta.innerHTML = `<span class="sent-n">文 ${si+1}</span>`;
+    block.appendChild(meta);
+    const render = document.createElement('div');
+    render.className = 'sent-r';
+    render.style.filter = 'none';
+
+    const words = sent.match(/([a-zA-Z']+)|([^a-zA-Z'\s])/g) || [];
+    words.forEach(word => {
+      if(/^[^a-zA-Z']/.test(word)){
+        const s = document.createElement('span');
+        s.textContent = word; s.style.color = '#9ca3af';
+        render.appendChild(s); return;
+      }
+      const pos = getPOS(word);
+      const isAWL = AWL.has(word.toLowerCase().replace(/[^a-z]/g,''));
+      const span = document.createElement('span');
+      span.className = 'word-clickable' + (isAWL ? ' awl' : '');
+      span.style.cssText = `display:inline-block;cursor:pointer;margin:0 1px;padding:2px 1px;border-bottom:2px solid ${pos.color}`;
+      span.innerHTML = word + `<span style="display:block;font-size:9px;font-weight:600;text-align:center;color:${pos.color};line-height:1;margin-top:2px">${pos.label}</span>`;
+      span.addEventListener('click', e => showP(e, word, 'M', isAWL));
+      render.appendChild(span);
+      render.appendChild(document.createTextNode(' '));
+    });
+    block.appendChild(render);
+    container.appendChild(block);
+  });
+}
+
+// Simple POS tagger using word lists
+function getPOS(word){
+  const wl = word.toLowerCase();
+  if(BE.has(wl) || AUX_V.has(wl) || LINK_V.has(wl) || TRANS_V.has(wl)) return {label:'動詞', color:'#1a73e8'};
+  if(ART.has(wl) || DET.has(wl)) return {label:'冠詞', color:'#9ca3af'};
+  if(PREP.has(wl)) return {label:'前置詞', color:'#7F77DD'};
+  if(CONJ.has(wl)) return {label:'接続詞', color:'#9ca3af'};
+  if(ADV_W.has(wl) || wl.endsWith('ly')) return {label:'副詞', color:'#BA7517'};
+  if(isAdj(word)) return {label:'形容詞', color:'#D85A30'};
+  if(wl.endsWith('ing') && wl.length > 5) return {label:'動詞', color:'#1a73e8'};
+  if(wl.endsWith('ed') && wl.length > 4) return {label:'動詞', color:'#1a73e8'};
+  if(/^[A-Z]/.test(word) || wl.endsWith('tion') || wl.endsWith('ness') || wl.endsWith('ment') || wl.endsWith('ity') || wl.endsWith('er') || wl.endsWith('or')) return {label:'名詞', color:'#1D9E75'};
+  return {label:'名詞', color:'#1D9E75'};
+}
+
 
 async function analyzeWithAI(sents){
   const c = document.getElementById('sentences');
@@ -876,53 +1126,65 @@ function addSent(sent,si){
   const meta = document.createElement('div'); meta.className = 'sent-m';
   meta.innerHTML = `<span class="sent-n">文 ${si+1}</span><span class="stype">${STYPES[sent.sentenceType]||''}</span>`;
   block.appendChild(meta);
-  const render = document.createElement('div'); render.className = 'sent-r';
+
+  // Render as a flex-wrap line of phrase chips
+  const render = document.createElement('div');
+  render.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px 2px;align-items:flex-end;font-size:16px;line-height:1;margin-bottom:.5rem';
 
   (sent.phrases||[]).forEach(phrase => {
     if(phrase.role === 'PUNCT'){
       const s = document.createElement('span');
-      s.textContent = phrase.words ? phrase.words.join('') : phrase.text || '';
-      s.style.color = '#9ca3af';
+      s.textContent = phrase.words ? phrase.words.join('') : (phrase.text||'');
+      s.style.cssText = 'color:#9ca3af;align-self:flex-end;padding-bottom:4px';
       render.appendChild(s);
       return;
     }
     const r = phrase.role.toUpperCase();
-    // Support both words[] array and text string formats
     const wordList = phrase.words && phrase.words.length > 0
       ? phrase.words
-      : (phrase.text || '').split(' ').filter(w => w.length > 0);
+      : (phrase.text||'').split(' ').filter(w=>w.length>0);
     if(!wordList.length) return;
 
-    // Check AWL
     const hasAWL = wordList.some(w => AWL.has(w.toLowerCase().replace(/[^a-z]/g,'')));
+    const mainWord = wordList.find(w => w.length>2 && /[a-zA-Z]/.test(w) && !ART.has(w.toLowerCase()) && !DET.has(w.toLowerCase())) || wordList[0];
 
-    // Phrase wrapper with underline
-    const phraseSpan = document.createElement('span');
-    phraseSpan.className = 'phrase-wrap u' + r;
-
-    wordList.forEach((word, wi) => {
-      if(!word.trim()) return;
-      const isAWL = AWL.has(word.toLowerCase().replace(/[^a-z]/g,''));
-      const wordSpan = document.createElement('span');
-      wordSpan.className = 'word-clickable' + (isAWL ? ' awl' : '');
-      const isLast = (wi === wordList.length - 1);
-      if(isLast){
-        wordSpan.innerHTML = word + `<span class="lb l${r}">${r}</span>`;
+    // Each phrase = one chip with colored border-bottom and label below
+    const chip = document.createElement('span');
+    chip.style.cssText = `display:inline-flex;flex-direction:column;align-items:center;cursor:pointer;padding:2px 4px;border-radius:4px;transition:opacity .15s`;
+    chip.addEventListener('click', e => {
+      // Show word picker if multiple words
+      if(wordList.length > 1){
+        showWordPicker(e, wordList, r, hasAWL);
       } else {
-        wordSpan.textContent = word;
-      }
-      wordSpan.addEventListener('click', e => {
-        e.stopPropagation();
-        showP(e, word, r, isAWL);
-      });
-      phraseSpan.appendChild(wordSpan);
-      if(wi < wordList.length - 1){
-        phraseSpan.appendChild(document.createTextNode(' '));
+        showP(e, wordList[0], r, hasAWL);
       }
     });
 
-    render.appendChild(phraseSpan);
-    render.appendChild(document.createTextNode(' '));
+    // Text line
+    const textLine = document.createElement('span');
+    textLine.style.cssText = `border-bottom:3px ${r==='M'?'dotted':'solid'} ${getRC(r)};padding-bottom:2px;white-space:nowrap${hasAWL?';background:#fef9c3;border-radius:3px':''}`;
+    // Make each word individually clickable
+    wordList.forEach((word, wi) => {
+      const wspan = document.createElement('span');
+      wspan.textContent = word;
+      wspan.style.cssText = 'cursor:pointer;padding:0 1px';
+      wspan.addEventListener('click', e => {
+        e.stopPropagation();
+        const isAWL = AWL.has(word.toLowerCase().replace(/[^a-z]/g,''));
+        showP(e, word, r, isAWL);
+      });
+      textLine.appendChild(wspan);
+      if(wi < wordList.length-1) textLine.appendChild(document.createTextNode(' '));
+    });
+    chip.appendChild(textLine);
+
+    // Label below
+    const lbl = document.createElement('span');
+    lbl.style.cssText = `font-size:9px;font-weight:700;color:${getRC(r)};letter-spacing:.05em;line-height:1;margin-top:3px`;
+    lbl.textContent = r;
+    chip.appendChild(lbl);
+
+    render.appendChild(chip);
   });
 
   block.appendChild(render);
@@ -936,6 +1198,16 @@ function addSent(sent,si){
     fb.textContent = tips[0];
     block.appendChild(fb);
   }
+}
+
+function getRC(r){
+  return {S:'#1D9E75',V:'#1a73e8',O:'#D85A30',C:'#BA7517',M:'#7F77DD'}[r]||'#6b7280';
+}
+
+function showWordPicker(e, words, role, hasAWL){
+  // Just show popup for the first content word
+  const mainWord = words.find(w => w.length>2 && /[a-zA-Z]/.test(w) && !ART.has(w.toLowerCase())) || words[0];
+  showP(e, mainWord, role, hasAWL);
 }
 
 // POPUP & DICTIONARY
@@ -1030,7 +1302,7 @@ function showQC(){
   document.getElementById("qBar").style.width=Math.round(qI/qQ.length*100)+"%";
 }
 function showAns(){document.getElementById("qA").style.display="block";document.getElementById("qBs").style.display="flex";}
-function qN(ok){if(!ok){const o=vDB.find(w=>w.word===qQ[qI].word);if(o){o.forgotten=(o.forgotten||0)+1;saveV();}}qI++;showQC();}
+function qN(ok){updateProgress('quizTotal');if(ok)updateProgress('quizCorrect');if(!ok){const o=vDB.find(w=>w.word===qQ[qI].word);if(o){o.forgotten=(o.forgotten||0)+1;saveV();}}qI++;showQC();}
 function stopQ(){document.getElementById("quizArea").style.display="none";renderVL();}
 
 // TOOLS
@@ -1067,6 +1339,323 @@ async function launchAll(){
   }
 }
 
+
+
+// ===== I18N (多言語対応) =====
+const I18N = {
+  ja: {
+    appSub: '英文法アナライザー',
+    analyze: 'Analyze',
+    vocab: '単語帳',
+    tools: 'Tools',
+    about: '使い方',
+    aiBtn: 'AI分析',
+    tipBtn: '応援する',
+    darkBtn: 'ダーク',
+    lightBtn: 'ライト',
+    free: '完全無料',
+    textInput: 'テキスト入力',
+    pdfInput: 'PDF→テキスト変換',
+    analyzeBtn: 'Analyze',
+    clearBtn: 'Clear',
+    saveBtn: '保存',
+    histBtn: '履歴',
+    slashBtn: 'スラッシュ表示',
+    shareBtn: '応援する',
+    tipMenuTitle: '開発者を応援する ☕',
+    ofuseTitle: 'OFUSE',
+    ofuseDesc: '日本円・PayPay等対応 ← おすすめ',
+    bmcTitle: 'Buy Me a Coffee',
+    bmcDesc: 'クレジットカード・海外向け',
+    langModalTitle: '表示言語を選択',
+    dictEN: '英→英',
+    dictNative: '英→和',
+    addToVocab: '単語帳に追加',
+    added: '登録済み',
+    phonetic: '発音',
+    definition: '定義',
+    example: '例文',
+    quizBtn: 'Quiz',
+    shareVocab: '共有',
+    exportVocab: 'CSV',
+    clearVocab: '削除',
+    phrasalVerb: '句動詞',
+    slashTitle: 'スラッシュリーディング',
+    slashDesc: 'フレーズごとに / で区切って表示。前から意味をつかむ練習に。',
+  },
+  en: {
+    appSub: 'English Grammar Analyzer',
+    analyze: 'Analyze',
+    vocab: 'Vocab',
+    tools: 'Tools',
+    about: 'Guide',
+    aiBtn: 'AI Mode',
+    tipBtn: 'Support',
+    darkBtn: 'Dark',
+    lightBtn: 'Light',
+    free: 'Free',
+    textInput: 'Text Input',
+    pdfInput: 'PDF → Text',
+    analyzeBtn: 'Analyze',
+    clearBtn: 'Clear',
+    saveBtn: 'Save',
+    histBtn: 'History',
+    slashBtn: 'Slash View',
+    tipMenuTitle: 'Support the developer ☕',
+    ofuseTitle: 'OFUSE',
+    ofuseDesc: 'Japanese payment methods',
+    bmcTitle: 'Buy Me a Coffee',
+    bmcDesc: 'Credit card · Recommended',
+    langModalTitle: 'Select language',
+    dictEN: 'EN→EN',
+    dictNative: 'EN→JA',
+    addToVocab: 'Add to vocab',
+    added: 'Added',
+    phonetic: 'Pronunciation',
+    definition: 'Definition',
+    example: 'Example',
+    quizBtn: 'Quiz',
+    shareVocab: 'Share',
+    exportVocab: 'CSV',
+    clearVocab: 'Clear',
+    phrasalVerb: 'Phrasal Verb',
+    slashTitle: 'Slash Reading',
+    slashDesc: 'Split text into phrases with /. Practice reading from left to right.',
+  },
+  zh: {
+    appSub: '英语语法分析器',
+    analyze: '分析',
+    vocab: '词汇本',
+    tools: '工具',
+    about: '使用指南',
+    aiBtn: 'AI模式',
+    tipBtn: '支持',
+    darkBtn: '深色',
+    lightBtn: '浅色',
+    free: '完全免费',
+    textInput: '文本输入',
+    pdfInput: 'PDF→文本',
+    analyzeBtn: '分析',
+    clearBtn: '清除',
+    saveBtn: '保存',
+    histBtn: '历史',
+    slashBtn: '斜线阅读',
+    tipMenuTitle: '支持开发者 ☕',
+    ofuseTitle: 'OFUSE',
+    ofuseDesc: '日本支付方式',
+    bmcTitle: 'Buy Me a Coffee',
+    bmcDesc: '信用卡 · 推荐（海外用户）',
+    langModalTitle: '选择语言',
+    dictEN: '英→英',
+    dictNative: '英→中',
+    addToVocab: '添加到词汇本',
+    added: '已添加',
+    phonetic: '发音',
+    definition: '定义',
+    example: '例句',
+    quizBtn: '测验',
+    shareVocab: '分享',
+    exportVocab: 'CSV',
+    clearVocab: '清除',
+    phrasalVerb: '短语动词',
+    slashTitle: '斜线阅读',
+    slashDesc: '用/分隔短语，练习从左到右理解句子。',
+  },
+  es: {
+    appSub: 'Analizador de gramática inglesa',
+    analyze: 'Analizar',
+    vocab: 'Vocabulario',
+    tools: 'Herramientas',
+    about: 'Guía',
+    aiBtn: 'Modo IA',
+    tipBtn: 'Apoyar',
+    darkBtn: 'Oscuro',
+    lightBtn: 'Claro',
+    free: 'Gratis',
+    textInput: 'Ingresar texto',
+    pdfInput: 'PDF → Texto',
+    analyzeBtn: 'Analizar',
+    clearBtn: 'Limpiar',
+    saveBtn: 'Guardar',
+    histBtn: 'Historial',
+    slashBtn: 'Vista diagonal',
+    tipMenuTitle: 'Apoya al desarrollador ☕',
+    ofuseTitle: 'OFUSE',
+    ofuseDesc: 'Métodos de pago japoneses',
+    bmcTitle: 'Buy Me a Coffee',
+    bmcDesc: 'Tarjeta de crédito · Recomendado',
+    langModalTitle: 'Seleccionar idioma',
+    dictEN: 'EN→EN',
+    dictNative: 'EN→ES',
+    addToVocab: 'Agregar al vocabulario',
+    added: 'Agregado',
+    phonetic: 'Pronunciación',
+    definition: 'Definición',
+    example: 'Ejemplo',
+    quizBtn: 'Quiz',
+    shareVocab: 'Compartir',
+    exportVocab: 'CSV',
+    clearVocab: 'Limpiar',
+    phrasalVerb: 'Verbo frasal',
+    slashTitle: 'Lectura diagonal',
+    slashDesc: 'Divide el texto en frases con /. Practica la lectura de izquierda a derecha.',
+  },
+  ko: {
+    appSub: '영어 문법 분석기',
+    analyze: '분석',
+    vocab: '단어장',
+    tools: '도구',
+    about: '사용법',
+    aiBtn: 'AI 모드',
+    tipBtn: '응원하기',
+    darkBtn: '다크',
+    lightBtn: '라이트',
+    free: '완전 무료',
+    textInput: '텍스트 입력',
+    pdfInput: 'PDF→텍스트',
+    analyzeBtn: '분석',
+    clearBtn: '지우기',
+    saveBtn: '저장',
+    histBtn: '기록',
+    slashBtn: '슬래시 읽기',
+    tipMenuTitle: '개발자를 응원하세요 ☕',
+    ofuseTitle: 'OFUSE',
+    ofuseDesc: '일본 결제 수단',
+    bmcTitle: 'Buy Me a Coffee',
+    bmcDesc: '신용카드 · 추천 (해외 사용자)',
+    langModalTitle: '언어 선택',
+    dictEN: '영→영',
+    dictNative: '영→한',
+    addToVocab: '단어장에 추가',
+    added: '추가됨',
+    phonetic: '발음',
+    definition: '정의',
+    example: '예문',
+    quizBtn: '퀴즈',
+    shareVocab: '공유',
+    exportVocab: 'CSV',
+    clearVocab: '삭제',
+    phrasalVerb: '구동사',
+    slashTitle: '슬래시 읽기',
+    slashDesc: '구 단위로 /를 붙여 표시. 앞에서부터 읽는 연습.',
+  }
+};
+
+// MyMemory lang codes
+const LANG_CODES = {ja:'ja', en:'en', zh:'zh-CN', es:'es', ko:'ko'};
+const DICT_PAIRS = {ja:'en|ja', en:'en|en', zh:'en|zh', es:'en|es', ko:'en|ko'};
+
+let currentLang = localStorage.getItem('ga_lang') || 'ja';
+
+function t(key){ return (I18N[currentLang] || I18N.ja)[key] || key; }
+
+function applyLang(){
+  const T = I18N[currentLang] || I18N.ja;
+  // Header
+  document.querySelector('.hdr-s').textContent = T.appSub;
+  document.getElementById('langLabel').textContent = {ja:'日本語',en:'English',zh:'中文',es:'Español',ko:'한국어'}[currentLang];
+  document.getElementById('tipBtnLabel').textContent = T.tipBtn;
+  const darkLabel = document.getElementById('darkLabel');
+  if(darkLabel) darkLabel.textContent = document.body.classList.contains('dark') ? T.lightBtn : T.darkBtn;
+  // Tip menu
+  document.getElementById('tipMenuTitle').textContent = T.tipMenuTitle;
+  document.getElementById('ofuseBtnTitle').textContent = T.ofuseTitle;
+  document.getElementById('ofuseBtnDesc').textContent = T.ofuseDesc;
+  document.getElementById('bmcBtnTitle').textContent = T.bmcTitle;
+  document.getElementById('bmcBtnDesc').textContent = T.bmcDesc;
+  // Lang modal title
+  document.getElementById('langModalTitle').textContent = T.langModalTitle;
+  // Tabs
+  const tabs = document.querySelectorAll('.tab');
+  const tabKeys = ['analyze','about','vocab','tools'];
+  const tabTextKeys = ['analyze','about','vocab','tools'];
+  tabs.forEach((tab, i) => {
+    const icon = tab.querySelector('i');
+    const badge = tab.querySelector('.tbadge');
+    tab.textContent = '';
+    if(icon) tab.appendChild(icon);
+    tab.appendChild(document.createTextNode(T[tabTextKeys[i]] || tabTextKeys[i]));
+    if(badge) tab.appendChild(badge);
+  });
+  // Buttons
+  const btnMap = {
+    'analyze()': 'analyzeBtn',
+    'clearAll()': 'clearBtn',
+    'saveSnapshot()': 'saveBtn',
+    'showHistory()': 'histBtn',
+    'showSlashReading()': 'slashBtn',
+  };
+  document.querySelectorAll('button[onclick]').forEach(btn => {
+    const oc = btn.getAttribute('onclick');
+    for(const [fn, key] of Object.entries(btnMap)){
+      if(oc && oc.includes(fn)){
+        const icon = btn.querySelector('i');
+        btn.textContent = '';
+        if(icon) btn.appendChild(icon);
+        btn.appendChild(document.createTextNode(' ' + T[key]));
+      }
+    }
+  });
+  // Dict toggle
+  const xtEn = document.getElementById('xt-en');
+  const xtNa = document.getElementById('xt-ja');
+  if(xtEn) xtEn.textContent = T.dictEN;
+  if(xtNa){ xtNa.textContent = T.dictNative; xtNa.style.display = currentLang==='en'?'none':''; }
+  // Vocab buttons
+  const aiBtn = document.getElementById('aiToggleBtn');
+  if(aiBtn && !GEMINI_KEY){ aiBtn.innerHTML = '<i class="ti ti-sparkles" style="font-size:13px"></i> ' + T.aiBtn; }
+  // Active lang option
+  document.querySelectorAll('.lang-opt').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === currentLang);
+  });
+  // OFUSE/BMC order based on lang
+  const tipMenu = document.getElementById('tipMenu');
+  if(tipMenu){
+    const ofuse = document.getElementById('ofuseBtn');
+    const bmc = document.getElementById('bmcBtn');
+    if(currentLang === 'ja'){
+      ofuse.style.order='1'; bmc.style.order='2';
+      document.getElementById('ofuseBtnDesc').textContent = T.ofuseDesc;
+      document.getElementById('bmcBtnDesc').textContent = T.bmcDesc;
+    } else {
+      bmc.style.order='1'; ofuse.style.order='2';
+      document.getElementById('bmcBtnDesc').textContent = T.bmcDesc + ' ← Recommended';
+      document.getElementById('ofuseBtnDesc').textContent = T.ofuseDesc;
+    }
+  }
+}
+
+function setLang(lang){
+  currentLang = lang;
+  localStorage.setItem('ga_lang', lang);
+  // Update dict toggle default
+  xl = lang === 'en' ? 'en' : lang;
+  applyLang();
+  closeLangModal();
+}
+
+function openLangModal(){
+  document.getElementById('langBD').classList.add('show');
+  document.getElementById('langSH').classList.add('show');
+}
+function closeLangModal(){
+  document.getElementById('langBD').classList.remove('show');
+  document.getElementById('langSH').classList.remove('show');
+}
+function toggleTipMenu(){
+  const m = document.getElementById('tipMenu');
+  const bd = document.getElementById('tipMenuBD');
+  const show = m.style.display === 'none';
+  m.style.display = show ? 'block' : 'none';
+  bd.style.display = show ? 'block' : 'none';
+}
+function closeTipMenu(){
+  document.getElementById('tipMenu').style.display = 'none';
+  document.getElementById('tipMenuBD').style.display = 'none';
+}
+
+// Apply lang on load
+applyLang();
 
 // ===== DARK MODE =====
 function toggleDark(){
@@ -1399,6 +1988,413 @@ ${sentences.map((s,i) => `${i+1}. ${s.trim()}`).join('\n')}`;
 
   const raw = await callGemini(prompt);
   return extractJSON(raw);
+}
+
+
+
+// ===== VOCAB URL SHARING =====
+let currentShareURL = '';
+
+function shareVocabURL(){
+  if(!vDB.length){
+    alert('単語帳が空です。単語を追加してから共有してください。');
+    return;
+  }
+  // Compress vocab data to URL-safe base64
+  try{
+    const data = JSON.stringify(vDB);
+    const encoded = btoa(encodeURIComponent(data));
+    const baseURL = window.location.origin + window.location.pathname;
+    currentShareURL = baseURL + '?vocab=' + encoded;
+    document.getElementById('shareURLDisplay').textContent = currentShareURL;
+  }catch(e){
+    // If data too large, only share word list
+    const simple = vDB.map(v=>({word:v.word,role:v.role,ja:v.ja,en_def:v.en_def}));
+    const encoded = btoa(encodeURIComponent(JSON.stringify(simple)));
+    const baseURL = window.location.origin + window.location.pathname;
+    currentShareURL = baseURL + '?vocab=' + encoded;
+    document.getElementById('shareURLDisplay').textContent = currentShareURL;
+  }
+  document.getElementById('shareBD').classList.add('show');
+  document.getElementById('shareSH').classList.add('show');
+}
+
+async function copyShareURL(){
+  try{
+    await navigator.clipboard.writeText(currentShareURL);
+  }catch{
+    const ta = document.createElement('textarea');
+    ta.value = currentShareURL;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  const btn = document.getElementById('copyShareBtn');
+  const msg = document.getElementById('shareMsg');
+  btn.innerHTML = '<i class="ti ti-check"></i> コピーしました！';
+  btn.style.background = '#1D9E75';
+  msg.textContent = '✅ クリップボードにコピーしました。別のデバイスで開いてください。';
+  msg.style.display = 'block';
+  setTimeout(()=>{
+    btn.innerHTML = '<i class="ti ti-copy"></i> URLをコピー';
+    btn.style.background = '';
+  }, 2000);
+}
+
+async function shareViaNavigator(){
+  if(navigator.share){
+    try{
+      await navigator.share({
+        title: 'GrammarAI 単語帳',
+        text: `${vDB.length}語の単語帳を共有します`,
+        url: currentShareURL
+      });
+    }catch(e){
+      if(e.name !== 'AbortError') copyShareURL();
+    }
+  } else {
+    copyShareURL();
+  }
+}
+
+function closeShareModal(){
+  document.getElementById('shareBD').classList.remove('show');
+  document.getElementById('shareSH').classList.remove('show');
+  document.getElementById('shareMsg').style.display = 'none';
+}
+
+// ===== LOAD VOCAB FROM URL ON PAGE LOAD =====
+function loadVocabFromURL(){
+  const params = new URLSearchParams(window.location.search);
+  const vocabParam = params.get('vocab');
+  if(!vocabParam) return;
+
+  try{
+    const data = JSON.parse(decodeURIComponent(atob(vocabParam)));
+    if(!Array.isArray(data) || data.length === 0) return;
+
+    // Show confirmation before importing
+    const existing = vDB.length;
+    const incoming = data.length;
+
+    // Clean URL
+    window.history.replaceState({}, '', window.location.pathname);
+
+    // Show import dialog
+    const msg = existing > 0
+      ? `${incoming}語の単語帳を受け取りました。
+現在の${existing}語に追加しますか？
+（「キャンセル」で現在の単語帳を保持）`
+      : `${incoming}語の単語帳を受け取りました。インポートしますか？`;
+
+    if(!confirm(msg)) return;
+
+    // Merge - avoid duplicates
+    const existingWords = new Set(vDB.map(v=>v.word.toLowerCase()));
+    let added = 0;
+    data.forEach(v => {
+      if(v.word && !existingWords.has(v.word.toLowerCase())){
+        vDB.push({
+          word: v.word,
+          role: v.role || 'M',
+          ja: v.ja || '',
+          en_def: v.en_def || '',
+          isAWL: AWL.has((v.word||'').toLowerCase()),
+          added: v.added || Date.now(),
+          forgotten: v.forgotten || 0
+        });
+        added++;
+      }
+    });
+    saveV();
+
+    if(added > 0){
+      alert(`✅ ${added}語を単語帳に追加しました！`);
+      // Switch to vocab tab
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+      document.querySelector('[onclick="swT(\'vocab\',this)"]')?.classList.add('active');
+      document.getElementById('panel-vocab')?.classList.add('active');
+      renderVL();
+    } else {
+      alert('すでに同じ単語が登録されています。');
+    }
+  }catch(e){
+    console.error('Vocab import error:', e);
+  }
+}
+
+// Run on page load
+loadVocabFromURL();
+renderProgress();
+
+
+// ===== PHRASAL VERBS DICTIONARY =====
+const PV = {
+  "account for":"explain / account for〜を説明する・占める",
+  "aim at":"aim at〜を目指す",
+  "apply to":"apply to〜に適用する",
+  "argue for":"argue for〜を主張する",
+  "arise from":"arise from〜から生じる",
+  "base on":"base on〜に基づく",
+  "bear on":"bear on〜に関係する",
+  "bring about":"bring about〜をもたらす",
+  "bring forward":"bring forward〜を提示する",
+  "bring out":"bring out〜を明らかにする",
+  "build on":"build on〜を土台にする",
+  "build up":"build up〜を積み上げる",
+  "call for":"call for〜を必要とする",
+  "carry out":"carry out〜を実行する・遂行する",
+  "come from":"come from〜に由来する",
+  "come to":"come to〜に至る",
+  "come up with":"come up with〜を考え出す",
+  "consist of":"consist of〜から成る",
+  "contribute to":"contribute to〜に貢献する・寄与する",
+  "deal with":"deal with〜を扱う・対処する",
+  "depend on":"depend on〜に依存する",
+  "derive from":"derive from〜に由来する",
+  "draw on":"draw on〜を利用する",
+  "draw upon":"draw upon〜を活用する",
+  "engage in":"engage in〜に従事する",
+  "expand on":"expand on〜を詳述する",
+  "fall into":"fall into〜に分類される",
+  "focus on":"focus on〜に焦点を当てる",
+  "follow from":"follow from〜から導かれる",
+  "give rise to":"give rise to〜を引き起こす",
+  "go beyond":"go beyond〜を超える",
+  "impact on":"impact on〜に影響を与える",
+  "lead to":"lead to〜につながる",
+  "link to":"link to〜と結びつける",
+  "look at":"look at〜を検討する",
+  "make up":"make up〜を構成する",
+  "point out":"point out〜を指摘する",
+  "point to":"point to〜を示す",
+  "refer to":"refer to〜に言及する・参照する",
+  "relate to":"relate to〜と関連する",
+  "rely on":"rely on〜に依存する",
+  "result from":"result from〜の結果として生じる",
+  "result in":"result in〜という結果になる",
+  "rule out":"rule out〜を除外する",
+  "set out":"set out〜を示す・提示する",
+  "shed light on":"shed light on〜を明らかにする",
+  "stand for":"stand for〜を表す",
+  "stem from":"stem from〜から生じる",
+  "take into account":"take into account〜を考慮に入れる",
+  "take on":"take on〜を引き受ける",
+  "turn to":"turn to〜に目を向ける",
+  "work out":"work out〜を解決する・算出する",
+  "back up":"back up〜を支持する",
+  "break down":"break down〜を分解する・故障する",
+  "break out":"break out勃発する",
+  "bring in":"bring in〜を導入する",
+  "bring up":"bring up〜を提起する",
+  "call off":"call off〜を中止する",
+  "carry on":"carry on〜を続ける",
+  "come across":"come across〜に偶然出会う",
+  "cut down":"cut down〜を削減する",
+  "end up":"end up結局〜になる",
+  "figure out":"figure out〜を理解する・解決する",
+  "find out":"find out〜を発見する・調べる",
+  "get across":"get across〜を伝える",
+  "get rid of":"get rid of〜を取り除く",
+  "give up":"give up〜を諦める",
+  "go along with":"go along with〜に賛成する",
+  "go over":"go over〜を見直す・検討する",
+  "go through":"go through〜を経験する・検討する",
+  "keep up":"keep up〜を維持する",
+  "leave out":"leave out〜を省く",
+  "look into":"look into〜を調査する",
+  "look up":"look up〜を調べる",
+  "move on":"move on先に進む",
+  "narrow down":"narrow down〜を絞り込む",
+  "pick up":"pick up〜を習得する・拾う",
+  "put forward":"put forward〜を提案する",
+  "put together":"put together〜をまとめる",
+  "run into":"run into〜に遭遇する",
+  "set up":"set up〜を設立する・準備する",
+  "sum up":"sum up〜を要約する",
+  "take up":"take up〜を始める・占める",
+  "turn out":"turn out〜であることがわかる",
+  "work on":"work on〜に取り組む",
+};
+
+function detectPhrasalVerbs(text){
+  const lower = text.toLowerCase();
+  const found = [];
+  // Sort by length desc to match longer phrases first
+  const sorted = Object.keys(PV).sort((a,b)=>b.length-a.length);
+  for(const pv of sorted){
+    let idx = lower.indexOf(pv);
+    while(idx !== -1){
+      // Check word boundaries
+      const before = idx > 0 ? lower[idx-1] : ' ';
+      const after = idx+pv.length < lower.length ? lower[idx+pv.length] : ' ';
+      if(!/[a-z]/.test(before) && !/[a-z]/.test(after)){
+        found.push({pv, start:idx, end:idx+pv.length, meaning:PV[pv]});
+      }
+      idx = lower.indexOf(pv, idx+1);
+    }
+  }
+  return found;
+}
+
+function highlightPhrasalVerbs(text){
+  const pvs = detectPhrasalVerbs(text);
+  if(!pvs.length) return text;
+  // Sort by position
+  pvs.sort((a,b)=>a.start-b.start);
+  let result = '';
+  let pos = 0;
+  for(const {pv, start, end, meaning} of pvs){
+    if(start < pos) continue;
+    result += text.slice(pos, start);
+    const pvText = text.slice(start, end);
+    result += `<span class="pv-highlight" title="${meaning}" onclick="showPVPopup(event,'${pvText}','${meaning}')">${pvText}</span>`;
+    pos = end;
+  }
+  result += text.slice(pos);
+  return result;
+}
+
+// ===== SLASH READING =====
+function showSlashReading(){
+  const text = document.getElementById('inputText').value.trim();
+  if(!text){ alert(currentLang==='en'?'Please enter text first.':'テキストを入力してください'); return; }
+
+  const existing = document.getElementById('slashArea');
+  if(existing){ existing.remove(); return; }
+
+  const sents = parseSents(text);
+  const slashHTML = sents.map(sent => {
+    // Split into chunks using compromise if available, else simple split
+    const chunks = slashSplit(sent);
+    return chunks.join(' <span style="color:#1D9E75;font-weight:700">/</span> ');
+  }).join('<br><br>');
+
+  const area = document.createElement('div');
+  area.id = 'slashArea';
+  area.className = 'card';
+  area.style.marginBottom = '.875rem';
+  area.innerHTML = `
+    <div class="sec-t" style="margin-bottom:.75rem">
+      <i class="ti ti-git-branch"></i>
+      <span>${t('slashTitle')}</span>
+      <button onclick="document.getElementById('slashArea').remove()" class="btn btn-sm" style="margin-left:auto;padding:2px 8px">✕</button>
+    </div>
+    <div style="font-size:14px;color:var(--gr);margin-bottom:.75rem">${t('slashDesc')}</div>
+    <div style="font-size:17px;line-height:2.5">${slashHTML}</div>`;
+
+  const resultArea = document.getElementById('resultArea');
+  resultArea.parentNode.insertBefore(area, resultArea);
+  area.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function slashSplit(sent){
+  // Split on prepositions, conjunctions, and phrase boundaries
+  const words = sent.trim().split(/\s+/);
+  const chunks = [];
+  let current = [];
+  const SPLIT_WORDS = new Set(['in','on','at','to','for','with','by','from','of','about','as','into','through','during','before','after','above','below','between','among','under','over','near','around','along','across','within','without','despite','towards','toward','upon','that','which','who','when','where','while','although','because','since','unless','until','if','though','whereas','however','therefore','and','but','or','nor','so']);
+
+  for(let i=0; i<words.length; i++){
+    const wl = words[i].toLowerCase().replace(/[^a-z]/g,'');
+    current.push(words[i]);
+    // Split before prepositions/conjunctions (but not at start)
+    if(current.length >= 2 && SPLIT_WORDS.has(wl) && i < words.length-1){
+      // Pop the current word, save chunk, start new with it
+      current.pop();
+      if(current.length > 0) chunks.push(current.join(' '));
+      current = [words[i]];
+    }
+  }
+  if(current.length > 0) chunks.push(current.join(' '));
+  return chunks.filter(c=>c.trim().length>0);
+}
+
+// Phrasal verb popup
+function showPVPopup(e, pv, meaning){
+  e.stopPropagation();
+  const clean = meaning.replace(pv,'').trim();
+  showP(e, pv, 'V', AWL.has(pv.toLowerCase()));
+  // Override the definition with phrasal verb meaning
+  setTimeout(()=>{
+    document.getElementById('pDef').innerHTML = `<span style="color:#1a73e8;font-weight:600">${pv}</span><br>${clean}`;
+    document.getElementById('pEx').textContent = '';
+    const pr = document.getElementById('pr');
+    pr.textContent = t('phrasalVerb');
+    pr.style.background = '#dbeafe';
+    pr.style.color = '#1d4ed8';
+  }, 50);
+}
+
+
+// ===== LEARNING PROGRESS =====
+let progressDB = JSON.parse(localStorage.getItem('ga_progress') || '{"analyzeCount":0,"vocabTotal":0,"quizCorrect":0,"quizTotal":0,"streak":0,"lastDate":""}');
+
+function updateProgress(type, val=1){
+  const today = new Date().toDateString();
+  if(type==='analyze'){
+    progressDB.analyzeCount += val;
+    // Streak
+    if(progressDB.lastDate !== today){
+      const yesterday = new Date(Date.now()-86400000).toDateString();
+      if(progressDB.lastDate === yesterday) progressDB.streak++;
+      else if(progressDB.lastDate !== today) progressDB.streak = 1;
+      progressDB.lastDate = today;
+    }
+  }
+  if(type==='quizCorrect') progressDB.quizCorrect += val;
+  if(type==='quizTotal') progressDB.quizTotal += val;
+  progressDB.vocabTotal = vDB.length;
+  localStorage.setItem('ga_progress', JSON.stringify(progressDB));
+  renderProgress();
+}
+
+function renderProgress(){
+  const el = document.getElementById('progressArea');
+  if(!el) return;
+  const acc = progressDB.quizTotal > 0 ? Math.round(progressDB.quizCorrect/progressDB.quizTotal*100) : 0;
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+      <div class="sc"><div class="sl"><i class="ti ti-analyze" style="font-size:10px"></i> 分析回数</div><div class="sv">${progressDB.analyzeCount}</div></div>
+      <div class="sc"><div class="sl"><i class="ti ti-bookmark" style="font-size:10px"></i> 単語数</div><div class="sv">${progressDB.vocabTotal}</div></div>
+      <div class="sc"><div class="sl"><i class="ti ti-target" style="font-size:10px"></i> 正解率</div><div class="sv">${acc}%</div></div>
+      <div class="sc"><div class="sl"><i class="ti ti-flame" style="font-size:10px"></i> 連続日数</div><div class="sv">${progressDB.streak}日</div></div>
+    </div>`;
+}
+
+// ===== PNG EXPORT =====
+async function exportAsPNG(){
+  const resultArea = document.getElementById('resultArea');
+  if(!resultArea || resultArea.style.display==='none'){ 
+    alert(currentLang==='en'?'Please analyze text first.':'まずテキストを分析してください'); 
+    return; 
+  }
+  try{
+    // Use html2canvas if available, otherwise show instructions
+    if(typeof html2canvas !== 'undefined'){
+      const canvas = await html2canvas(resultArea, {backgroundColor: document.body.classList.contains('dark') ? '#1e1e1e' : '#ffffff', scale:2});
+      const link = document.createElement('a');
+      link.download = 'grammarai-analysis.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } else {
+      // Fallback: copy text and show instruction
+      await doCopy();
+      alert(currentLang==='en'?'Text copied! Use a screenshot tool to save the analysis image.':'テキストをコピーしました！スクリーンショットで分析結果を保存できます。');
+    }
+  }catch(e){
+    console.error(e);
+  }
+}
+
+// ===== SHARE ON X =====
+function shareOnX(){
+  const text = encodeURIComponent('英語論文・レポートの文法をAIで可視化する無料ツール「GrammarAI」を使ってみました！SVOC分析・AWLハイライト・CEFR推定・単語帳など盛りだくさん📚 #英語学習 #英語論文');
+  const url = encodeURIComponent('https://arco-lab-2026.github.io/grammar-ai/');
+  window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
 }
 
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
