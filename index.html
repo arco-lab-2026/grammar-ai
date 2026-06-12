@@ -2889,7 +2889,16 @@ function showSlashReading(){
 
   const header = document.createElement('div');
   header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem';
-  header.innerHTML = '<div class="sec-t" style="margin-bottom:0"><i class="ti ti-git-branch"></i> スラッシュリーディング＋品詞</div><button onclick="document.getElementById('slashArea').remove()" class="btn btn-sm" style="padding:2px 8px">✕</button>';
+  header.appendChild((() => {
+    const hLeft = document.createElement('div');
+    hLeft.className = 'sec-t'; hLeft.style.marginBottom = '0';
+    hLeft.innerHTML = '<i class="ti ti-git-branch"></i> スラッシュリーディング＋品詞';
+    return hLeft;
+  })());
+  const hClose = document.createElement('button');
+  hClose.className = 'btn btn-sm'; hClose.style.padding = '2px 8px';
+  hClose.textContent = '✕';
+  hClose.onclick = () => { const el = document.getElementById('slashArea'); if(el) el.remove(); };
   area.appendChild(header);
 
   sents.forEach((sent) => {
