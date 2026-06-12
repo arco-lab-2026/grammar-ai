@@ -2697,6 +2697,25 @@ function highlightPhrasalVerbs(text){
 }
 
 // ===== SLASH READING =====
+
+function slashSplit(sent){
+  const words = sent.trim().split(/\s+/);
+  const chunks = [];
+  let current = [];
+  const SPLIT_WORDS = new Set(['in','on','at','to','for','with','by','from','of','about','as','into','through','during','before','after','above','below','between','among','under','over','near','around','along','across','within','without','despite','towards','toward','upon','that','which','who','when','where','while','although','because','since','unless','until','if','though','whereas','however','therefore','and','but','or','nor','so']);
+  for(let i=0;i<words.length;i++){
+    const wl=words[i].toLowerCase().replace(/[^a-z]/g,'');
+    current.push(words[i]);
+    if(current.length>=2 && SPLIT_WORDS.has(wl) && i<words.length-1){
+      current.pop();
+      if(current.length>0) chunks.push(current.join(' '));
+      current=[words[i]];
+    }
+  }
+  if(current.length>0) chunks.push(current.join(' '));
+  return chunks.filter(c=>c.trim().length>0);
+}
+
 function showSlashReading(){
   const text = document.getElementById('inputText').value.trim();
   if(!text){ alert(currentLang==='en'?'Please enter text first.':'テキストを入力してください'); return; }
