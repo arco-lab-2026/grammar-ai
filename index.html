@@ -334,7 +334,7 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
   <div class="btn-row">
     <button class="btn btn-p" onclick="analyze()"><i class="ti ti-search"></i> Analyze</button>
     <button class="btn" onclick="showSlashReading()" style="background:#e0f2fe;color:#0369a1;border-color:#7dd3fc"><i class="ti ti-git-branch"></i> スラッシュ表示</button>
-    <button class="btn" onclick="toggleTTS()" id="ttsBtn" style="background:#f0fdf9;color:#065f46;border-color:#6ee7b7" title="読み上げ"><i class="ti ti-volume"></i> 読み上げ</button>
+    <button class="btn" onclick="toggleTTS()" id="ttsBtn" title="読み上げ" style="background:#f0fdf9;color:#065f46;border-color:#6ee7b7"><i class="ti ti-volume"></i> 読み上げ</button>
     <button class="btn" onclick="clearAll()"><i class="ti ti-x"></i> Clear</button>
     <button class="btn" onclick="saveSnapshot()"><i class="ti ti-camera"></i> 保存</button>
     <button class="btn" onclick="showHistory()"><i class="ti ti-history"></i> 履歴</button>
@@ -605,9 +605,7 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
     <div style="font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px"><i class="ti ti-history"></i> 分析履歴</div>
     <button class="btn btn-sm" onclick="clearAllHistory()" style="color:#dc2626;border-color:#fca5a5"><i class="ti ti-trash"></i> 全消去</button>
   </div>
-  <div style="font-size:12px;color:#9ca3af;margin-bottom:.875rem;padding:6px 10px;background:#f9fafb;border-radius:8px">
-    <i class="ti ti-info-circle" style="font-size:11px"></i> 最大50件まで保存。超えると古いものから自動削除されます。ブラウザのデータを消去すると全て削除されます。
-  </div>
+  <div style="font-size:12px;color:#9ca3af;margin-bottom:.875rem;padding:6px 10px;background:#f9fafb;border-radius:8px"><i class="ti ti-info-circle" style="font-size:11px"></i> 最大50件保存。超えると古いものから自動削除。ブラウザのデータ消去で全削除されます。</div>
   <div style="margin-bottom:.875rem;position:relative">
     <i class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:16px"></i>
     <input id="histSearch" type="text" placeholder="タイトルやテキストで検索..." style="width:100%;padding:8px 12px 8px 34px;border:1px solid var(--bd);border-radius:8px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--tx);outline:none" oninput="renderHistList()">
@@ -650,40 +648,22 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
 <div class="pop-bd" id="ttsBD" onclick="closeTTS()"></div>
 <div class="pop-sh" id="ttsSH" style="max-height:80vh">
   <div class="pop-h"></div>
-  <div style="font-size:17px;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:8px">
-    <i class="ti ti-volume" style="color:#1D9E75"></i> 読み上げ（Text to Speech）
+  <div style="font-size:17px;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:8px"><i class="ti ti-volume" style="color:#1D9E75"></i> 読み上げ</div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+    <button id="ttsPlayBtn" onclick="ttsPlay()" class="btn btn-p" style="flex:1;justify-content:center"><i class="ti ti-player-play"></i> 再生</button>
+    <button onclick="ttsPause()" class="btn" style="flex:1;justify-content:center"><i class="ti ti-player-pause"></i> 一時停止</button>
+    <button onclick="ttsStop()" class="btn btn-danger" style="flex:1;justify-content:center"><i class="ti ti-player-stop"></i> 停止</button>
   </div>
-  <!-- Controls -->
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap">
-    <button id="ttsPlayBtn" onclick="ttsPlay()" class="btn btn-p" style="flex:1;justify-content:center;min-width:100px">
-      <i class="ti ti-player-play"></i> 再生
-    </button>
-    <button onclick="ttsPause()" class="btn" style="flex:1;justify-content:center;min-width:80px">
-      <i class="ti ti-player-pause"></i> 一時停止
-    </button>
-    <button onclick="ttsStop()" class="btn btn-danger" style="flex:1;justify-content:center;min-width:80px">
-      <i class="ti ti-player-stop"></i> 停止
-    </button>
-  </div>
-  <!-- Speed -->
   <div style="margin-bottom:1rem">
-    <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:.375rem">速度 <span id="ttsRateLabel">1.0×</span></div>
-    <input type="range" id="ttsRate" min="0.5" max="2" step="0.1" value="1"
-      oninput="document.getElementById('ttsRateLabel').textContent=parseFloat(this.value).toFixed(1)+'×'"
-      style="width:100%;accent-color:#1D9E75">
+    <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:.375rem">速度 <span id="ttsRateLabel">1.0x</span></div>
+    <input type="range" id="ttsRate" min="0.5" max="2" step="0.1" value="1" oninput="document.getElementById('ttsRateLabel').textContent=parseFloat(this.value).toFixed(1)+'x'" style="width:100%;accent-color:#1D9E75">
   </div>
-  <!-- Voice -->
   <div style="margin-bottom:1rem">
     <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:.375rem">音声</div>
     <select id="ttsVoice" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--tx)"></select>
   </div>
-  <!-- Progress -->
-  <div id="ttsProgress" style="font-size:12px;color:var(--gr);padding:6px 10px;background:#f9fafb;border-radius:8px;display:none">
-    <i class="ti ti-loader" style="font-size:11px"></i> 読み上げ中...
-  </div>
-  <div style="font-size:11px;color:#9ca3af;margin-top:.75rem">
-    ※ ブラウザの音声合成（Web Speech API）を使用します。音声はデバイスにより異なります。
-  </div>
+  <div id="ttsProgress" style="font-size:12px;color:var(--gr);padding:6px 10px;background:#f9fafb;border-radius:8px;display:none"><i class="ti ti-loader"></i> 読み上げ中...</div>
+  <div style="font-size:11px;color:#9ca3af;margin-top:.75rem">※ ブラウザの音声合成を使用。音声はデバイスにより異なります。</div>
 </div>
 
 <!-- POPUP -->
@@ -2830,7 +2810,13 @@ function showSlashReading(){
 
   const header = document.createElement('div');
   header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem';
-  header.innerHTML = '<div class="sec-t" style="margin-bottom:0"><i class="ti ti-git-branch"></i> スラッシュリーディング＋品詞</div><button onclick="document.getElementById('slashArea').remove()" class="btn btn-sm" style="padding:2px 8px">✕</button>';
+  const hClose2 = document.createElement('button');
+  hClose2.className = 'btn btn-sm'; hClose2.style.padding = '2px 8px';
+  hClose2.textContent = '✕';
+  hClose2.onclick = function(){ var el = document.getElementById('slashArea'); if(el) el.remove(); };
+  var hLeft2 = document.createElement('div');
+  hLeft2.className = 'sec-t'; hLeft2.style.marginBottom = '0';
+  hLeft2.innerHTML = '<i class="ti ti-git-branch"></i> スラッシュリーディング＋品詞';
   area.appendChild(header);
 
   sents.forEach((sent) => {
@@ -2968,7 +2954,75 @@ function shareOnX(){
 
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 // Apply language and init on full load
-window.addEventListener('DOMContentLoaded', ()=>{ applyLang(); renderProgress(); loadVocabFromURL(); });
+window.
+// ===== TEXT TO SPEECH =====
+var ttsSynth = window.speechSynthesis;
+var ttsVoiceList = [];
+
+function loadTTSVoices(){
+  ttsVoiceList = ttsSynth.getVoices().filter(function(v){ return v.lang.startsWith('en'); });
+  var sel = document.getElementById('ttsVoice');
+  if(!sel) return;
+  sel.innerHTML = '';
+  if(ttsVoiceList.length === 0){ sel.innerHTML = '<option>音声が見つかりません</option>'; return; }
+  ttsVoiceList.forEach(function(v, i){
+    var opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = v.name + ' (' + v.lang + ')';
+    if(v.lang === 'en-US') opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function toggleTTS(){
+  var text = document.getElementById('inputText').value.trim();
+  if(!text){ alert('テキストを入力してください'); return; }
+  loadTTSVoices();
+  document.getElementById('ttsBD').classList.add('show');
+  document.getElementById('ttsSH').classList.add('show');
+}
+
+function closeTTS(){
+  ttsStop();
+  document.getElementById('ttsBD').classList.remove('show');
+  document.getElementById('ttsSH').classList.remove('show');
+}
+
+function ttsPlay(){
+  var text = document.getElementById('inputText').value.trim();
+  if(!text) return;
+  ttsStop();
+  var utt = new SpeechSynthesisUtterance(text);
+  utt.rate = parseFloat(document.getElementById('ttsRate').value);
+  var idx = document.getElementById('ttsVoice').value;
+  if(ttsVoiceList[idx]) utt.voice = ttsVoiceList[idx];
+  utt.onstart = function(){
+    document.getElementById('ttsProgress').style.display = 'block';
+    document.getElementById('ttsPlayBtn').innerHTML = '<i class="ti ti-volume"></i> 再生中...';
+  };
+  utt.onend = utt.onerror = function(){
+    document.getElementById('ttsProgress').style.display = 'none';
+    document.getElementById('ttsPlayBtn').innerHTML = '<i class="ti ti-player-play"></i> 再生';
+  };
+  ttsSynth.speak(utt);
+}
+
+function ttsPause(){
+  if(ttsSynth.speaking && !ttsSynth.paused) ttsSynth.pause();
+  else if(ttsSynth.paused) ttsSynth.resume();
+}
+
+function ttsStop(){
+  ttsSynth.cancel();
+  var p = document.getElementById('ttsProgress');
+  if(p) p.style.display = 'none';
+  var b = document.getElementById('ttsPlayBtn');
+  if(b) b.innerHTML = '<i class="ti ti-player-play"></i> 再生';
+}
+
+if(ttsSynth.onvoiceschanged !== undefined) ttsSynth.onvoiceschanged = loadTTSVoices;
+
+addEventListener('DOMContentLoaded', function(){ updB(); updateAIBtn(); applyLang(); renderProgress(); loadVocabFromURL(); loadTTSVoices(); });
 
 </script>
 </body>
