@@ -1466,7 +1466,7 @@ let curP=null,xl="en",qQ=[],qI=0,pdfTxt="";
 
 function saveV(){localStorage.setItem("ga_v",JSON.stringify(vDB));updB();}
 function updB(){const n=vDB.length;const b=document.getElementById("vBadge");b.textContent=n;b.style.display=n>0?"inline":"none";document.getElementById("vSub").textContent=n+" words";}
-updB();
+// updB() moved to DOMContentLoaded
 
 function swT(name,el){document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));el.classList.add("active");document.getElementById("panel-"+name).classList.add("active");if(name==="vocab")renderVL();}
 function swI(m){["text","pdf"].forEach(x=>{document.getElementById("imt-"+x).classList.toggle("active",x===m);document.getElementById("inp-"+x).style.display=x===m?"block":"none";});}
@@ -2514,7 +2514,7 @@ function updateAIBtn(){
     btn.innerHTML = '<i class="ti ti-sparkles" style="font-size:13px"></i> AI分析';
   }
 }
-updateAIBtn();
+// updateAIBtn() moved to DOMContentLoaded
 
 async function callGemini(prompt){
   const r = await fetch(
@@ -3027,7 +3027,7 @@ function shareOnX(){
 
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 // Apply language and init on full load
-window.addEventListener('DOMContentLoaded', ()=>{ applyLang(); renderProgress(); loadVocabFromURL(); });
+window.addEventListener('DOMContentLoaded', ()=>{ updB(); updateAIBtn(); applyLang(); renderProgress(); loadVocabFromURL(); });
 
 </script>
 </body>
