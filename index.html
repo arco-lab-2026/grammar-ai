@@ -1579,7 +1579,18 @@ function usePdf(){const t=document.getElementById("pdfTA").value.trim();if(!t)re
 async function cpPdf(){const t=document.getElementById("pdfTA").value.trim();if(!t)return;try{await navigator.clipboard.writeText(t);}catch{const ta=document.createElement("textarea");ta.value=t;ta.style.cssText="position:fixed;opacity:0";document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);}alert("テキストをコピーしました");}
 
 // STATS
-function clearAll(){document.getElementById("inputText").value="";["resultArea","statsRow","cefrArea"].forEach(id=>document.getElementById(id).style.display="none");}
+function clearAll(){
+  document.getElementById("inputText").value="";
+  ["resultArea","statsRow","cefrArea"].forEach(id=>document.getElementById(id).style.display="none");
+  // Also remove slash area and Flesch card
+  const slashEl = document.getElementById('slashArea');
+  if(slashEl) slashEl.remove();
+  const fleschEl = document.getElementById('fleschCard');
+  if(fleschEl) fleschEl.remove();
+  // Clear sentences container
+  const sent = document.getElementById('sentences');
+  if(sent) sent.innerHTML = '';
+}
 function parseSents(t){return(t.match(/[^.!?]+[.!?]*/g)||[t]).filter(s=>s.trim().length>4);}
 function computeStats(t){
   const w=t.trim().split(/\s+/).filter(x=>x.length>0);const s=parseSents(t);
@@ -1834,26 +1845,22 @@ function showPOSWithPrompt(sents, text){
   banner.style.cssText = 'background:linear-gradient(135deg,#E1F5EE,#dbeafe);border:1px solid #1D9E75;border-radius:12px;padding:1.25rem;margin-bottom:1.25rem';
   const aiRequiredText = (typeof t === 'function') ? t('aiRequired') : 'SVOC分析にはAI設定が必要です';
   const aiSetupText = (typeof t === 'function') ? t('aiSetupBtn') : '無料のAPIキーを設定する（5分）';
-  banner.innerHTML = `
-    <div style="display:flex;align-items:flex-start;gap:12px">
-      <i class="ti ti-sparkles" style="font-size:28px;color:#1D9E75;flex-shrink:0;margin-top:2px"></i>
-      <div style="flex:1">
-        <div style="font-size:15px;font-weight:700;color:#085041;margin-bottom:4px">${aiRequiredText}</div>
-        <div style="font-size:13px;color:#065f46;line-height:1.7;margin-bottom:.875rem">
-          正確な文法分析のため、Gemini APIキーの設定が必要です。<br>
-          <strong>完全無料</strong>・クレジットカード不要・1日1,500回まで利用できます。
-        </div>
-        <button onclick="openKeyModal()" class="btn btn-p" style="font-size:13px;padding:7px 16px">
-          <i class="ti ti-sparkles"></i> ${aiSetupText}
-        </button>
-      </div>
-    </div>`;
+  // Build banner text based on language
+  var aiDesc = {
+    ja: '正確な文法分析のため、Gemini APIキーの設定が必要です。<br><strong>完全無料</strong>・クレジットカード不要・1日1,500回まで。',
+    en: 'Set up a Gemini API key for accurate SVOC analysis.<br><strong>Completely free</strong>, no credit card, 1,500 uses/day.',
+    zh: '设置Gemini API密钥以获得准确的SVOC分析。<br><strong>完全免费</strong>，无需信用卡，每天1500次。',
+    es: 'Configura una clave API de Gemini para análisis SVOC preciso.<br><strong>Completamente gratis</strong>, sin tarjeta de crédito.',
+    ko: '정확한 SVOC 분석을 위해 Gemini API 키를 설정하세요.<br><strong>완전 무료</strong>, 신용카드 불필요, 하루 1500회.'
+  };
+  banner.innerHTML = '<div style="display:flex;align-items:flex-start;gap:12px"><i class="ti ti-sparkles" style="font-size:24px;color:#1D9E75;flex-shrink:0;margin-top:2px"></i><div style="flex:1"><div style="font-size:14px;font-weight:700;color:#085041;margin-bottom:4px">'+aiRequiredText+'</div><div style="font-size:13px;color:#065f46;line-height:1.7;margin-bottom:.75rem">'+(aiDesc[currentLang]||aiDesc.ja)+'</div><button onclick="openKeyModal()" class="btn btn-p" style="font-size:12px;padding:6px 14px"><i class="ti ti-sparkles"></i> '+aiSetupText+'</button></div></div>';
   container.appendChild(banner);
 
   // Combined slash + POS view (no duplication)
   const posHeader = document.createElement('div');
   posHeader.style.cssText = 'font-size:12px;color:var(--gr);margin-bottom:.875rem;padding:6px 10px;background:#f9fafb;border-radius:8px;display:flex;align-items:center;gap:6px';
-  posHeader.innerHTML = '<i class="ti ti-tag"></i> 品詞タグ付け＋スラッシュリーディング（プレビュー） — AI設定後にSVOC分析が使えます';
+  var posLabels = {ja:'品詞タグ付け＋スラッシュ（プレビュー）— AI設定後にSVOC分析',en:'POS tags + Slash reading (preview) — SVOC available after AI setup',zh:'词性标注+斜线阅读（预览）— 设置AI后可使用SVOC',es:'Etiquetas POS + lectura diagonal (vista previa)',ko:'품사 태그 + 슬래시 읽기 (미리보기)'};
+  posHeader.innerHTML = '<i class="ti ti-tag"></i> '+(posLabels[currentLang]||posLabels.ja);
   container.appendChild(posHeader);
 
   sents.forEach((sent, si) => {
@@ -2136,7 +2143,7 @@ async function fetchDict(word){
       await fetchJA(word,en_def,en_ex);
     }
   }catch{
-    document.getElementById('pDef').textContent='定義が見つかりませんでした';
+    document.getElementById('pDef').textContent='—';
     document.getElementById('pEx').textContent='';
     if(curP)curP.en_def='Not found';
   }
@@ -2193,12 +2200,26 @@ function exportV(){
 // QUIZ
 function startQ(){if(!vDB.length)return;qQ=[...vDB].sort(()=>Math.random()-.5);qI=0;document.getElementById("quizArea").style.display="block";showQC();}
 function showQC(){
-  if(qI>=qQ.length){document.getElementById("quizArea").innerHTML=`<div class="qcard"><div class="qw">クイズ完了！</div><div class="qh">全${qQ.length}問終了しました。</div><button class="btn" style="width:100%;justify-content:center;margin-top:1rem" onclick="stopQ()">閉じる</button></div>`;return;}
+  if(qI>=qQ.length){
+    document.getElementById("quizArea").innerHTML='<div class="qcard"><div class="qw">'+
+      (currentLang==='en'?'Quiz Complete!':currentLang==='zh'?'测验完成！':currentLang==='es'?'¡Quiz completo!':currentLang==='ko'?'퀴즈 완료!':'クイズ完了！')+
+      '</div><div class="qh">'+(currentLang==='en'?'All '+qQ.length+' questions done.':'全'+qQ.length+'問終了しました。')+
+      '</div><button class="btn" style="width:100%;justify-content:center;margin-top:1rem" onclick="stopQ()">'+
+      (currentLang==='en'?'Close':currentLang==='zh'?'关闭':currentLang==='es'?'Cerrar':currentLang==='ko'?'닫기':'閉じる')+
+      '</button></div>';
+    return;
+  }
   const v=qQ[qI];
   document.getElementById("qW").textContent=v.word;
   document.getElementById("qH").textContent=(getRJ()[v.role]||v.role)+(v.isAWL?" · AWL":"");
-  document.getElementById("qA").style.display="none";document.getElementById("qBs").style.display="none";
-  document.getElementById("qA").textContent=(v.ja||"?")+" / "+(v.en_def||"?");
+  document.getElementById("qA").style.display="none";
+  document.getElementById("qBs").style.display="none";
+  // Build answer content with both ja and en
+  const jaText = v.ja && v.ja.trim() ? v.ja : '—';
+  const enText = v.en_def && v.en_def.trim() ? v.en_def : '—';
+  document.getElementById("qA").innerHTML =
+    '<div style="font-size:18px;font-weight:600;margin-bottom:6px">'+jaText+'</div>'+
+    '<div style="font-size:13px;color:var(--gr);line-height:1.6">'+enText+'</div>';
   document.getElementById("qP").textContent=(qI+1)+" / "+qQ.length;
   document.getElementById("qBar").style.width=Math.round(qI/qQ.length*100)+"%";
 }
@@ -3007,108 +3028,113 @@ if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serv
 // Apply language and init on full load
 // ===== TEXT TO SPEECH =====
 var ttsSynth = window.speechSynthesis;
-var ttsSentences = [];
+var ttsSents = [];
 var ttsSentIdx = 0;
-var ttsPlaying = false;
+var ttsActive = false;
+var ttsCurrentUtt = null;
 
-function loadTTSVoices(){
-  // Fixed 2-voice UI - no dynamic loading needed
-}
+function loadTTSVoices(){ /* handled inline */ }
 
 function toggleTTS(){
   var text = document.getElementById('inputText').value.trim();
   if(!text){ alert('テキストを入力してください'); return; }
-  // Build sentence list
-  ttsSentences = ttsGetSentences(text);
+  ttsSents = text.match(/[^.!?]+[.!?]+\s*/g) || [text];
+  ttsSents = ttsSents.map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 0; });
   ttsSentIdx = 0;
-  ttsPlaying = false;
-  // Render sentence list
+  ttsActive = false;
+  // Build sentence list UI
   var list = document.getElementById('ttsSentList');
   list.style.display = 'block';
   list.innerHTML = '';
-  ttsSentences.forEach(function(sent, i){
-    var item = document.createElement('div');
-    item.style.cssText = 'padding:6px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--tx);border:1px solid var(--bd);margin-bottom:4px';
-    item.id = 'ttsSent' + i;
-    item.innerHTML = '<span style="color:#9ca3af;margin-right:6px">' + (i+1) + '</span>' + sent.slice(0,60) + (sent.length>60?'...':'');
-    item.onclick = (function(idx){ return function(){ ttsPlayFrom(idx); }; })(i);
-    item.onmouseover = function(){ this.style.background='var(--gl)'; };
-    item.onmouseout = function(){ this.style.background = ttsPlaying && ttsSentIdx===i ? '#E1F5EE' : ''; };
-    list.appendChild(item);
+  ttsSents.forEach(function(sent, i){
+    var d = document.createElement('div');
+    d.id = 'ttsSent'+i;
+    d.style.cssText = 'padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;color:var(--tx);border:1px solid var(--bd);margin-bottom:3px;line-height:1.4';
+    d.innerHTML = '<span style="color:#9ca3af;font-size:11px;margin-right:6px">'+(i+1)+'.</span>'+sent.slice(0,70)+(sent.length>70?'…':'');
+    (function(idx){ d.onclick = function(){ ttsPlayFrom(idx); }; })(i);
+    list.appendChild(d);
   });
   document.getElementById('ttsBD').classList.add('show');
   document.getElementById('ttsSH').classList.add('show');
 }
 
-function ttsGetSentences(text){
-  var sents = text.match(/[^.!?]+[.!?]+\s*/g) || [text];
-  return sents.map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 0; });
-}
-
-function ttsGetVoice(){
-  var lang = document.getElementById('ttsVoice').value;
-  var voices = ttsSynth.getVoices();
-  // Find best match
-  var match = voices.filter(function(v){ return v.lang === lang; });
-  if(match.length > 0) return match[0];
-  var partial = voices.filter(function(v){ return v.lang.startsWith(lang.split('-')[0]); });
-  if(partial.length > 0) return partial[0];
+function ttsGetBestVoice(){
+  var lang = document.getElementById('ttsVoice').value; // 'en-US' or 'en-GB'
+  var voices = window.speechSynthesis.getVoices();
+  // Prefer Google voices for quality
+  var google = voices.filter(function(v){ return v.name.indexOf('Google') >= 0 && v.lang === lang; });
+  if(google.length) return google[0];
+  var exact = voices.filter(function(v){ return v.lang === lang; });
+  if(exact.length) return exact[0];
+  var partial = voices.filter(function(v){ return v.lang.startsWith('en'); });
+  if(partial.length) return partial[0];
   return null;
 }
 
 function ttsToggle(){
-  if(ttsPlaying){ ttsStop(); }
-  else { ttsPlayFrom(ttsSentIdx); }
+  if(ttsActive){ ttsStop(); }
+  else { ttsPlayFrom(ttsSentIdx || 0); }
 }
 
 function ttsPlayFrom(idx){
-  ttsSynth.cancel();
-  ttsSentIdx = idx;
-  ttsPlayNext();
+  window.speechSynthesis.cancel();
+  ttsActive = false;
+  // Small delay to let cancel take effect
+  setTimeout(function(){
+    ttsSentIdx = idx;
+    ttsActive = true;
+    ttsNextSent();
+  }, 100);
 }
 
-function ttsPlayNext(){
-  if(ttsSentIdx >= ttsSentences.length){ ttsStop(); return; }
-  var sent = ttsSentences[ttsSentIdx];
+function ttsNextSent(){
+  if(!ttsActive || ttsSentIdx >= ttsSents.length){
+    ttsStop();
+    return;
+  }
+  var sent = ttsSents[ttsSentIdx];
   var utt = new SpeechSynthesisUtterance(sent);
-  utt.rate = parseFloat(document.getElementById('ttsRate').value);
-  var voice = ttsGetVoice();
-  if(voice) utt.voice = voice;
+  utt.rate = parseFloat(document.getElementById('ttsRate').value) || 1;
+  var v = ttsGetBestVoice();
+  if(v) utt.voice = v;
+  utt.lang = document.getElementById('ttsVoice').value || 'en-US';
   
-  // Update UI
-  ttsPlaying = true;
-  document.getElementById('ttsPlayBtn').innerHTML = '<i class="ti ti-player-stop"></i> 停止';
-  document.getElementById('ttsPlayBtn').style.background = '#dc2626';
+  var btn = document.getElementById('ttsPlayBtn');
+  if(btn){ btn.innerHTML = '<i class="ti ti-player-stop"></i> 停止'; btn.style.background='#dc2626'; btn.style.borderColor='#dc2626'; }
   
   var prog = document.getElementById('ttsProgress');
-  prog.style.display = 'block';
-  prog.innerHTML = '<i class="ti ti-volume"></i> 文 ' + (ttsSentIdx+1) + ' / ' + ttsSentences.length + ': ' + sent.slice(0,50) + (sent.length>50?'...':'');
+  if(prog){ prog.style.display='block'; prog.innerHTML='<i class="ti ti-volume"></i> 文'+(ttsSentIdx+1)+'/'+ttsSents.length+': '+sent.slice(0,50)+(sent.length>50?'…':''); }
   
-  // Highlight current sentence
-  document.querySelectorAll('[id^="ttsSent"]').forEach(function(el){ el.style.background = ''; });
-  var cur = document.getElementById('ttsSent' + ttsSentIdx);
-  if(cur){ cur.style.background = '#E1F5EE'; cur.scrollIntoView({block:'nearest'}); }
+  document.querySelectorAll('[id^="ttsSent"]').forEach(function(el){ el.style.background=''; el.style.borderColor='var(--bd)'; });
+  var cur = document.getElementById('ttsSent'+ttsSentIdx);
+  if(cur){ cur.style.background='#E1F5EE'; cur.style.borderColor='#1D9E75'; cur.scrollIntoView({block:'nearest',behavior:'smooth'}); }
   
+  ttsCurrentUtt = utt;
+  var currentIdx = ttsSentIdx;
   utt.onend = function(){
-    ttsSentIdx++;
-    ttsPlayNext();
+    if(ttsActive && ttsSentIdx === currentIdx){
+      ttsSentIdx++;
+      setTimeout(ttsNextSent, 50);
+    }
   };
   utt.onerror = function(){
-    ttsSentIdx++;
-    ttsPlayNext();
+    if(ttsActive){
+      ttsSentIdx++;
+      setTimeout(ttsNextSent, 100);
+    }
   };
-  ttsSynth.speak(utt);
+  window.speechSynthesis.speak(utt);
 }
 
 function ttsStop(){
-  ttsSynth.cancel();
-  ttsPlaying = false;
-  ttsSentIdx = 0;
+  ttsActive = false;
+  ttsCurrentUtt = null;
+  window.speechSynthesis.cancel();
   var btn = document.getElementById('ttsPlayBtn');
-  if(btn){ btn.innerHTML = '<i class="ti ti-player-play"></i> 再生'; btn.style.background = ''; }
+  if(btn){ btn.innerHTML='<i class="ti ti-player-play"></i> 再生'; btn.style.background=''; btn.style.borderColor=''; }
   var prog = document.getElementById('ttsProgress');
-  if(prog) prog.style.display = 'none';
-  document.querySelectorAll('[id^="ttsSent"]').forEach(function(el){ el.style.background = ''; });
+  if(prog) prog.style.display='none';
+  document.querySelectorAll('[id^="ttsSent"]').forEach(function(el){ el.style.background=''; el.style.borderColor='var(--bd)'; });
 }
 
 function closeTTS(){
@@ -3117,7 +3143,8 @@ function closeTTS(){
   document.getElementById('ttsSH').classList.remove('show');
 }
 
-function ttsPause(){ /* kept for compatibility */ }
+function ttsPause(){ /* not used */ }
+function ttsPauseBtn(m){ /* not used */ }
 function ttsPauseBtn(m){ /* kept for compatibility */ }
 
 addEventListener('DOMContentLoaded', function(){ updB(); updateAIBtn(); applyLang(); renderProgress(); loadVocabFromURL(); loadTTSVoices(); });
