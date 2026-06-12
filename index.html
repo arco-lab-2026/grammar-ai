@@ -649,21 +649,25 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
 <div class="pop-sh" id="ttsSH" style="max-height:80vh">
   <div class="pop-h"></div>
   <div style="font-size:17px;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:8px"><i class="ti ti-volume" style="color:#1D9E75"></i> 読み上げ</div>
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
-    <button id="ttsPlayBtn" onclick="ttsPlay()" class="btn btn-p" style="flex:1;justify-content:center"><i class="ti ti-player-play"></i> 再生</button>
-    <button onclick="ttsPause()" class="btn" style="flex:1;justify-content:center"><i class="ti ti-player-pause"></i> 一時停止</button>
-    <button onclick="ttsStop()" class="btn btn-danger" style="flex:1;justify-content:center"><i class="ti ti-player-stop"></i> 停止</button>
-  </div>
+  <!-- Single play/stop button -->
+  <button id="ttsPlayBtn" onclick="ttsToggle()" class="btn btn-p" style="width:100%;justify-content:center;margin-bottom:1rem;font-size:15px;padding:12px">
+    <i class="ti ti-player-play"></i> 再生
+  </button>
+  <!-- Sentence list -->
+  <div id="ttsSentList" style="margin-bottom:1rem;max-height:200px;overflow-y:auto;display:none"></div>
   <div style="margin-bottom:1rem">
     <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:.375rem">速度 <span id="ttsRateLabel">1.0x</span></div>
     <input type="range" id="ttsRate" min="0.5" max="2" step="0.1" value="1" oninput="document.getElementById('ttsRateLabel').textContent=parseFloat(this.value).toFixed(1)+'x'" style="width:100%;accent-color:#1D9E75">
   </div>
   <div style="margin-bottom:1rem">
     <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:.375rem">音声</div>
-    <select id="ttsVoice" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--tx)"></select>
+    <select id="ttsVoice" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--tx)">
+      <option value="en-US">🇺🇸 アメリカ英語 (en-US)</option>
+      <option value="en-GB">🇬🇧 イギリス英語 (en-GB)</option>
+    </select>
   </div>
-  <div id="ttsProgress" style="font-size:12px;color:var(--gr);padding:6px 10px;background:#f9fafb;border-radius:8px;display:none"><i class="ti ti-loader"></i> 読み上げ中...</div>
-  <div style="font-size:11px;color:#9ca3af;margin-top:.75rem">※ ブラウザの音声合成を使用。音声はデバイスにより異なります。</div>
+  <div id="ttsProgress" style="font-size:12px;color:var(--gr);padding:6px 10px;background:#f9fafb;border-radius:8px;display:none"></div>
+  <div style="font-size:11px;color:#9ca3af;margin-top:.75rem">※ ブラウザの音声合成を使用。各文をクリックするとその文だけを読み上げます。</div>
 </div>
 
 <!-- POPUP -->
@@ -1009,6 +1013,11 @@ const I18N_EXT = {
     toolPaperRaterDesc: '문법, 어휘, 구조, 독창성 등의 관점에서 논문을 자동 채점합니다.',
     toolGPTZeroDesc: '텍스트가 AI에 의해 작성되었는지 판단합니다. 자신의 글이 AI 생성으로 판정될 수 있는지 확인할 때 사용합니다.',
     toolChatPDFDesc: 'PDF를 업로드하고 AI와 대화할 수 있습니다. 문헌 조사 시 논문을 빠르게 이해하는 데 유용합니다.',
+    role_S: '主語',
+    role_V: '動詞',
+    role_O: '目的語',
+    role_C: '補語',
+    role_M: '修飾語',
   },
   en: {
     heroTitle: 'Visualize English grammar for academic writing',
@@ -1098,6 +1107,11 @@ const I18N_EXT = {
     toolPaperRaterDesc: 'Auto-scores essays on grammar, vocabulary, structure, and originality.',
     toolGPTZeroDesc: 'Detects whether text was written by AI or a human.',
     toolChatPDFDesc: 'Upload a PDF and ask questions about it. Great for literature reviews.',
+    role_S: 'Subject',
+    role_V: 'Verb',
+    role_O: 'Object',
+    role_C: 'Complement',
+    role_M: 'Modifier',
   },
   zh: {
     heroTitle: '可视化英语学术写作语法',
@@ -1187,6 +1201,11 @@ const I18N_EXT = {
     toolPaperRaterDesc: '从语法、词汇、结构和原创性等方面自动评分论文。',
     toolGPTZeroDesc: '检测文本是否由AI写成。',
     toolChatPDFDesc: '上传PDF并与AI对话，快速理解论文内容。',
+    role_S: '主语',
+    role_V: '动词',
+    role_O: '宾语',
+    role_C: '补语',
+    role_M: '修饰语',
   },
   es: {
     heroTitle: 'Visualiza la gramática del inglés académico',
@@ -1276,6 +1295,11 @@ const I18N_EXT = {
     toolPaperRaterDesc: 'Califica ensayos automáticamente en gramática, vocabulario, estructura y originalidad.',
     toolGPTZeroDesc: 'Detecta si el texto fue escrito por IA o humanos.',
     toolChatPDFDesc: 'Sube un PDF y hazle preguntas. Perfecto para revisiones de literatura.',
+    role_S: 'Sujeto',
+    role_V: 'Verbo',
+    role_O: 'Objeto',
+    role_C: 'Complemento',
+    role_M: 'Modificador',
   },
   ko: {
     heroTitle: '학술 영작문의 문법을 시각화',
@@ -1365,6 +1389,11 @@ const I18N_EXT = {
     toolPaperRaterDesc: '문법, 어휘, 구조, 독창성 등의 관점에서 논문을 자동 채점합니다.',
     toolGPTZeroDesc: '텍스트가 AI에 의해 작성되었는지 판단합니다.',
     toolChatPDFDesc: 'PDF를 업로드하고 AI와 대화할 수 있습니다.',
+    role_S: '주어',
+    role_V: '동사',
+    role_O: '목적어',
+    role_C: '보어',
+    role_M: '수식어',
   },
 };
 
@@ -1503,7 +1532,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@
 const AWL=new Set("abandon,abstract,access,accommodate,accompany,accumulate,accurate,achieve,acknowledge,acquisition,adapt,adequate,adjacent,adjust,adult,advocate,affect,aggregate,aid,albeit,allocate,alter,ambiguous,amend,analogy,analyze,analysis,annual,apparent,append,appreciate,approach,appropriate,approximate,arbitrary,area,aspect,assemble,assess,assign,assist,assume,assure,attach,attain,authority,automate,available,aware,behalf,benefit,bias,brief,bulk,capable,capacity,category,cease,challenge,chapter,civil,clarify,classic,clause,code,coherent,coincide,commit,community,complex,component,compound,comprehensive,concentrate,conduct,configure,consent,consequent,considerable,consist,constitute,constrain,construct,consult,consume,contact,context,contract,contrast,contribute,controversial,convention,convert,core,correspond,credit,criteria,culture,cycle,data,decline,define,demonstrate,distribute,document,domain,economy,element,emerge,emphasis,enable,equip,establish,evaluate,evident,exhibit,expand,expose,extract,facilitate,factor,feature,final,finance,focus,formula,foundation,framework,function,global,grant,hypothesis,identify,illustrate,impact,implement,indicate,individual,infrastructure,integrate,interpret,invest,involve,issue,justify,label,layer,lecture,legal,link,locate,major,method,modify,monitor,network,normal,notion,objective,obtain,occur,option,outcome,overall,participate,perceive,period,principle,process,professional,project,promote,proportion,provide,publish,pursue,range,ratio,rely,research,resident,resolve,resource,role,sector,sequence,significant,similar,simulate,specific,specify,structure,submit,sufficient,summary,survey,sustain,symbolic,target,task,team,technique,technology,theory,transfer,transform,transport,trend,ultimate,utility,valid,vary,version,via,volume,require,select,vocabulary,academic,writing,contribute,debate,sociology,empirical,critique,interpretation,textual,embodiment,commentary,concept,create,design,develop,evidence,source".split(","));
 const RC={S:"#1D9E75",V:"#1a73e8",O:"#D85A30",C:"#BA7517",M:"#7F77DD"};
 const RB={S:"#dcfce7",V:"#dbeafe",O:"#ffedd5",C:"#fef3c7",M:"#ede9fe"};
-const RJ={S:"主語 (Subject)",V:"動詞 (Verb)",O:"目的語 (Object)",C:"補語 (Complement)",M:"修飾語 (Modifier)"};
+function getRJ(){const L=typeof currentLang!=='undefined'?currentLang:'ja';const m={ja:{'S':'主語','V':'動詞','O':'目的語','C':'補語','M':'修飾語'},en:{'S':'Subject','V':'Verb','O':'Object','C':'Complement','M':'Modifier'},zh:{'S':'主语','V':'动词','O':'宾语','C':'补语','M':'修饰语'},es:{'S':'Sujeto','V':'Verbo','O':'Objeto','C':'Complemento','M':'Modificador'},ko:{'S':'주어','V':'동사','O':'목적어','C':'보어','M':'수식어'}};return m[L]||m.ja;}
 const STYPES={SV:"第1文型 SV",SVC:"第2文型 SVC",SVO:"第3文型 SVO",SVOO:"第4文型 SVOO",SVOC:"第5文型 SVOC"};
 const CORD=["A1","A2","B1","B2","C1","C2"];
 const TURLS={
@@ -1884,6 +1913,17 @@ function showPOSWithPrompt(sents, text){
   });
 }
 
+function getPOSLabel(role, lang){
+  var labels = {
+    ja: {V:'動詞', N:'名詞', ADJ:'形容詞', ADV:'副詞', PREP:'前置詞', CONJ:'接続詞', ART:'冠詞', OTHER:'その他'},
+    en: {V:'Verb', N:'Noun', ADJ:'Adj', ADV:'Adv', PREP:'Prep', CONJ:'Conj', ART:'Art', OTHER:'Other'},
+    zh: {V:'动词', N:'名词', ADJ:'形容词', ADV:'副词', PREP:'介词', CONJ:'连词', ART:'冠词', OTHER:'其他'},
+    es: {V:'Verbo', N:'Sustantivo', ADJ:'Adj', ADV:'Adv', PREP:'Prep', CONJ:'Conj', ART:'Art', OTHER:'Otro'},
+    ko: {V:'동사', N:'명사', ADJ:'형용사', ADV:'부사', PREP:'전치사', CONJ:'접속사', ART:'관사', OTHER:'기타'}
+  };
+  var l = labels[lang] || labels.ja;
+  return l[role] || l.OTHER;
+}
 function getPOS(word){
   const wl = word.toLowerCase();
   if(BE.has(wl) || AUX_V.has(wl) || LINK_V.has(wl) || TRANS_V.has(wl)) return {label:'動詞', color:'#1a73e8'};
@@ -2043,7 +2083,7 @@ function showP(e,word,role,isAWL){
   curP={word,role,isAWL,en_def:"",en_ex:"",ja:""};
   document.getElementById("pw").textContent=word;
   document.getElementById("pwBadge").innerHTML="";
-  const pr=document.getElementById("pr");pr.textContent=RJ[role]||role;pr.style.background=RB[role]||"#f3f4f6";pr.style.color=RC[role]||"#1a1a1a";
+  const pr=document.getElementById("pr");pr.textContent=getRJ()[role]||role;pr.style.background=RB[role]||"#f3f4f6";pr.style.color=RC[role]||"#1a1a1a";
   document.getElementById("pAwl").style.display=isAWL?"block":"none";
   document.getElementById("pDef").textContent="読み込み中...";document.getElementById("pEx").textContent="";
   const saved=vDB.some(v=>v.word.toLowerCase()===word.toLowerCase());
@@ -2138,7 +2178,7 @@ function renderVL(){
   [...vDB].reverse().forEach((v,ri)=>{
     const i=vDB.length-1-ri;const isAWL=v.isAWL||AWL.has((v.word||"").toLowerCase());
     const el=document.createElement("div");el.className="vi";
-    el.innerHTML=`<div style="min-width:90px"><div class="vw">${v.word}${isAWL?'<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:1px 5px;border-radius:6px;margin-left:5px;font-weight:600">AWL</span>':""}</div><div class="vp" style="color:${RC[v.role]||"#6b7280"}">${RJ[v.role]||v.role}</div>${v.forgotten>0?`<div style="font-size:11px;color:#dc2626;margin-top:1px">${v.forgotten}回間違い</div>`:""}</div><div class="vd"><div class="vd-j">${v.ja||"—"}</div><div class="vd-e">${v.en_def||""}</div></div><button class="vrm" onclick="rmV(${i})"><i class="ti ti-trash"></i></button>`;
+    el.innerHTML=`<div style="min-width:90px"><div class="vw">${v.word}${isAWL?'<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:1px 5px;border-radius:6px;margin-left:5px;font-weight:600">AWL</span>':""}</div><div class="vp" style="color:${RC[v.role]||"#6b7280"}">${getRJ()[v.role]||v.role}</div>${v.forgotten>0?`<div style="font-size:11px;color:#dc2626;margin-top:1px">${v.forgotten}回間違い</div>`:""}</div><div class="vd"><div class="vd-j">${v.ja||"—"}</div><div class="vd-e">${v.en_def||""}</div></div><button class="vrm" onclick="rmV(${i})"><i class="ti ti-trash"></i></button>`;
     list.appendChild(el);
   });
 }
@@ -2156,7 +2196,7 @@ function showQC(){
   if(qI>=qQ.length){document.getElementById("quizArea").innerHTML=`<div class="qcard"><div class="qw">クイズ完了！</div><div class="qh">全${qQ.length}問終了しました。</div><button class="btn" style="width:100%;justify-content:center;margin-top:1rem" onclick="stopQ()">閉じる</button></div>`;return;}
   const v=qQ[qI];
   document.getElementById("qW").textContent=v.word;
-  document.getElementById("qH").textContent=(RJ[v.role]||v.role)+(v.isAWL?" · AWL":"");
+  document.getElementById("qH").textContent=(getRJ()[v.role]||v.role)+(v.isAWL?" · AWL":"");
   document.getElementById("qA").style.display="none";document.getElementById("qBs").style.display="none";
   document.getElementById("qA").textContent=(v.ja||"?")+" / "+(v.en_def||"?");
   document.getElementById("qP").textContent=(qI+1)+" / "+qQ.length;
@@ -2967,29 +3007,108 @@ if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serv
 // Apply language and init on full load
 // ===== TEXT TO SPEECH =====
 var ttsSynth = window.speechSynthesis;
-var ttsVoiceList = [];
+var ttsSentences = [];
+var ttsSentIdx = 0;
+var ttsPlaying = false;
 
 function loadTTSVoices(){
-  ttsVoiceList = ttsSynth.getVoices().filter(function(v){ return v.lang.startsWith('en'); });
-  var sel = document.getElementById('ttsVoice');
-  if(!sel) return;
-  sel.innerHTML = '';
-  if(ttsVoiceList.length === 0){ sel.innerHTML = '<option>音声が見つかりません</option>'; return; }
-  ttsVoiceList.forEach(function(v, i){
-    var opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = v.name + ' (' + v.lang + ')';
-    if(v.lang === 'en-US') opt.selected = true;
-    sel.appendChild(opt);
-  });
+  // Fixed 2-voice UI - no dynamic loading needed
 }
 
 function toggleTTS(){
   var text = document.getElementById('inputText').value.trim();
   if(!text){ alert('テキストを入力してください'); return; }
-  loadTTSVoices();
+  // Build sentence list
+  ttsSentences = ttsGetSentences(text);
+  ttsSentIdx = 0;
+  ttsPlaying = false;
+  // Render sentence list
+  var list = document.getElementById('ttsSentList');
+  list.style.display = 'block';
+  list.innerHTML = '';
+  ttsSentences.forEach(function(sent, i){
+    var item = document.createElement('div');
+    item.style.cssText = 'padding:6px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--tx);border:1px solid var(--bd);margin-bottom:4px';
+    item.id = 'ttsSent' + i;
+    item.innerHTML = '<span style="color:#9ca3af;margin-right:6px">' + (i+1) + '</span>' + sent.slice(0,60) + (sent.length>60?'...':'');
+    item.onclick = (function(idx){ return function(){ ttsPlayFrom(idx); }; })(i);
+    item.onmouseover = function(){ this.style.background='var(--gl)'; };
+    item.onmouseout = function(){ this.style.background = ttsPlaying && ttsSentIdx===i ? '#E1F5EE' : ''; };
+    list.appendChild(item);
+  });
   document.getElementById('ttsBD').classList.add('show');
   document.getElementById('ttsSH').classList.add('show');
+}
+
+function ttsGetSentences(text){
+  var sents = text.match(/[^.!?]+[.!?]+\s*/g) || [text];
+  return sents.map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 0; });
+}
+
+function ttsGetVoice(){
+  var lang = document.getElementById('ttsVoice').value;
+  var voices = ttsSynth.getVoices();
+  // Find best match
+  var match = voices.filter(function(v){ return v.lang === lang; });
+  if(match.length > 0) return match[0];
+  var partial = voices.filter(function(v){ return v.lang.startsWith(lang.split('-')[0]); });
+  if(partial.length > 0) return partial[0];
+  return null;
+}
+
+function ttsToggle(){
+  if(ttsPlaying){ ttsStop(); }
+  else { ttsPlayFrom(ttsSentIdx); }
+}
+
+function ttsPlayFrom(idx){
+  ttsSynth.cancel();
+  ttsSentIdx = idx;
+  ttsPlayNext();
+}
+
+function ttsPlayNext(){
+  if(ttsSentIdx >= ttsSentences.length){ ttsStop(); return; }
+  var sent = ttsSentences[ttsSentIdx];
+  var utt = new SpeechSynthesisUtterance(sent);
+  utt.rate = parseFloat(document.getElementById('ttsRate').value);
+  var voice = ttsGetVoice();
+  if(voice) utt.voice = voice;
+  
+  // Update UI
+  ttsPlaying = true;
+  document.getElementById('ttsPlayBtn').innerHTML = '<i class="ti ti-player-stop"></i> 停止';
+  document.getElementById('ttsPlayBtn').style.background = '#dc2626';
+  
+  var prog = document.getElementById('ttsProgress');
+  prog.style.display = 'block';
+  prog.innerHTML = '<i class="ti ti-volume"></i> 文 ' + (ttsSentIdx+1) + ' / ' + ttsSentences.length + ': ' + sent.slice(0,50) + (sent.length>50?'...':'');
+  
+  // Highlight current sentence
+  document.querySelectorAll('[id^="ttsSent"]').forEach(function(el){ el.style.background = ''; });
+  var cur = document.getElementById('ttsSent' + ttsSentIdx);
+  if(cur){ cur.style.background = '#E1F5EE'; cur.scrollIntoView({block:'nearest'}); }
+  
+  utt.onend = function(){
+    ttsSentIdx++;
+    ttsPlayNext();
+  };
+  utt.onerror = function(){
+    ttsSentIdx++;
+    ttsPlayNext();
+  };
+  ttsSynth.speak(utt);
+}
+
+function ttsStop(){
+  ttsSynth.cancel();
+  ttsPlaying = false;
+  ttsSentIdx = 0;
+  var btn = document.getElementById('ttsPlayBtn');
+  if(btn){ btn.innerHTML = '<i class="ti ti-player-play"></i> 再生'; btn.style.background = ''; }
+  var prog = document.getElementById('ttsProgress');
+  if(prog) prog.style.display = 'none';
+  document.querySelectorAll('[id^="ttsSent"]').forEach(function(el){ el.style.background = ''; });
 }
 
 function closeTTS(){
@@ -2998,71 +3117,8 @@ function closeTTS(){
   document.getElementById('ttsSH').classList.remove('show');
 }
 
-var ttsSentences = [];
-var ttsSentIdx = 0;
-var ttsIsPaused = false;
-
-function ttsSplitSentences(text){
-  return text.match(/[^.!?]+[.!?]+/g) || [text];
-}
-
-function ttsPlay(){
-  var text = document.getElementById('inputText').value.trim();
-  if(!text) return;
-  if(ttsIsPaused){ ttsSynth.resume(); ttsIsPaused = false; ttsPauseBtn('pause'); return; }
-  ttsStop();
-  ttsSentences = ttsSplitSentences(text);
-  ttsSentIdx = 0;
-  ttsPlayNext();
-}
-
-function ttsPlayNext(){
-  if(ttsSentIdx >= ttsSentences.length){ ttsStop(); return; }
-  var sent = ttsSentences[ttsSentIdx].trim();
-  if(!sent){ ttsSentIdx++; ttsPlayNext(); return; }
-  var utt = new SpeechSynthesisUtterance(sent);
-  utt.rate = parseFloat(document.getElementById('ttsRate').value);
-  var idx = document.getElementById('ttsVoice').value;
-  if(ttsVoiceList[idx]) utt.voice = ttsVoiceList[idx];
-  var total = ttsSentences.length;
-  var cur = ttsSentIdx + 1;
-  document.getElementById('ttsProgress').style.display = 'block';
-  document.getElementById('ttsProgress').innerHTML = '<i class="ti ti-volume"></i> 文 ' + cur + ' / ' + total + ': ' + sent.slice(0,40) + (sent.length>40?'...':'');
-  document.getElementById('ttsPlayBtn').innerHTML = '<i class="ti ti-volume"></i> 再生中 (' + cur + '/' + total + ')';
-  utt.onend = function(){ if(!ttsIsPaused){ ttsSentIdx++; ttsPlayNext(); } };
-  utt.onerror = function(){ ttsSentIdx++; ttsPlayNext(); };
-  ttsSynth.speak(utt);
-}
-
-function ttsPause(){
-  if(ttsSynth.speaking && !ttsSynth.paused){
-    ttsSynth.pause(); ttsIsPaused = true;
-    document.getElementById('ttsPlayBtn').innerHTML = '<i class="ti ti-player-play"></i> 再開';
-  } else if(ttsSynth.paused || ttsIsPaused){
-    ttsSynth.resume(); ttsIsPaused = false;
-    document.getElementById('ttsPlayBtn').innerHTML = '<i class="ti ti-volume"></i> 再生中...';
-    ttsPlayNext();
-  }
-}
-
-function ttsPauseBtn(mode){}
-
-function ttsStop(){
-  ttsSynth.cancel(); ttsIsPaused = false; ttsSentIdx = 0;
-  var p = document.getElementById('ttsProgress');
-  if(p){ p.style.display = 'none'; p.innerHTML = '<i class="ti ti-loader"></i> 読み上げ中...'; }
-  var b = document.getElementById('ttsPlayBtn');
-  if(b) b.innerHTML = '<i class="ti ti-player-play"></i> 再生';
-}
-
-function ttsPlaySentence(idx){
-  ttsStop();
-  ttsSentences = ttsSplitSentences(document.getElementById('inputText').value.trim());
-  ttsSentIdx = idx;
-  ttsPlayNext();
-}
-
-if(ttsSynth.onvoiceschanged !== undefined) ttsSynth.onvoiceschanged = loadTTSVoices;
+function ttsPause(){ /* kept for compatibility */ }
+function ttsPauseBtn(m){ /* kept for compatibility */ }
 
 addEventListener('DOMContentLoaded', function(){ updB(); updateAIBtn(); applyLang(); renderProgress(); loadVocabFromURL(); loadTTSVoices(); });
 
