@@ -272,8 +272,8 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
 
   <!-- HERO - shown only when no analysis done yet -->
   <div id="heroSection" class="card" style="background:linear-gradient(135deg,#f0fdf9,#eff6ff);border-color:#1D9E75;margin-bottom:1.25rem">
-    <div style="font-size:18px;font-weight:700;margin-bottom:.5rem;color:#085041">英語論文・レポートの文法を可視化</div>
-    <div style="font-size:13px;color:#065f46;line-height:1.8;margin-bottom:1rem">
+    <div style="font-size:18px;font-weight:700;margin-bottom:.5rem;color:#085041" data-i18n="heroTitle">英語論文・レポートの文法を可視化</div>
+    <div style="font-size:13px;color:#065f46;line-height:1.8;margin-bottom:1rem" data-i18n="heroDesc">
       英文を貼り付けるだけで以下を自動分析します：
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:1rem">
@@ -306,11 +306,11 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
     <button class="imt" id="imt-pdf" onclick="swI('pdf')"><i class="ti ti-file-type-pdf"></i> PDF→テキスト変換</button>
   </div>
   <div id="inp-text">
-    <div class="tcard"><textarea id="inputText" placeholder="英文を入力してください。&#10;&#10;例: The analysis of academic writing requires considerable effort. She gave him a beautiful book."></textarea></div>
+    <div class="tcard"><textarea id="inputText" placeholder="英文を入力してください。" data-i18n-ph="inputPH"></textarea></div>
   </div>
   <div id="inp-pdf" style="display:none">
     <div class="pdf-drop" id="pdfDrop" onclick="document.getElementById('pdfFile').click()" ondragover="onDO(event)" ondragleave="onDL(event)" ondrop="onDP(event)">
-      <i class="ti ti-file-type-pdf"></i><p>PDFをドラッグ＆ドロップ、またはクリックして選択</p><small>テキストに変換してSVOC分析できます（最大20ページ）</small>
+      <i class="ti ti-file-type-pdf"></i><p data-i18n="pdfDrop">PDFをドラッグ＆ドロップ、またはクリックして選択</p><small>テキストに変換してSVOC分析できます（最大20ページ）</small>
     </div>
     <input type="file" id="pdfFile" style="display:none" accept=".pdf" onchange="handlePdf(this.files[0])">
     <div class="pdf-info" id="pdfInfo">
@@ -334,17 +334,16 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
     <button class="btn" onclick="clearAll()"><i class="ti ti-x"></i> Clear</button>
     <button class="btn" onclick="saveSnapshot()"><i class="ti ti-camera"></i> 保存</button>
     <button class="btn" onclick="showHistory()"><i class="ti ti-history"></i> 履歴</button>
-    <button class="btn" onclick="shareOnX()" style="background:#000;color:#fff;border-color:#000"><i class="ti ti-brand-x"></i> シェア</button>
     <button class="btn" onclick="showSlashReading()" style="background:#e0f2fe;color:#0369a1;border-color:#7dd3fc"><i class="ti ti-git-branch"></i> スラッシュ表示</button>
     <button class="btn" onclick="exportAsPNG()" style="background:#f3f4f6;color:#374151;border-color:#d1d5db"><i class="ti ti-camera"></i> PNG保存</button>
   </div>
   <div class="stats" id="statsRow" style="display:none">
-    <div class="sc"><div class="sl">Words</div><div class="sv" id="sw_"></div></div>
-    <div class="sc"><div class="sl">Characters</div><div class="sv" id="sc_"></div></div>
-    <div class="sc"><div class="sl">Sentences</div><div class="sv" id="ss_"></div></div>
-    <div class="sc"><div class="sl">Unique words</div><div class="sv" id="su_"></div></div>
-    <div class="sc"><div class="sl">Avg length</div><div class="sv" id="sa_"></div></div>
-    <div class="sc"><div class="sl" style="color:#b45309">AWL words</div><div class="sv" id="sawl_" style="color:#b45309"></div></div>
+    <div class="sc"><div class="sl" data-i18n="statsWords">Words</div><div class="sv" id="sw_"></div></div>
+    <div class="sc"><div class="sl" data-i18n="statsChars">Characters</div><div class="sv" id="sc_"></div></div>
+    <div class="sc"><div class="sl" data-i18n="statsSents">Sentences</div><div class="sv" id="ss_"></div></div>
+    <div class="sc"><div class="sl" data-i18n="statsUniq">Unique words</div><div class="sv" id="su_"></div></div>
+    <div class="sc"><div class="sl" data-i18n="statsAvg">Avg length</div><div class="sv" id="sa_"></div></div>
+    <div class="sc"><div class="sl" style="color:#b45309" data-i18n="statsAwl">AWL words</div><div class="sv" id="sawl_" style="color:#b45309"></div></div>
   </div>
   <div id="cefrArea" style="display:none;margin-bottom:.875rem"></div>
   <div class="card" id="resultArea" style="display:none">
@@ -368,20 +367,20 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
   <div style="background:linear-gradient(135deg,#eff6ff,#f0fdf9);border:1px solid #93c5fd;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem;display:flex;align-items:flex-start;gap:12px">
     <i class="ti ti-devices" style="font-size:24px;color:#1d4ed8;flex-shrink:0;margin-top:2px"></i>
     <div style="flex:1">
-      <div style="font-size:14px;font-weight:700;color:#1e3a5f;margin-bottom:3px">📱💻 スマホ・PCで同じ単語帳を使うには</div>
+      <div style="font-size:14px;font-weight:700;color:#1e3a5f;margin-bottom:3px" data-i18n="syncTitle">📱💻 スマホ・PCで同じ単語帳を使うには</div>
       <div style="font-size:13px;color:#374151;line-height:1.7;margin-bottom:.75rem">
         「共有」ボタンを押すとURLが生成されます。そのURLを別のデバイスで開くだけで単語帳が引き継がれます。<br>
         <span style="font-size:12px;color:#6b7280">Airdrop・LINE・メール・メモ帳などで共有できます</span>
       </div>
       <button onclick="shareVocabURL()" class="btn btn-p" style="font-size:13px;padding:7px 14px">
-        <i class="ti ti-share"></i> 共有URLを生成する
+        <i class="ti ti-share"></i> <span data-i18n="syncBtn">共有URLを生成する</span>
       </button>
     </div>
   </div>
 
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;flex-wrap:wrap;gap:8px">
     <div>
-      <div style="font-size:16px;font-weight:600">苦手単語帳</div>
+      <div style="font-size:16px;font-weight:600" data-i18n="vocabTitle">苦手単語帳</div>
       <div style="font-size:13px;color:var(--gr)" id="vSub">0 words</div>
     </div>
     <div style="display:flex;gap:8px">
@@ -393,7 +392,7 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
   </div>
   <!-- PROGRESS -->
   <div class="card" style="margin-bottom:.875rem">
-    <div class="sec-t" style="margin-bottom:.75rem"><i class="ti ti-chart-bar"></i> 学習記録</div>
+    <div class="sec-t" style="margin-bottom:.75rem"><i class="ti ti-chart-bar"></i> <span data-i18n="progressTitle">学習記録</span></div>
     <div id="progressArea"></div>
   </div>
 
@@ -564,7 +563,6 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
       <div class="ab-t"><i class="ti ti-message-circle"></i> フィードバック</div>
       <div class="ab-tx" style="margin-bottom:.875rem">バグの報告・機能リクエストはこちらからお気軽にどうぞ。</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem">
-        <a href="https://github.com/arco-lab-2026/grammar-ai/issues" target="_blank" class="btn btn-sm" style="text-decoration:none;background:#f3f4f6;color:#374151"><i class="ti ti-brand-github"></i> GitHub Issues</a>
         <a href="https://docs.google.com/forms/d/e/1FAIpQLSfbq_L_kq4IRFsPKyjo8xTZGhGiNOmWMnqITJ-eiNnIVos3ww/viewform" target="_blank" class="btn btn-sm" style="text-decoration:none;background:#f3f4f6;color:#374151"><i class="ti ti-forms"></i> フィードバックフォーム</a>
       </div>
       <div class="ab-t"><i class="ti ti-heart"></i> 開発者より</div>
@@ -572,22 +570,11 @@ body.dark .awl-t{background:#3d3200 !important;color:#fbbf24 !important}
       <div style="margin-top:.875rem;padding:.875rem;background:#fffbeb;border-radius:10px;border:1px solid #fcd34d">
         <div style="font-size:13px;color:#92400e;margin-bottom:.5rem">このアプリが役に立ったら、コーヒー1杯分の支援をいただけると嬉しいです ☕</div>
         <a href="https://www.buymeacoffee.com/sasasasae0e" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#FFDD00;color:#000;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none">☕ Buy Me a Coffee</a>
-        <div style="font-size:11px;color:#b45309;margin-top:.5rem">※ URLは buymeacoffee.com でアカウント作成後に設定してください</div>
       </div>
     </div>
   </div>
 </div></div>
 
-
-<!-- FOOTER -->
-<div style="text-align:center;padding:1.5rem 1.25rem 2rem;border-top:1px solid var(--bd);background:var(--bg)" id="appFooter">
-  <div style="font-size:13px;color:var(--gr);margin-bottom:.75rem">GrammarAI — 完全無料の英語文法アナライザー</div>
-  <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:.875rem">
-    <a href="https://github.com/arco-lab-2026/grammar-ai/issues" target="_blank" style="font-size:12px;color:var(--gr);text-decoration:none;display:flex;align-items:center;gap:4px"><i class="ti ti-brand-github"></i> フィードバック</a>
-    <a href="https://www.buymeacoffee.com/sasasasae0e" target="_blank" style="font-size:12px;color:#92400e;text-decoration:none;display:flex;align-items:center;gap:4px">☕ 開発者を支援</a>
-  </div>
-  <button onclick="shareOnX()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#000;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit"><i class="ti ti-brand-x"></i> Xでシェアする</button>
-</div>
 
 </div><!-- /panels-wrap -->
 </div><!-- /app-layout -->
@@ -954,7 +941,7 @@ function analyze(){
   // Hide hero after first analysis
   const hero = document.getElementById('heroSection');
   if(hero) hero.style.display = 'none';
-  updateProgress('analyze');
+  if(typeof updateProgress === 'function') updateProgress('analyze');
 
   // Remove old Flesch card
   const oldFlesch = document.getElementById('fleschCard');
@@ -1542,6 +1529,159 @@ const I18N = {
 };
 
 // MyMemory lang codes
+const I18N_EXT = {
+  ja: {
+    heroTitle: '英語論文・レポートの文法を可視化',
+    heroDesc: '英文を貼り付けるだけで以下を自動分析します：',
+    heroBadge1: '✅ 完全無料',
+    heroBadge2: '✅ 登録不要',
+    heroBadge3: '✅ URLを開くだけ',
+    statsWords: 'Words',
+    statsChars: 'Characters',
+    statsSents: 'Sentences',
+    statsUniq: 'Unique words',
+    statsAvg: 'Avg length',
+    statsAwl: 'AWL words',
+    cefrLabel: '難易度スコア（CEFR）',
+    cefrNote: '※語彙・文長から推定',
+    fleschLabel: '読みやすさスコア（Flesch）',
+    inputPH: '英文を入力してください。\n\n例: The analysis of academic writing requires considerable effort.',
+    pdfDrop: 'PDFをドラッグ＆ドロップ、またはクリックして選択',
+    pdfNote: 'テキストに変換してSVOC分析できます（最大20ページ）',
+    syncTitle: '📱💻 スマホ・PCで同じ単語帳を使うには',
+    syncDesc: '「共有」ボタンを押すとURLが生成されます。そのURLを別のデバイスで開くだけで単語帳が引き継がれます。',
+    syncNote: 'Airdrop・LINE・メール・メモ帳などで共有できます',
+    syncBtn: '共有URLを生成する',
+    vocabTitle: '苦手単語帳',
+    progressTitle: '学習記録',
+    svocLabel: 'SVOC+M:',
+    aiRequired: 'SVOC分析にはAI設定が必要です',
+    aiRequiredDesc: '正確な文法分析のため、Gemini APIキーの設定が必要です。完全無料・クレジットカード不要・1日1,500回まで利用できます。',
+    aiSetupBtn: '無料のAPIキーを設定する（5分）',
+    posPreview: '品詞タグ付け（プレビュー） — SVOC分析はAI設定後に使えます',
+  },
+  en: {
+    heroTitle: 'Visualize English grammar for academic writing',
+    heroDesc: 'Paste your text and analyze instantly:',
+    heroBadge1: '✅ Free',
+    heroBadge2: '✅ No signup',
+    heroBadge3: '✅ Open URL',
+    statsWords: 'Words',
+    statsChars: 'Characters',
+    statsSents: 'Sentences',
+    statsUniq: 'Unique words',
+    statsAvg: 'Avg length',
+    statsAwl: 'AWL words',
+    cefrLabel: 'Difficulty Score (CEFR)',
+    cefrNote: '※Estimated from vocab & length',
+    fleschLabel: 'Readability Score (Flesch)',
+    inputPH: 'Enter English text here.\n\nExample: The analysis of academic writing requires considerable effort.',
+    pdfDrop: 'Drag & drop PDF, or click to select',
+    pdfNote: 'Convert to text for SVOC analysis (up to 20 pages)',
+    syncTitle: '📱💻 Use the same vocabulary on any device',
+    syncDesc: 'Press "Share" to generate a URL. Open that URL on another device to sync your vocabulary.',
+    syncNote: 'Share via Airdrop, LINE, email, or notes',
+    syncBtn: 'Generate share URL',
+    vocabTitle: 'Vocabulary Book',
+    progressTitle: 'Learning Progress',
+    svocLabel: 'SVOC+M:',
+    aiRequired: 'SVOC analysis requires AI setup',
+    aiRequiredDesc: 'Set up your Gemini API key for accurate grammar analysis. Completely free, no credit card, up to 1,500 uses/day.',
+    aiSetupBtn: 'Set up free API key (5 min)',
+    posPreview: 'Part-of-speech tags (preview) — SVOC analysis available after AI setup',
+  },
+  zh: {
+    heroTitle: '可视化英语学术写作语法',
+    heroDesc: '粘贴文本，自动分析以下内容：',
+    heroBadge1: '✅ 完全免费',
+    heroBadge2: '✅ 无需注册',
+    heroBadge3: '✅ 打开链接即用',
+    statsWords: '单词数',
+    statsChars: '字符数',
+    statsSents: '句子数',
+    statsUniq: '不同单词',
+    statsAvg: '平均句长',
+    statsAwl: 'AWL单词',
+    cefrLabel: '难度分数（CEFR）',
+    cefrNote: '※根据词汇和句长推算',
+    fleschLabel: '可读性分数（Flesch）',
+    inputPH: '请输入英文文本。\n\n示例：The analysis of academic writing requires considerable effort.',
+    pdfDrop: '拖放PDF文件，或点击选择',
+    pdfNote: '转换为文本进行SVOC分析（最多20页）',
+    syncTitle: '📱💻 在手机和电脑上使用同一个词汇本',
+    syncDesc: '按"共享"生成URL，在其他设备打开该URL即可同步词汇本。',
+    syncNote: '可通过邮件、微信等方式共享',
+    syncBtn: '生成共享链接',
+    vocabTitle: '词汇本',
+    progressTitle: '学习记录',
+    svocLabel: 'SVOC+M:',
+    aiRequired: 'SVOC分析需要AI设置',
+    aiRequiredDesc: '设置Gemini API密钥以获得准确的语法分析。完全免费，无需信用卡，每天最多1,500次。',
+    aiSetupBtn: '设置免费API密钥（5分钟）',
+    posPreview: '词性标注（预览）— 设置AI后可使用SVOC分析',
+  },
+  es: {
+    heroTitle: 'Visualiza la gramática del inglés académico',
+    heroDesc: 'Pega tu texto y analiza automáticamente:',
+    heroBadge1: '✅ Gratis',
+    heroBadge2: '✅ Sin registro',
+    heroBadge3: '✅ Abre el enlace',
+    statsWords: 'Palabras',
+    statsChars: 'Caracteres',
+    statsSents: 'Oraciones',
+    statsUniq: 'Palabras únicas',
+    statsAvg: 'Long. media',
+    statsAwl: 'Palabras AWL',
+    cefrLabel: 'Puntuación de dificultad (CEFR)',
+    cefrNote: '※Estimado por vocabulario',
+    fleschLabel: 'Legibilidad (Flesch)',
+    inputPH: 'Ingresa texto en inglés aquí.\n\nEjemplo: The analysis of academic writing requires considerable effort.',
+    pdfDrop: 'Arrastra y suelta PDF, o haz clic para seleccionar',
+    pdfNote: 'Convertir a texto para análisis SVOC (hasta 20 páginas)',
+    syncTitle: '📱💻 Usa el mismo vocabulario en cualquier dispositivo',
+    syncDesc: 'Presiona "Compartir" para generar una URL. Ábrela en otro dispositivo para sincronizar.',
+    syncNote: 'Comparte por correo, WhatsApp, etc.',
+    syncBtn: 'Generar URL de compartir',
+    vocabTitle: 'Vocabulario',
+    progressTitle: 'Progreso de aprendizaje',
+    svocLabel: 'SVOC+M:',
+    aiRequired: 'El análisis SVOC requiere configuración de IA',
+    aiRequiredDesc: 'Configura tu clave API de Gemini para análisis gramatical preciso. Completamente gratis.',
+    aiSetupBtn: 'Configurar clave API gratis (5 min)',
+    posPreview: 'Etiquetas gramaticales (vista previa) — SVOC disponible tras configurar IA',
+  },
+  ko: {
+    heroTitle: '학술 영작문의 문법을 시각화',
+    heroDesc: '텍스트를 붙여넣으면 자동으로 분석합니다:',
+    heroBadge1: '✅ 완전 무료',
+    heroBadge2: '✅ 가입 불필요',
+    heroBadge3: '✅ URL만 열면 OK',
+    statsWords: '단어 수',
+    statsChars: '문자 수',
+    statsSents: '문장 수',
+    statsUniq: '고유 단어',
+    statsAvg: '평균 길이',
+    statsAwl: 'AWL 단어',
+    cefrLabel: '난이도 점수 (CEFR)',
+    cefrNote: '※어휘・문장 길이로 추정',
+    fleschLabel: '가독성 점수 (Flesch)',
+    inputPH: '영어 텍스트를 입력하세요.\n\n예시: The analysis of academic writing requires considerable effort.',
+    pdfDrop: 'PDF를 드래그하거나 클릭하여 선택',
+    pdfNote: '텍스트로 변환하여 SVOC 분석 가능 (최대 20페이지)',
+    syncTitle: '📱💻 스마트폰・PC에서 같은 단어장 사용하기',
+    syncDesc: '「공유」버튼을 누르면 URL이 생성됩니다. 다른 기기에서 URL을 열면 단어장이 동기화됩니다.',
+    syncNote: '이메일, 카카오톡 등으로 공유 가능',
+    syncBtn: '공유 URL 생성',
+    vocabTitle: '단어장',
+    progressTitle: '학습 기록',
+    svocLabel: 'SVOC+M:',
+    aiRequired: 'SVOC 분석에는 AI 설정이 필요합니다',
+    aiRequiredDesc: '정확한 문법 분석을 위해 Gemini API 키 설정이 필요합니다. 완전 무료・신용카드 불필요.',
+    aiSetupBtn: '무료 API 키 설정 (5분)',
+    posPreview: '품사 태그 (미리보기) — AI 설정 후 SVOC 분석 가능',
+  },
+};
+
 const LANG_CODES = {ja:'ja', en:'en', zh:'zh-CN', es:'es', ko:'ko'};
 const DICT_PAIRS = {ja:'en|ja', en:'en|en', zh:'en|zh', es:'en|es', ko:'en|ko'};
 
@@ -1550,7 +1690,7 @@ let currentLang = localStorage.getItem('ga_lang') || 'ja';
 function t(key){ return (I18N[currentLang] || I18N.ja)[key] || key; }
 
 function applyLang(){
-  const T = I18N[currentLang] || I18N.ja;
+  const T = Object.assign({}, I18N[currentLang] || I18N.ja, I18N_EXT[currentLang] || I18N_EXT.ja);
   // Header
   document.querySelector('.hdr-s').textContent = T.appSub;
   document.getElementById('langLabel').textContent = {ja:'日本語',en:'English',zh:'中文',es:'Español',ko:'한국어'}[currentLang];
@@ -1565,19 +1705,20 @@ function applyLang(){
   document.getElementById('bmcBtnDesc').textContent = T.bmcDesc;
   // Lang modal title
   document.getElementById('langModalTitle').textContent = T.langModalTitle;
-  // Tabs
-  const tabs = document.querySelectorAll('.tab');
-  const tabKeys = ['analyze','about','vocab','tools'];
+  // Tabs - use data attributes to avoid breaking onclick
   const tabTextKeys = ['analyze','about','vocab','tools'];
-  tabs.forEach((tab, i) => {
-    const icon = tab.querySelector('i');
-    const badge = tab.querySelector('.tbadge');
-    tab.textContent = '';
-    if(icon) tab.appendChild(icon);
-    tab.appendChild(document.createTextNode(T[tabTextKeys[i]] || tabTextKeys[i]));
-    if(badge) tab.appendChild(badge);
+  document.querySelectorAll('.tab').forEach((tab, i) => {
+    // Find or create text node (last text node in tab)
+    const textKey = tabTextKeys[i];
+    if(!textKey) return;
+    // Update only the text node, preserve all child elements
+    Array.from(tab.childNodes).forEach(node => {
+      if(node.nodeType === 3 && node.textContent.trim().length > 0){
+        node.textContent = T[textKey] || textKey;
+      }
+    });
   });
-  // Buttons
+  // Buttons - update text nodes only, don't clear innerHTML
   const btnMap = {
     'analyze()': 'analyzeBtn',
     'clearAll()': 'clearBtn',
@@ -1589,10 +1730,11 @@ function applyLang(){
     const oc = btn.getAttribute('onclick');
     for(const [fn, key] of Object.entries(btnMap)){
       if(oc && oc.includes(fn)){
-        const icon = btn.querySelector('i');
-        btn.textContent = '';
-        if(icon) btn.appendChild(icon);
-        btn.appendChild(document.createTextNode(' ' + T[key]));
+        Array.from(btn.childNodes).forEach(node => {
+          if(node.nodeType === 3 && node.textContent.trim().length > 0){
+            node.textContent = ' ' + T[key];
+          }
+        });
       }
     }
   });
@@ -1607,6 +1749,15 @@ function applyLang(){
   // Active lang option
   document.querySelectorAll('.lang-opt').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.lang === currentLang);
+  });
+  // Translate data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if(T[key]) el.textContent = T[key];
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const key = el.dataset.i18nPh;
+    if(T[key]) el.placeholder = T[key];
   });
   // OFUSE/BMC order based on lang
   const tipMenu = document.getElementById('tipMenu');
@@ -2127,8 +2278,6 @@ function loadVocabFromURL(){
 }
 
 // Run on page load
-loadVocabFromURL();
-renderProgress();
 
 
 // ===== PHRASAL VERBS DICTIONARY =====
@@ -2398,6 +2547,8 @@ function shareOnX(){
 }
 
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+// Apply language and init on full load
+window.addEventListener('DOMContentLoaded', ()=>{ applyLang(); renderProgress(); loadVocabFromURL(); });
 </script>
 </body>
 </html>
