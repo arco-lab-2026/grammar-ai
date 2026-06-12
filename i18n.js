@@ -1,1 +1,1 @@
-// i18n is now bundled in index.html
+// i18n bundled in index.html
