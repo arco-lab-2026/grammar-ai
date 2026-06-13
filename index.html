@@ -244,7 +244,7 @@ window._i18nJsLoaded = false;
   <div style="display:flex;align-items:center;gap:8px">
     <button id="aiToggleBtn" onclick="openKeyModal()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#f3f4f6;color:#6b7280;border-radius:8px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;cursor:pointer;white-space:nowrap"><i class="ti ti-sparkles" style="font-size:13px"></i> AI分析</button>
     <button id="langBtn" onclick="openLangModal()" style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:#f3f4f6;color:#6b7280;border-radius:8px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;cursor:pointer;white-space:nowrap">🌐 <span id="langLabel">日本語</span></button>
-    <button id="tipMenuBtn" onclick="toggleTipMenu()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#FFDD00;color:#000;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;white-space:nowrap" title="開発者を応援する">☕ <span id="tipBtnLabel">応援する</span></button><button onclick="shareApp()" style="background:none;border:1px solid var(--bd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:13px;color:var(--gr);display:flex;align-items:center;gap:5px" title="このアプリを共有"><i class="ti ti-share-2"></i> <span data-i18n="shareAppBtn">共有</span></button><button id="darkBtn" onclick="toggleDark()" style="background:none;border:1px solid var(--bd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:13px;color:var(--gr);display:flex;align-items:center;gap:5px"><i class="ti ti-moon" id="darkIcon"></i><span id="darkLabel">ダーク</span></button><span class="free-b">完全無料</span></div>
+    <button id="tipMenuBtn" onclick="toggleTipMenu()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#FFDD00;color:#000;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;white-space:nowrap" title="開発者を応援する">☕ <span id="tipBtnLabel">応援する</span></button><button onclick="shareApp()" style="background:none;border:1px solid var(--bd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:13px;color:var(--gr);display:flex;align-items:center;gap:5px" title="このアプリを共有"><i class="ti ti-share-2"></i> <span data-i18n="shareAppBtn">共有</span></button><button id="darkBtn" onclick="toggleDark()" style="background:none;border:1px solid var(--bd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:13px;color:var(--gr);display:flex;align-items:center;gap:5px"><i class="ti ti-moon" id="darkIcon"></i><span id="darkLabel" data-i18n="darkBtn">ダーク</span></button><span class="free-b" data-i18n="free">完全無料</span></div>
 </div>
 
 <!-- GEMINI KEY MODAL -->
@@ -1695,10 +1695,17 @@ function estCEFR(text){
   if(longR>=30)sc+=2;else if(longR>=18)sc+=1;
   return sc>=10?"C2":sc>=8?"C1":sc>=6?"B2":sc>=4?"B1":sc>=2?"A2":"A1";
 }
-const CDESC={A1:"初歩的な表現",A2:"日常的な簡単な文",B1:"馴染みのあるトピック",B2:"複雑・抽象的な文",C1:"流暢な複雑表現",C2:"ネイティブレベル"};
+const CDESC_ALL={
+  ja:{A1:"初歩的な表現",A2:"日常的な簡単な文",B1:"馴染みのあるトピック",B2:"複雑・抽象的な文",C1:"流暢な複雑表現",C2:"ネイティブレベル"},
+  en:{A1:"Basic expressions",A2:"Simple daily sentences",B1:"Familiar topics",B2:"Complex & abstract",C1:"Fluent complex expression",C2:"Native level"},
+  zh:{A1:"基础表达",A2:"简单日常用语",B1:"常见话题",B2:"复杂抽象",C1:"流畅复杂表达",C2:"母语水平"},
+  es:{A1:"Expresiones básicas",A2:"Frases cotidianas",B1:"Temas familiares",B2:"Complejo y abstracto",C1:"Expresión fluida compleja",C2:"Nivel nativo"},
+  ko:{A1:"기초 표현",A2:"간단한 일상 문장",B1:"익숙한 주제",B2:"복잡·추상적",C1:"유창한 복잡 표현",C2:"원어민 수준"},
+};
+function getCDESC(){ return CDESC_ALL[currentLang]||CDESC_ALL.ja; }
 function renderCEFR(text){
   const lv=estCEFR(text);const area=document.getElementById("cefrArea");area.style.display="block";
-  area.innerHTML=`<div class="card" style="padding:.875rem 1.25rem"><div class="sec-t" style="margin-bottom:6px"><i class="ti ti-award"></i> 難易度スコア（CEFR）<span style="font-size:11px;color:var(--gr);font-weight:400;margin-left:6px">※語彙・文長から推定</span></div><span class="cefr-b c${lv}">${lv}</span><span style="font-size:13px;color:var(--gr);margin-left:8px">${CDESC[lv]}</span><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px">${CORD.map(l=>`<span class="cefr-b c${l}" style="padding:2px 8px;font-size:10px;opacity:${l===lv?"1":"0.3"}">${l}</span>`).join("")}</div></div>`;
+  area.innerHTML=`<div class="card" style="padding:.875rem 1.25rem"><div class="sec-t" style="margin-bottom:6px"><i class="ti ti-award"></i> ${t('cefrLabel')||'難易度スコア（CEFR）'}<span style="font-size:11px;color:var(--gr);font-weight:400;margin-left:6px">${t('cefrNote')||'※語彙・文長から推定'}</span></div><span class="cefr-b c${lv}">${lv}</span><span style="font-size:13px;color:var(--gr);margin-left:8px">${getCDESC()[lv]}</span>`+`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px">${CORD.map(l=>`<span class="cefr-b c${l}" style="padding:2px 8px;font-size:10px;opacity:${l===lv?"1":"0.3"}">${l}</span>`).join("")}</div></div>`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px">${CORD.map(l=>`<span class="cefr-b c${l}" style="padding:2px 8px;font-size:10px;opacity:${l===lv?"1":"0.3"}">${l}</span>`).join("")}</div></div>`;
 }
 
 // PHRASE-BASED SVOC PARSER
@@ -1898,11 +1905,12 @@ function analyze(){
     const card = document.createElement('div');
     card.id = 'fleschCard'; card.className = 'card';
     card.style.padding = '.875rem 1.25rem';
-    card.innerHTML = `<div class="sec-t" style="margin-bottom:6px"><i class="ti ti-gauge"></i> 読みやすさスコア（Flesch）</div>
+    const _flNotes={ja:'（0=最難 / 100=最易）',en:'(0=hardest / 100=easiest)',zh:'（0=最难 / 100=最易）',es:'(0=difícil / 100=fácil)',ko:'(0=어려움 / 100=쉬움)'};
+    card.innerHTML = `<div class="sec-t" style="margin-bottom:6px"><i class="ti ti-gauge"></i> ${t('fleschLabel')||'読みやすさスコア（Flesch）'}</div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <span style="font-size:24px;font-weight:700;color:${color}">${score}</span>
         <span style="font-size:13px;color:${color};font-weight:500">${label}</span>
-        <span style="font-size:12px;color:var(--gr)">（0=最難 / 100=最易）</span>
+        <span style="font-size:12px;color:var(--gr)">${_flNotes[currentLang]||_flNotes.ja}</span>
       </div>
       <div class="re-bar"><div class="re-fill" style="width:${score}%;background:${color}"></div></div>`;
     const resultArea = document.getElementById('resultArea');
@@ -1929,14 +1937,8 @@ function showPOSWithPrompt(sents, text){
   const aiRequiredText = (typeof t === 'function') ? t('aiRequired') : 'SVOC分析にはAI設定が必要です';
   const aiSetupText = (typeof t === 'function') ? t('aiSetupBtn') : '無料のAPIキーを設定する（5分）';
   // Build banner text based on language
-  var aiDesc = {
-    ja: '正確な文法分析のため、Gemini APIキーの設定が必要です。<br><strong>完全無料</strong>・クレジットカード不要・1日1,500回まで。',
-    en: 'Set up a Gemini API key for accurate SVOC analysis.<br><strong>Completely free</strong>, no credit card, 1,500 uses/day.',
-    zh: '设置Gemini API密钥以获得准确的SVOC分析。<br><strong>完全免费</strong>，无需信用卡，每天1500次。',
-    es: 'Configura una clave API de Gemini para análisis SVOC preciso.<br><strong>Completamente gratis</strong>, sin tarjeta de crédito.',
-    ko: '정확한 SVOC 분석을 위해 Gemini API 키를 설정하세요.<br><strong>완전 무료</strong>, 신용카드 불필요, 하루 1500회.'
-  };
-  banner.innerHTML = '<div style="display:flex;align-items:flex-start;gap:12px"><i class="ti ti-sparkles" style="font-size:24px;color:#1D9E75;flex-shrink:0;margin-top:2px"></i><div style="flex:1"><div style="font-size:14px;font-weight:700;color:#085041;margin-bottom:4px">'+aiRequiredText+'</div><div style="font-size:13px;color:#065f46;line-height:1.7;margin-bottom:.75rem">'+(aiDesc[currentLang]||aiDesc.ja)+'</div><button onclick="openKeyModal()" class="btn btn-p" style="font-size:12px;padding:6px 14px"><i class="ti ti-sparkles"></i> '+aiSetupText+'</button></div></div>';
+  const aiDescText = t('aiRequiredDesc') || '正確な文法分析のため、Gemini APIキーの設定が必要です。完全無料・クレジットカード不要・1日1,500回まで。';
+  banner.innerHTML = '<div style="display:flex;align-items:flex-start;gap:12px"><i class="ti ti-sparkles" style="font-size:24px;color:#1D9E75;flex-shrink:0;margin-top:2px"></i><div style="flex:1"><div style="font-size:14px;font-weight:700;color:#085041;margin-bottom:4px">'+aiRequiredText+'</div><div style="font-size:13px;color:#065f46;line-height:1.7;margin-bottom:.75rem">'+aiDescText+'</div><button onclick="openKeyModal()" class="btn btn-p" style="font-size:12px;padding:6px 14px"><i class="ti ti-sparkles"></i> '+aiSetupText+'</button></div></div>';
   container.appendChild(banner);
 
   // Combined slash + POS view (no duplication)
@@ -2296,7 +2298,7 @@ function renderVL(){
   [...vDB].reverse().forEach((v,ri)=>{
     const i=vDB.length-1-ri;const isAWL=v.isAWL||AWL.has((v.word||"").toLowerCase());
     const el=document.createElement("div");el.className="vi";
-    el.innerHTML=`<div style="min-width:90px"><div class="vw">${v.word}${isAWL?'<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:1px 5px;border-radius:6px;margin-left:5px;font-weight:600">AWL</span>':""}</div><div class="vp" style="color:${RC[v.role]||"#6b7280"}">${getRJ()[v.role]||v.role}</div>${v.forgotten>0?`<div style="font-size:11px;color:#dc2626;margin-top:1px">${v.forgotten}回間違い</div>`:""}</div><div class="vd"><div class="vd-j">${v.ja||"—"}</div><div class="vd-e">${v.en_def||""}</div></div><button class="vrm" onclick="rmV(${i})"><i class="ti ti-trash"></i></button>`;
+    el.innerHTML=`<div style="min-width:90px"><div class="vw">${v.word}${isAWL?'<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:1px 5px;border-radius:6px;margin-left:5px;font-weight:600">AWL</span>':""}</div><div class="vp" style="color:${RC[v.role]||"#6b7280"}">${getPOSLabel(v.role,currentLang)||getRJ()[v.role]||v.role}</div>${v.forgotten>0?`<div style="font-size:11px;color:#dc2626;margin-top:1px">${v.forgotten}${{"ja":"回間違い","en":"x wrong","zh":"次错误","es":"× error","ko":"회 틀림"}[currentLang]||"回間違い"}</div>`:""}</div><div class="vd"><div class="vd-j">${v.ja||"—"}</div><div class="vd-e">${v.en_def||""}</div></div><button class="vrm" onclick="rmV(${i})"><i class="ti ti-trash"></i></button>`;
     list.appendChild(el);
   });
 }
@@ -2426,39 +2428,76 @@ async function shareResult(){
 async function shareApp(){
   const appUrl = 'https://arco-lab-2026.github.io/grammar-ai/';
   const msgs = {
-    ja: {title:'GrammarAI — 英文法アナライザー', text:'英文のSVOC分析・AWL語彙・CEFR推定が完全無料で使えるアプリです。'},
+    ja: {title:'GrammarAI — 英文法アナライザー', text:'英文のSVOC分析・AWL語彙・CEFR推定が完全無料で使えます。'},
     en: {title:'GrammarAI — English Grammar Analyzer', text:'Free app for SVOC analysis, AWL vocabulary, and CEFR estimation.'},
     zh: {title:'GrammarAI — 英语语法分析器', text:'免费的SVOC分析、AWL词汇和CEFR估算工具。'},
-    es: {title:'GrammarAI — Analizador de gramática inglesa', text:'App gratuita para análisis SVOC, vocabulario AWL y estimación CEFR.'},
-    ko: {title:'GrammarAI — 영어 문법 분석기', text:'SVOC 분석, AWL 어휘, CEFR 추정을 무료로 사용할 수 있는 앱입니다.'},
+    es: {title:'GrammarAI — Analizador de gramática', text:'App gratuita para análisis SVOC, vocabulario AWL y estimación CEFR.'},
+    ko: {title:'GrammarAI — 영어 문법 분석기', text:'SVOC 분석, AWL 어휘, CEFR 추정을 무료로 사용할 수 있습니다.'},
   };
   const m = msgs[currentLang] || msgs.ja;
+  // iOS/Android: native share sheet (includes LINE, Instagram, X etc.)
   if(navigator.share){
-    try{
-      await navigator.share({title: m.title, text: m.text, url: appUrl});
-      return;
-    }catch(e){}
+    try{ await navigator.share({title:m.title, text:m.text, url:appUrl}); return; }
+    catch(e){ if(e.name==='AbortError') return; }
   }
-  // Fallback: copy URL
-  try{ await navigator.clipboard.writeText(appUrl); }catch(e){
-    const ta = document.createElement('textarea'); ta.value = appUrl;
-    ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta);
-    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-  }
-  const copied = {ja:'アプリのURLをコピーしました！', en:'App URL copied!', zh:'已复制应用链接！', es:'¡URL copiada!', ko:'앱 URL이 복사되었습니다!'};
-  showMsg(copied[currentLang] || copied.ja);
+  // Desktop: show SNS share modal
+  showShareModal(appUrl, m.text);
+}
+
+function showShareModal(url, text){
+  const enc = encodeURIComponent;
+  const shareLinks = [
+    {name:'X', icon:'𝕏', color:'#000', href:'https://twitter.com/intent/tweet?text='+enc(text)+'&url='+enc(url)},
+    {name:'LINE', icon:'L', color:'#06c755', href:'https://line.me/R/msg/text/?'+enc(text+' '+url)},
+    {name:'Facebook', icon:'f', color:'#1877f2', href:'https://www.facebook.com/sharer/sharer.php?u='+enc(url)},
+    {name:'WhatsApp', icon:'W', color:'#25d366', href:'https://wa.me/?text='+enc(text+' '+url)},
+  ];
+  document.getElementById('shareAppModal')?.remove();
+  document.getElementById('shareAppBD')?.remove();
+  const bd = document.createElement('div');
+  bd.id = 'shareAppBD';
+  bd.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300';
+  const modal = document.createElement('div');
+  modal.id = 'shareAppModal';
+  modal.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-radius:20px 20px 0 0;padding:1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom));z-index:301';
+  const labels = {
+    ja:{title:'アプリを共有',copy:'URLをコピー',copied:'コピーしました！'},
+    en:{title:'Share App',copy:'Copy URL',copied:'Copied!'},
+    zh:{title:'分享应用',copy:'复制链接',copied:'已复制！'},
+    es:{title:'Compartir app',copy:'Copiar URL',copied:'¡Copiado!'},
+    ko:{title:'앱 공유',copy:'URL 복사',copied:'복사되었습니다!'},
+  };
+  const lb = labels[currentLang]||labels.ja;
+  modal.innerHTML =
+    '<div style="font-size:16px;font-weight:700;margin-bottom:1.25rem;color:var(--tx)">'+lb.title+'</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.25rem">'+
+    shareLinks.map(s=>
+      '<a href="'+s.href+'" target="_blank" rel="noopener" style="display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none">'+
+      '<div style="width:52px;height:52px;border-radius:14px;background:'+s.color+';display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff">'+s.icon+'</div>'+
+      '<span style="font-size:11px;color:var(--gr)">'+s.name+'</span></a>'
+    ).join('')+
+    '</div>'+
+    '<button id="saCopyBtn" class="btn btn-p" style="width:100%;justify-content:center" onclick="(async()=>{'+
+    'try{await navigator.clipboard.writeText(''+url+'');}catch(e){'+
+    'const t=document.createElement('textarea');t.value=''+url+'';t.style.cssText='position:fixed;opacity:0';document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);}'+
+    'document.getElementById('saCopyBtn').textContent=''+lb.copied+'';'+
+    'setTimeout(()=>{document.getElementById('shareAppBD')?.remove();document.getElementById('shareAppModal')?.remove();},1200);'+
+    '})()">'+lb.copy+'</button>';
+  bd.onclick = ()=>{ bd.remove(); modal.remove(); };
+  document.body.appendChild(bd);
+  document.body.appendChild(modal);
 }
 
 function toggleDark(){
   const isDark=document.body.classList.toggle('dark');
   localStorage.setItem('ga_dark',isDark?'1':'0');
   document.getElementById('darkIcon').className=isDark?'ti ti-sun':'ti ti-moon';
-  document.getElementById('darkLabel').textContent=isDark?'ライト':'ダーク';
+  document.getElementById('darkLabel').textContent=isDark?(t('lightBtn')||'ライト'):(t('darkBtn')||'ダーク');
 }
 if(localStorage.getItem('ga_dark')==='1'){
   document.body.classList.add('dark');
   document.getElementById('darkIcon').className='ti ti-sun';
-  document.getElementById('darkLabel').textContent='ライト';
+  document.getElementById('darkLabel').textContent=t('lightBtn')||'ライト';
 }
 
 // ===== ANALYSIS HISTORY =====
