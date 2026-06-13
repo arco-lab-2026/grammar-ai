@@ -43,7 +43,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   .tbadge{margin-left:auto}
   /* メインコンテンツ */
   .panels-wrap{flex:1;overflow-y:auto;background:var(--bg)}
-  .body{padding:2rem 2.5rem 3rem;max-width:900px}
+  .body{padding:2rem 2.5rem 3rem;max-width:900px;margin:0 auto}
   textarea{min-height:140px;font-size:16px;line-height:1.8}
   .stats{grid-template-columns:repeat(6,1fr)}
   .tg{grid-template-columns:repeat(4,1fr)}
@@ -2145,11 +2145,17 @@ function getPOS(word){
   if(ART.has(wl) || DET.has(wl)) return {label:p.art, color:'#9ca3af'};
   if(PREP.has(wl)) return {label:p.prep, color:'#7F77DD'};
   if(CONJ.has(wl)) return {label:p.conj, color:'#9ca3af'};
-  if(ADV_W.has(wl) || wl.endsWith('ly')) return {label:p.adv, color:'#BA7517'};
-  if(isAdj(word)) return {label:p.adj, color:'#D85A30'};
-  if(wl.endsWith('ing') && wl.length > 5) return {label:p.verb, color:'#1a73e8'};
-  if(wl.endsWith('ed') && wl.length > 4) return {label:p.verb, color:'#1a73e8'};
-  if(/^[A-Z]/.test(word) || wl.endsWith('tion') || wl.endsWith('ness') || wl.endsWith('ment') || wl.endsWith('ity') || wl.endsWith('er') || wl.endsWith('or')) return {label:p.noun, color:'#1D9E75'};
+  // 副詞：-ly, よく使われる副詞
+  if(ADV_W.has(wl) || (wl.endsWith('ly') && wl.length>4 && !wl.endsWith('ily'))) return {label:p.adv, color:'#BA7517'};
+  // 形容詞：-al, -ous, -ive, -ful, -less, -ible, -able, -ic
+  if(isAdj(word)||wl.endsWith('al')||wl.endsWith('ous')||wl.endsWith('ive')||wl.endsWith('ful')||wl.endsWith('less')||wl.endsWith('ible')||wl.endsWith('able')||wl.endsWith('ic')) return {label:p.adj, color:'#D85A30'};
+  // 動詞：-ing(>4), -ed(>3), -ize, -ise, -ify, -ate
+  if(wl.endsWith('ing')&&wl.length>5) return {label:p.verb, color:'#1a73e8'};
+  if(wl.endsWith('ed')&&wl.length>4) return {label:p.verb, color:'#1a73e8'};
+  if(wl.endsWith('ize')||wl.endsWith('ise')||wl.endsWith('ify')||wl.endsWith('ate')&&wl.length>5) return {label:p.verb, color:'#1a73e8'};
+  // 名詞：大文字始まり, -tion, -sion, -ness, -ment, -ity, -ism, -ist, -ance, -ence, -cy, -ry, -ship
+  if(/^[A-Z]/.test(word)||wl.endsWith('tion')||wl.endsWith('sion')||wl.endsWith('ness')||wl.endsWith('ment')||wl.endsWith('ity')||wl.endsWith('ism')||wl.endsWith('ist')||wl.endsWith('ance')||wl.endsWith('ence')||wl.endsWith('cy')||wl.endsWith('ry')||wl.endsWith('ship')) return {label:p.noun, color:'#1D9E75'};
+  if(wl.endsWith('er')||wl.endsWith('or')||wl.endsWith('ar')) return {label:p.noun, color:'#1D9E75'};
   return {label:p.noun, color:'#1D9E75'};
 }
 
@@ -2590,11 +2596,11 @@ function showShareModal(url, text){
   modal.id = 'shareAppModal';
   modal.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-radius:20px 20px 0 0;padding:1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom));z-index:301';
   const labels = {
-    ja:{title:'アプリを共有',copy:'URLをコピー',copied:'コピーしました！'},
-    en:{title:'Share App',copy:'Copy URL',copied:'Copied!'},
-    zh:{title:'分享应用',copy:'复制链接',copied:'已复制！'},
-    es:{title:'Compartir app',copy:'Copiar URL',copied:'¡Copiado!'},
-    ko:{title:'앱 공유',copy:'URL 복사',copied:'복사되었습니다!'},
+    ja:{title:'アプリを共有',copy:'URLをコピー',copied:'コピーしました！',email:'メール',sms:'メッセージ',native:'その他'},
+    en:{title:'Share App',copy:'Copy URL',copied:'Copied!',email:'Email',sms:'Message',native:'More'},
+    zh:{title:'分享应用',copy:'复制链接',copied:'已复制！',email:'邮件',sms:'短信',native:'更多'},
+    es:{title:'Compartir app',copy:'Copiar URL',copied:'¡Copiado!',email:'Correo',sms:'Mensaje',native:'Más'},
+    ko:{title:'앱 공유',copy:'URL 복사',copied:'복사되었습니다!',email:'이메일',sms:'문자',native:'기타'},
   };
   const lb = labels[currentLang]||labels.ja;
 
@@ -2636,7 +2642,7 @@ function showShareModal(url, text){
   // Copy button
   const copyBtn = document.createElement('button');
   copyBtn.className = 'btn btn-p';
-  copyBtn.style.cssText = 'width:100%;justify-content:center';
+  copyBtn.style.cssText = 'width:100%;justify-content:center;margin-bottom:8px';
   copyBtn.textContent = lb.copy;
   copyBtn.onclick = async () => {
     try { await navigator.clipboard.writeText(url); } catch(e) {
@@ -2649,6 +2655,39 @@ function showShareModal(url, text){
     setTimeout(() => { bd.remove(); modal.remove(); }, 1200);
   };
   modal.appendChild(copyBtn);
+
+  // Email + Message row
+  const enc2 = encodeURIComponent;
+  const otherLinks = [
+    {name: lb.email||'メール', icon:'✉️', color:'#6b7280',
+      href:'mailto:?subject=GrammarAI&body='+enc2(text+' '+url)},
+    {name: lb.sms||'SMS', icon:'💬', color:'#10b981',
+      href:'sms:?body='+enc2(text+' '+url)},
+    {name: lb.native||'その他', icon:'⋯', color:'#374151', href:null, native:true},
+  ];
+  const otherRow = document.createElement('div');
+  otherRow.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:8px';
+  otherLinks.forEach(s => {
+    const a = document.createElement('a');
+    if(s.native){
+      a.href = '#';
+      a.onclick = async(e) => {
+        e.preventDefault();
+        if(navigator.share){ try{ await navigator.share({title:'GrammarAI',text:text,url:url}); }catch(ex){} }
+        else { copyBtn.click(); }
+      };
+    } else { a.href = s.href; }
+    a.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none;padding:8px;border:1px solid var(--bd);border-radius:10px;background:var(--bg2)';
+    const ic = document.createElement('span');
+    ic.style.cssText = 'font-size:20px';
+    ic.textContent = s.icon;
+    const lb2 = document.createElement('span');
+    lb2.style.cssText = 'font-size:11px;color:var(--gr)';
+    lb2.textContent = s.name;
+    a.appendChild(ic); a.appendChild(lb2);
+    otherRow.appendChild(a);
+  });
+  modal.appendChild(otherRow);
 
   bd.onclick = () => { bd.remove(); modal.remove(); };
   document.body.appendChild(bd);
