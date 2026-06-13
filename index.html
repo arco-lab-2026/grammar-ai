@@ -26,7 +26,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tab{flex:1;padding:10px 4px;font-size:12px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--gr);background:none;border-top:none;border-left:none;border-right:none;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:inherit}
 .tab i{font-size:20px}.tab.active{color:var(--g);border-bottom-color:var(--g)}
 .tbadge{background:#ef4444;color:#fff;font-size:9px;font-weight:700;padding:0 5px;border-radius:8px;min-width:16px;text-align:center;line-height:15px}
-.panel{display:none}.panel.active{display:block}
+.panel{display:none}.panel.active{display:block;width:100%}
 .body{padding:1rem 1.25rem 5rem;max-width:800px;margin:0 auto}
 @media(min-width:768px){
   body{background:#f0f2f5}
@@ -42,8 +42,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   .tab:hover:not(.active){background:#f3f4f6;color:var(--tx)}
   .tbadge{margin-left:auto}
   /* メインコンテンツ */
-  .panels-wrap{flex:1;overflow-y:auto;background:var(--bg)}
-  .body{padding:2rem 2.5rem 3rem;max-width:860px;width:100%;margin-left:auto;margin-right:auto}
+  .panels-wrap{flex:1;overflow-y:auto;background:var(--bg);min-width:0}
+  .body{padding:2rem 2.5rem 3rem;max-width:860px;margin:0 auto;box-sizing:border-box}
   textarea{min-height:140px;font-size:16px;line-height:1.8}
   .stats{grid-template-columns:repeat(6,1fr)}
   .tg{grid-template-columns:repeat(4,1fr)}
