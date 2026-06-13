@@ -364,13 +364,13 @@ window._i18nJsLoaded = false;
   <div id="cefrArea" style="display:none;margin-bottom:.875rem"></div>
   <div class="card" id="resultArea" style="display:none">
     <div class="legend">
-      <span style="font-size:11px;font-weight:600;color:#374151">SVOC+M:</span>
-      <div class="leg"><span style="display:inline-block;border-bottom:3px solid #1D9E75;padding:0 4px;font-size:12px">S</span><span style="font-size:11px;color:#1D9E75;margin-left:2px">主語</span></div>
-      <div class="leg"><span style="display:inline-block;border-bottom:3px solid #1a73e8;padding:0 4px;font-size:12px">V</span><span style="font-size:11px;color:#1a73e8;margin-left:2px">動詞</span></div>
-      <div class="leg"><span style="display:inline-block;border-bottom:3px solid #D85A30;padding:0 4px;font-size:12px">O</span><span style="font-size:11px;color:#D85A30;margin-left:2px">目的語</span></div>
-      <div class="leg"><span style="display:inline-block;border-bottom:3px solid #BA7517;padding:0 4px;font-size:12px">C</span><span style="font-size:11px;color:#BA7517;margin-left:2px">補語</span></div>
-      <div class="leg"><span style="display:inline-block;border-bottom:3px dotted #7F77DD;padding:0 4px;font-size:12px">M</span><span style="font-size:11px;color:#7F77DD;margin-left:2px">修飾語</span></div>
-      <span style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--gr)"><span class="awl-sw"></span> AWL語彙</span>
+      <span style="font-size:11px;font-weight:600;color:#374151" data-i18n="svocLabel">SVOC+M:</span>
+      <div class="leg"><span style="display:inline-block;border-bottom:3px solid #1D9E75;padding:0 4px;font-size:12px">S</span><span style="font-size:11px;color:#1D9E75;margin-left:2px" data-i18n="role_S">主語</span></div>
+      <div class="leg"><span style="display:inline-block;border-bottom:3px solid #1a73e8;padding:0 4px;font-size:12px">V</span><span style="font-size:11px;color:#1a73e8;margin-left:2px" data-i18n="role_V">動詞</span></div>
+      <div class="leg"><span style="display:inline-block;border-bottom:3px solid #D85A30;padding:0 4px;font-size:12px">O</span><span style="font-size:11px;color:#D85A30;margin-left:2px" data-i18n="role_O">目的語</span></div>
+      <div class="leg"><span style="display:inline-block;border-bottom:3px solid #BA7517;padding:0 4px;font-size:12px">C</span><span style="font-size:11px;color:#BA7517;margin-left:2px" data-i18n="role_C">補語</span></div>
+      <div class="leg"><span style="display:inline-block;border-bottom:3px dotted #7F77DD;padding:0 4px;font-size:12px">M</span><span style="font-size:11px;color:#7F77DD;margin-left:2px" data-i18n="role_M">修飾語</span></div>
+      <span style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--gr)"><span class="awl-sw"></span> <span data-i18n="awlVocab">AWL語彙</span></span>
     </div>
     <div id="sentences"></div>
   </div>
@@ -431,6 +431,14 @@ window._i18nJsLoaded = false;
 
 <!-- TOOLS -->
 <div class="panel" id="panel-tools"><div class="body">
+  <!-- Tools section tabs -->
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <button id="toolsTab-writing" onclick="switchToolsTab('writing')" class="btn btn-p" style="flex:1;justify-content:center;font-size:13px"><i class="ti ti-edit"></i> <span data-i18n="toolsTabWriting">文章評価</span></button>
+    <button id="toolsTab-research" onclick="switchToolsTab('research')" class="btn" style="flex:1;justify-content:center;font-size:13px"><i class="ti ti-books"></i> <span data-i18n="toolsTabResearch">文献検索</span></button>
+  </div>
+
+  <!-- Writing Tools -->
+  <div id="toolsSection-writing">
   <div class="card">
     <div class="sec-t"><i class="ti ti-tools"></i> <span data-i18n="toolsIndiv">個別ツール</span></div>
     <div style="font-size:12px;color:#9ca3af;margin-bottom:10px" data-i18n="toolsClick">クリックでテキスト自動コピー＋タブを開く</div>
@@ -510,7 +518,60 @@ window._i18nJsLoaded = false;
       </button>
     </div>
 
-</div></div></div>
+</div></div>
+  </div><!-- end toolsSection-writing -->
+
+  <!-- Research Tools -->
+  <div id="toolsSection-research" style="display:none">
+  <div class="card">
+    <div class="sec-t"><i class="ti ti-books"></i> <span data-i18n="toolsResearchTitle">文献を探す</span></div>
+    <div style="font-size:12px;color:#9ca3af;margin-bottom:14px" data-i18n="toolsResearchDesc">学術論文・文献の検索に使えるデータベース</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <a href="https://scholar.google.com/" target="_blank" rel="noopener" class="tc" style="flex-direction:column;align-items:flex-start;gap:6px;padding:12px 14px;text-decoration:none">
+        <div style="display:flex;align-items:center;gap:10px;width:100%">
+          <div class="tiw" style="background:#e8f0fe"><i class="ti ti-school" style="color:#1a73e8"></i></div>
+          <div style="flex:1"><div class="tn">Google Scholar</div></div>
+          <i class="ti ti-external-link" style="font-size:13px;color:#9ca3af"></i>
+        </div>
+        <div style="font-size:12px;color:var(--gr);line-height:1.5;text-align:left;padding-left:44px" data-i18n="toolScholarDesc">世界最大の学術論文検索エンジン。被引用数・関連論文も確認できます。</div>
+      </a>
+      <a href="https://cir.nii.ac.jp/" target="_blank" rel="noopener" class="tc" style="flex-direction:column;align-items:flex-start;gap:6px;padding:12px 14px;text-decoration:none">
+        <div style="display:flex;align-items:center;gap:10px;width:100%">
+          <div class="tiw" style="background:#fff3e0"><i class="ti ti-building-library" style="color:#e65100"></i></div>
+          <div style="flex:1"><div class="tn">CiNii Research</div></div>
+          <i class="ti ti-external-link" style="font-size:13px;color:#9ca3af"></i>
+        </div>
+        <div style="font-size:12px;color:var(--gr);line-height:1.5;text-align:left;padding-left:44px" data-i18n="toolCiNiiDesc">国立情報学研究所の日本語論文データベース。日本語・英語両方の論文を収録。</div>
+      </a>
+      <a href="https://www.jstage.jst.go.jp/browse/-char/ja" target="_blank" rel="noopener" class="tc" style="flex-direction:column;align-items:flex-start;gap:6px;padding:12px 14px;text-decoration:none">
+        <div style="display:flex;align-items:center;gap:10px;width:100%">
+          <div class="tiw" style="background:#e8f5e9"><i class="ti ti-file-text" style="color:#2e7d32"></i></div>
+          <div style="flex:1"><div class="tn">J-STAGE</div></div>
+          <i class="ti ti-external-link" style="font-size:13px;color:#9ca3af"></i>
+        </div>
+        <div style="font-size:12px;color:var(--gr);line-height:1.5;text-align:left;padding-left:44px" data-i18n="toolJStageDesc">科学技術振興機構が提供する日本の学術雑誌プラットフォーム。無料で全文閲覧できる論文も多数。</div>
+      </a>
+      <a href="https://www.semanticscholar.org/" target="_blank" rel="noopener" class="tc" style="flex-direction:column;align-items:flex-start;gap:6px;padding:12px 14px;text-decoration:none">
+        <div style="display:flex;align-items:center;gap:10px;width:100%">
+          <div class="tiw" style="background:#f3e5f5"><i class="ti ti-brain" style="color:#6a1b9a"></i></div>
+          <div style="flex:1"><div class="tn">Semantic Scholar</div></div>
+          <i class="ti ti-external-link" style="font-size:13px;color:#9ca3af"></i>
+        </div>
+        <div style="font-size:12px;color:var(--gr);line-height:1.5;text-align:left;padding-left:44px" data-i18n="toolSemanticDesc">AI搭載の学術論文検索。要旨を自動要約・関連論文の推薦機能が優秀。</div>
+      </a>
+      <a href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank" rel="noopener" class="tc" style="flex-direction:column;align-items:flex-start;gap:6px;padding:12px 14px;text-decoration:none">
+        <div style="display:flex;align-items:center;gap:10px;width:100%">
+          <div class="tiw" style="background:#e3f2fd"><i class="ti ti-heart-rate-monitor" style="color:#0277bd"></i></div>
+          <div style="flex:1"><div class="tn">PubMed</div></div>
+          <i class="ti ti-external-link" style="font-size:13px;color:#9ca3af"></i>
+        </div>
+        <div style="font-size:12px;color:var(--gr);line-height:1.5;text-align:left;padding-left:44px" data-i18n="toolPubMedDesc">医学・生命科学分野の世界標準データベース。理系・医療系の論文探しに必須。</div>
+      </a>
+    </div>
+  </div>
+  </div><!-- end toolsSection-research -->
+
+</div></div>
 
 <!-- ABOUT -->
 <div class="panel" id="panel-about"><div class="body">
@@ -1008,6 +1069,15 @@ window.I18N_EXT = {
     aiRequiredDesc: '正確な文法分析のため、Gemini APIキーの設定が必要です。完全無料・クレジットカード不要・1日1,500回まで利用できます。',
     aiSetupBtn: '無料のAPIキーを設定する（5分）',
     posPreview: '品詞タグ付け（プレビュー） — SVOC分析はAI設定後に使えます',
+    toolsTabWriting: '文章評価',
+    toolsTabResearch: '文献検索',
+    toolsResearchTitle: '文献を探す',
+    toolsResearchDesc: '学術論文・文献の検索に使えるデータベース',
+    toolScholarDesc: '世界最大の学術論文検索エンジン。被引用数・関連論文も確認できます。',
+    toolCiNiiDesc: '国立情報学研究所の日本語論文データベース。日本語・英語両方の論文を収録。',
+    toolJStageDesc: '科学技術振興機構が提供する日本の学術雑誌プラットフォーム。無料全文閲覧可能な論文も多数。',
+    toolSemanticDesc: 'AI搭載の学術論文検索。要旨の自動要約・関連論文推薦が優秀。',
+    toolPubMedDesc: '医学・生命科学分野の世界標準DB。理系・医療系の論文探しに必須。',
     toolsIndiv: '個別ツール',
     toolsClick: 'クリックでテキスト自動コピー＋タブを開く',
     launchAllBtn: 'すべてのツールを一括で開く',
@@ -1073,6 +1143,7 @@ window.I18N_EXT = {
     role_O: '目的語',
     role_C: '補語',
     role_M: '修飾語',
+    awlVocab: 'AWL語彙',
   },
   en: {
     heroTitle: 'Visualize English grammar for academic writing',
@@ -1107,6 +1178,15 @@ window.I18N_EXT = {
     aiRequiredDesc: 'Set up your Gemini API key for accurate grammar analysis. Completely free, no credit card, up to 1,500 uses/day.',
     aiSetupBtn: 'Set up free API key (5 min)',
     posPreview: 'Part-of-speech tags (preview) — SVOC analysis available after AI setup',
+    toolsTabWriting: 'Writing Tools',
+    toolsTabResearch: 'Find Literature',
+    toolsResearchTitle: 'Find Literature',
+    toolsResearchDesc: 'Academic databases for finding papers and articles',
+    toolScholarDesc: 'The largest academic search engine. Check citation counts and find related papers.',
+    toolCiNiiDesc: 'Japanese academic database by NII. Covers both Japanese and English papers.',
+    toolJStageDesc: 'Japanese academic journal platform by JST. Many papers available in full text for free.',
+    toolSemanticDesc: 'AI-powered academic search. Excellent auto-summary and related paper recommendations.',
+    toolPubMedDesc: 'The global standard for medical and life sciences. Essential for science and medicine papers.',
     toolsIndiv: 'Individual Tools',
     toolsClick: 'Click to copy text + open tab',
     launchAllBtn: 'Open all tools at once',
@@ -1172,6 +1252,7 @@ window.I18N_EXT = {
     role_O: 'Object',
     role_C: 'Complement',
     role_M: 'Modifier',
+    awlVocab: 'AWL Vocab',
   },
   zh: {
     heroTitle: '可视化英语学术写作语法',
@@ -1206,6 +1287,15 @@ window.I18N_EXT = {
     aiRequiredDesc: '设置Gemini API密钥以获得准确的语法分析。完全免费，无需信用卡，每天最多1,500次。',
     aiSetupBtn: '设置免费API密钥（5分钟）',
     posPreview: '词性标注（预览）— 设置AI后可使用SVOC分析',
+    toolsTabWriting: '写作工具',
+    toolsTabResearch: '文献检索',
+    toolsResearchTitle: '查找文献',
+    toolsResearchDesc: '用于搜索学术论文和文献的数据库',
+    toolScholarDesc: '全球最大学术论文搜索引擎，可查看引用次数和相关论文。',
+    toolCiNiiDesc: '日本国立信息学研究所的学术数据库，收录日英文献。',
+    toolJStageDesc: '日本科学技术振兴机构的学术期刊平台，许多论文可免费全文阅读。',
+    toolSemanticDesc: 'AI驱动的学术搜索，自动摘要和相关论文推荐功能出色。',
+    toolPubMedDesc: '医学和生命科学领域的全球标准数据库，理工医学必备。',
     toolsIndiv: '单独工具',
     toolsClick: '点击自动复制文本并打开标签',
     launchAllBtn: '一次性打开所有工具',
@@ -1271,6 +1361,7 @@ window.I18N_EXT = {
     role_O: '宾语',
     role_C: '补语',
     role_M: '修饰语',
+    awlVocab: 'AWL词汇',
   },
   es: {
     heroTitle: 'Visualiza la gramática del inglés académico',
@@ -1305,6 +1396,15 @@ window.I18N_EXT = {
     aiRequiredDesc: 'Configura tu clave API de Gemini para análisis gramatical preciso. Completamente gratis.',
     aiSetupBtn: 'Configurar clave API gratis (5 min)',
     posPreview: 'Etiquetas gramaticales (vista previa) — SVOC disponible tras configurar IA',
+    toolsTabWriting: 'Herramientas de escritura',
+    toolsTabResearch: 'Buscar literatura',
+    toolsResearchTitle: 'Buscar literatura',
+    toolsResearchDesc: 'Bases de datos para encontrar artículos y papers académicos',
+    toolScholarDesc: 'El mayor buscador académico del mundo. Consulta citas y papers relacionados.',
+    toolCiNiiDesc: 'Base de datos académica japonesa del NII. Cubre papers en japonés e inglés.',
+    toolJStageDesc: 'Plataforma de revistas académicas japonesas. Muchos papers con texto completo gratuito.',
+    toolSemanticDesc: 'Búsqueda académica con IA. Excelente resumen automático y recomendaciones.',
+    toolPubMedDesc: 'Estándar mundial para ciencias médicas y de la vida. Esencial para papers científicos.',
     toolsIndiv: 'Herramientas individuales',
     toolsClick: 'Clic para copiar texto y abrir pestaña',
     launchAllBtn: 'Abrir todas las herramientas a la vez',
@@ -1370,6 +1470,7 @@ window.I18N_EXT = {
     role_O: 'Objeto',
     role_C: 'Complemento',
     role_M: 'Modificador',
+    awlVocab: 'Vocabulario AWL',
   },
   ko: {
     heroTitle: '학술 영작문의 문법을 시각화',
@@ -1404,6 +1505,15 @@ window.I18N_EXT = {
     aiRequiredDesc: '정확한 문법 분석을 위해 Gemini API 키 설정이 필요합니다. 완전 무료・신용카드 불필요.',
     aiSetupBtn: '무료 API 키 설정 (5분)',
     posPreview: '품사 태그 (미리보기) — AI 설정 후 SVOC 분석 가능',
+    toolsTabWriting: '글쓰기 도구',
+    toolsTabResearch: '문헌 검색',
+    toolsResearchTitle: '문헌 찾기',
+    toolsResearchDesc: '학술 논문 및 문헌 검색에 사용할 수 있는 데이터베이스',
+    toolScholarDesc: '세계 최대 학술 논문 검색 엔진. 인용 수와 관련 논문을 확인할 수 있습니다.',
+    toolCiNiiDesc: '일본 국립정보학연구소의 학술 데이터베이스. 일본어·영어 논문 모두 수록.',
+    toolJStageDesc: '일본 과학기술진흥기구의 학술지 플랫폼. 무료 전문 열람 가능한 논문 다수.',
+    toolSemanticDesc: 'AI 기반 학술 검색. 자동 요약 및 관련 논문 추천 기능이 우수합니다.',
+    toolPubMedDesc: '의학·생명과학 분야 세계 표준 DB. 이공계·의료계 논문 검색에 필수.',
     toolsIndiv: '개별 도구',
     toolsClick: '클릭하면 텍스트 자동 복사 + 탭 열기',
     launchAllBtn: '모든 도구 한번에 열기',
@@ -1469,6 +1579,7 @@ window.I18N_EXT = {
     role_O: '목적어',
     role_C: '보어',
     role_M: '수식어',
+    awlVocab: 'AWL 어휘',
   },
 };
 
@@ -2298,7 +2409,7 @@ function renderVL(){
   [...vDB].reverse().forEach((v,ri)=>{
     const i=vDB.length-1-ri;const isAWL=v.isAWL||AWL.has((v.word||"").toLowerCase());
     const el=document.createElement("div");el.className="vi";
-    el.innerHTML=`<div style="min-width:90px"><div class="vw">${v.word}${isAWL?'<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:1px 5px;border-radius:6px;margin-left:5px;font-weight:600">AWL</span>':""}</div><div class="vp" style="color:${RC[v.role]||"#6b7280"}">${getPOSLabel(v.role,currentLang)||getRJ()[v.role]||v.role}</div>${v.forgotten>0?`<div style="font-size:11px;color:#dc2626;margin-top:1px">${v.forgotten}${{"ja":"回間違い","en":"x wrong","zh":"次错误","es":"× error","ko":"회 틀림"}[currentLang]||"回間違い"}</div>`:""}</div><div class="vd"><div class="vd-j">${v.ja||"—"}</div><div class="vd-e">${v.en_def||""}</div></div><button class="vrm" onclick="rmV(${i})"><i class="ti ti-trash"></i></button>`;
+    el.innerHTML=`<div style="min-width:90px"><div class="vw">${v.word}${isAWL?'<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:1px 5px;border-radius:6px;margin-left:5px;font-weight:600">AWL</span>':""}</div><div class="vp" style="color:${RC[v.role]||"#6b7280"}">${getRJ()[v.role]||v.role}</div>${v.forgotten>0?`<div style="font-size:11px;color:#dc2626;margin-top:1px">${v.forgotten}${{"ja":"回間違い","en":"x wrong","zh":"次错误","es":"× error","ko":"회 틀림"}[currentLang]||"回間違い"}</div>`:""}</div><div class="vd"><div class="vd-j">${v.ja||"—"}</div><div class="vd-e">${v.en_def||""}</div></div><button class="vrm" onclick="rmV(${i})"><i class="ti ti-trash"></i></button>`;
     list.appendChild(el);
   });
 }
@@ -2359,6 +2470,19 @@ function stopQ(){
 }
 
 // TOOLS
+function switchToolsTab(tab){
+  ['writing','research'].forEach(t=>{
+    const sec = document.getElementById('toolsSection-'+t);
+    const btn = document.getElementById('toolsTab-'+t);
+    if(!sec||!btn) return;
+    const active = t===tab;
+    sec.style.display = active ? 'block' : 'none';
+    btn.className = active ? 'btn btn-p' : 'btn';
+    btn.style.flex = '1';
+    btn.style.justifyContent = 'center';
+    btn.style.fontSize = '13px';
+  });
+}
 async function doCopy(){
   const t=document.getElementById("inputText").value.trim();if(!t){alert("テキストを入力してください");return false;}
   try{await navigator.clipboard.writeText(t);}catch{const ta=document.createElement("textarea");ta.value=t;ta.style.cssText="position:fixed;opacity:0";document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);}
@@ -2451,6 +2575,7 @@ function showShareModal(url, text){
     {name:'LINE', icon:'L', color:'#06c755', href:'https://line.me/R/msg/text/?'+enc(text+' '+url)},
     {name:'Facebook', icon:'f', color:'#1877f2', href:'https://www.facebook.com/sharer/sharer.php?u='+enc(url)},
     {name:'WhatsApp', icon:'W', color:'#25d366', href:'https://wa.me/?text='+enc(text+' '+url)},
+    {name:'Instagram', icon:'📷', color:'#e1306c', href:null},
   ];
   document.getElementById('shareAppModal')?.remove();
   document.getElementById('shareAppBD')?.remove();
@@ -2478,9 +2603,20 @@ function showShareModal(url, text){
   // SNS grid
   const grid = document.createElement('div');
   grid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.25rem';
+  const igCopied = {ja:'URLをコピーしました！ Instagramのプロフィール・ストーリーに貼り付けてください',en:'URL copied! Paste it in your Instagram profile or story',zh:'已复制URL！请粘贴到Instagram简介或故事中',es:'¡URL copiada! Pégala en tu perfil o historia de Instagram',ko:'URL이 복사되었습니다! Instagram 프로필 또는 스토리에 붙여넣기 하세요'};
   shareLinks.forEach(s => {
     const a = document.createElement('a');
-    a.href = s.href; a.target = '_blank'; a.rel = 'noopener';
+    if(s.href){ a.href = s.href; a.target = '_blank'; a.rel = 'noopener'; }
+    else {
+      a.href = '#';
+      a.onclick = async(e) => {
+        e.preventDefault();
+        try{ await navigator.clipboard.writeText(url); }catch(err){
+          const ta=document.createElement('textarea');ta.value=url;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+        }
+        alert(igCopied[currentLang]||igCopied.ja);
+      };
+    }
     a.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none';
     const icon = document.createElement('div');
     icon.style.cssText = 'width:52px;height:52px;border-radius:14px;background:'+s.color+';display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff';
@@ -2654,10 +2790,19 @@ function fleschScore(text){
   return Math.max(0,Math.min(100,score));
 }
 function fleschLabel(score){
-  if(score>=70)return{label:'読みやすい (A2-B1)',color:'#16a34a'};
-  if(score>=50)return{label:'普通 (B2)',color:'#2563eb'};
-  if(score>=30)return{label:'難しい (C1)',color:'#d97706'};
-  return{label:'非常に難しい (C2)',color:'#dc2626'};
+  const L = typeof currentLang !== 'undefined' ? currentLang : 'ja';
+  const labels = {
+    ja: {easy:'読みやすい (A2-B1)', mid:'普通 (B2)', hard:'難しい (C1)', vhard:'非常に難しい (C2)'},
+    en: {easy:'Easy (A2-B1)', mid:'Average (B2)', hard:'Difficult (C1)', vhard:'Very Difficult (C2)'},
+    zh: {easy:'易读 (A2-B1)', mid:'普通 (B2)', hard:'较难 (C1)', vhard:'非常难 (C2)'},
+    es: {easy:'Fácil (A2-B1)', mid:'Normal (B2)', hard:'Difícil (C1)', vhard:'Muy difícil (C2)'},
+    ko: {easy:'읽기 쉬움 (A2-B1)', mid:'보통 (B2)', hard:'어려움 (C1)', vhard:'매우 어려움 (C2)'},
+  };
+  const lb = labels[L] || labels.ja;
+  if(score>=70)return{label:lb.easy,color:'#16a34a'};
+  if(score>=50)return{label:lb.mid,color:'#2563eb'};
+  if(score>=30)return{label:lb.hard,color:'#d97706'};
+  return{label:lb.vhard,color:'#dc2626'};
 }
 
 // ===== SENTENCE FEEDBACK =====
