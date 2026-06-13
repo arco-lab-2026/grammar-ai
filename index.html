@@ -574,7 +574,7 @@ window._i18nJsLoaded = false;
 </div></div>
 
 <!-- ABOUT -->
-<div class="panel" id="panel-about"><div class="body">
+<div class="panel" id="panel-about"><div class="body" style="max-width:760px;margin:0 auto;width:100%">
   <div class="card" style="border-color:#1D9E75;border-width:1.5px;background:linear-gradient(135deg,#f0fdf9,#eff6ff)">
     <div class="sec-t" style="margin-bottom:.875rem"><i class="ti ti-rocket"></i> <span data-i18n="qs_title">30秒で始める</span></div>
     <div style="display:flex;flex-direction:column;gap:8px">
@@ -1093,7 +1093,7 @@ window.I18N_EXT = {
     qs_step1: '英文をAnalyzeタブに貼り付ける',
     qs_step2: '「Analyze」ボタンを押す',
     qs_step3: '単語をクリックして辞書を引く',
-    qs_step4: '「AI分析」ボタンでAPIキーを設定するとSVOC分析が使えます',
+    qs_step4: '「AI分析」ボタンでAPIキーを設定するとSVOC分析が使えます（APIなしでも品詞タグ＋スラッシュ表示は利用可能）',
     feat_title: '機能ガイド',
     feat_svoc_title: 'SVOC+M 文法分析',
     feat_svoc_desc: '文の構造をフレーズ単位で色分け表示します。AIキー設定後に使えます。',
@@ -1202,7 +1202,7 @@ window.I18N_EXT = {
     qs_step1: 'Paste English text into the Analyze tab',
     qs_step2: 'Press the "Analyze" button',
     qs_step3: 'Click any word to look it up in the dictionary',
-    qs_step4: 'Set up an API key via the "AI Mode" button to enable SVOC analysis',
+    qs_step4: 'Set up an API key via "AI Mode" for SVOC analysis. Without API, POS tags + slash reading are available for free.',
     feat_title: 'Feature Guide',
     feat_svoc_title: 'SVOC+M Grammar Analysis',
     feat_svoc_desc: 'Color-codes sentences into S/V/O/C/M phrases. Requires AI key setup.',
@@ -2138,7 +2138,10 @@ function getPOS(word){
     ko: {verb:'동사', noun:'명사', adj:'형용사', adv:'부사', art:'관사', prep:'전치사', conj:'접속사'},
   };
   const p = posNames[L] || posNames.ja;
-  if(BE.has(wl) || AUX_V.has(wl) || LINK_V.has(wl) || TRANS_V.has(wl)) return {label:p.verb, color:'#1a73e8'};
+  // 助動詞を動詞より先に判定
+  const auxLabel = {ja:'助動詞', en:'Aux', zh:'助动词', es:'Aux', ko:'조동사'};
+  if(AUX_V.has(wl)) return {label:(auxLabel[L]||'Aux'), color:'#7c3aed'};
+  if(BE.has(wl) || LINK_V.has(wl) || TRANS_V.has(wl)) return {label:p.verb, color:'#1a73e8'};
   if(ART.has(wl) || DET.has(wl)) return {label:p.art, color:'#9ca3af'};
   if(PREP.has(wl)) return {label:p.prep, color:'#7F77DD'};
   if(CONJ.has(wl)) return {label:p.conj, color:'#9ca3af'};
@@ -2559,12 +2562,13 @@ async function shareApp(){
     ko: {title:'GrammarAI — 영어 문법 분석기', text:'SVOC 분석, AWL 어휘, CEFR 추정을 무료로 사용할 수 있습니다.'},
   };
   const m = msgs[currentLang] || msgs.ja;
-  // iOS/Android: native share sheet (includes LINE, Instagram, X etc.)
-  if(navigator.share){
+  // iOS/Android only: use native share sheet
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if(isMobile && navigator.share){
     try{ await navigator.share({title:m.title, text:m.text, url:appUrl}); return; }
     catch(e){ if(e.name==='AbortError') return; }
   }
-  // Desktop: show SNS share modal
+  // Desktop + non-mobile: show SNS modal with LINE/X/Instagram/WhatsApp buttons
   showShareModal(appUrl, m.text);
 }
 
