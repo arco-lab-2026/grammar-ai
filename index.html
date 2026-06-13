@@ -2468,22 +2468,49 @@ function showShareModal(url, text){
     ko:{title:'앱 공유',copy:'URL 복사',copied:'복사되었습니다!'},
   };
   const lb = labels[currentLang]||labels.ja;
-  modal.innerHTML =
-    '<div style="font-size:16px;font-weight:700;margin-bottom:1.25rem;color:var(--tx)">'+lb.title+'</div>'+
-    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.25rem">'+
-    shareLinks.map(s=>
-      '<a href="'+s.href+'" target="_blank" rel="noopener" style="display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none">'+
-      '<div style="width:52px;height:52px;border-radius:14px;background:'+s.color+';display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff">'+s.icon+'</div>'+
-      '<span style="font-size:11px;color:var(--gr)">'+s.name+'</span></a>'
-    ).join('')+
-    '</div>'+
-    '<button id="saCopyBtn" class="btn btn-p" style="width:100%;justify-content:center" onclick="(async()=>{'+
-    'try{await navigator.clipboard.writeText(''+url+'');}catch(e){'+
-    'const t=document.createElement('textarea');t.value=''+url+'';t.style.cssText='position:fixed;opacity:0';document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);}'+
-    'document.getElementById('saCopyBtn').textContent=''+lb.copied+'';'+
-    'setTimeout(()=>{document.getElementById('shareAppBD')?.remove();document.getElementById('shareAppModal')?.remove();},1200);'+
-    '})()">'+lb.copy+'</button>';
-  bd.onclick = ()=>{ bd.remove(); modal.remove(); };
+
+  // Title
+  const titleEl = document.createElement('div');
+  titleEl.style.cssText = 'font-size:16px;font-weight:700;margin-bottom:1.25rem;color:var(--tx)';
+  titleEl.textContent = lb.title;
+  modal.appendChild(titleEl);
+
+  // SNS grid
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.25rem';
+  shareLinks.forEach(s => {
+    const a = document.createElement('a');
+    a.href = s.href; a.target = '_blank'; a.rel = 'noopener';
+    a.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none';
+    const icon = document.createElement('div');
+    icon.style.cssText = 'width:52px;height:52px;border-radius:14px;background:'+s.color+';display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff';
+    icon.textContent = s.icon;
+    const label = document.createElement('span');
+    label.style.cssText = 'font-size:11px;color:var(--gr)';
+    label.textContent = s.name;
+    a.appendChild(icon); a.appendChild(label);
+    grid.appendChild(a);
+  });
+  modal.appendChild(grid);
+
+  // Copy button
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'btn btn-p';
+  copyBtn.style.cssText = 'width:100%;justify-content:center';
+  copyBtn.textContent = lb.copy;
+  copyBtn.onclick = async () => {
+    try { await navigator.clipboard.writeText(url); } catch(e) {
+      const ta = document.createElement('textarea');
+      ta.value = url; ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+    }
+    copyBtn.textContent = lb.copied;
+    setTimeout(() => { bd.remove(); modal.remove(); }, 1200);
+  };
+  modal.appendChild(copyBtn);
+
+  bd.onclick = () => { bd.remove(); modal.remove(); };
   document.body.appendChild(bd);
   document.body.appendChild(modal);
 }
