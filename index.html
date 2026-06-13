@@ -1705,7 +1705,7 @@ const CDESC_ALL={
 function getCDESC(){ return CDESC_ALL[currentLang]||CDESC_ALL.ja; }
 function renderCEFR(text){
   const lv=estCEFR(text);const area=document.getElementById("cefrArea");area.style.display="block";
-  area.innerHTML=`<div class="card" style="padding:.875rem 1.25rem"><div class="sec-t" style="margin-bottom:6px"><i class="ti ti-award"></i> ${t('cefrLabel')||'難易度スコア（CEFR）'}<span style="font-size:11px;color:var(--gr);font-weight:400;margin-left:6px">${t('cefrNote')||'※語彙・文長から推定'}</span></div><span class="cefr-b c${lv}">${lv}</span><span style="font-size:13px;color:var(--gr);margin-left:8px">${getCDESC()[lv]}</span>`+`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px">${CORD.map(l=>`<span class="cefr-b c${l}" style="padding:2px 8px;font-size:10px;opacity:${l===lv?"1":"0.3"}">${l}</span>`).join("")}</div></div>`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px">${CORD.map(l=>`<span class="cefr-b c${l}" style="padding:2px 8px;font-size:10px;opacity:${l===lv?"1":"0.3"}">${l}</span>`).join("")}</div></div>`;
+  area.innerHTML=`<div class="card" style="padding:.875rem 1.25rem"><div class="sec-t" style="margin-bottom:6px"><i class="ti ti-award"></i> ${t('cefrLabel')||'難易度スコア（CEFR）'}<span style="font-size:11px;color:var(--gr);font-weight:400;margin-left:6px">${t('cefrNote')||'※語彙・文長から推定'}</span></div><span class="cefr-b c${lv}">${lv}</span><span style="font-size:13px;color:var(--gr);margin-left:8px">${getCDESC()[lv]}</span><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px">${CORD.map(l=>`<span class="cefr-b c${l}" style="padding:2px 8px;font-size:10px;opacity:${l===lv?"1":"0.3"}">${l}</span>`).join("")}</div></div>`;
 }
 
 // PHRASE-BASED SVOC PARSER
