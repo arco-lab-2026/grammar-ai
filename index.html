@@ -448,7 +448,7 @@ window._i18nJsLoaded = false;
         <div style="display:flex;align-items:center;gap:10px;width:100%">
           <div class="tiw" style="background:#dcfce7"><i class="ti ti-circle-check" style="color:#15803d"></i></div>
           <div style="flex:1">
-            <div class="tn" data-i18n="toolGrammarly">Grammarly</div>
+            <div class="tn">Grammarly</div>
           </div>
         </div>
         <div style="font-size:12px;color:var(--gr);line-height:1.5;text-align:left;padding-left:44px" data-i18n="toolGrammarlyDesc">説明を読み込み中...</div>
@@ -457,7 +457,7 @@ window._i18nJsLoaded = false;
         <div style="display:flex;align-items:center;gap:10px;width:100%">
           <div class="tiw" style="background:#fef3c7"><i class="ti ti-replace" style="color:#b45309"></i></div>
           <div style="flex:1">
-            <div class="tn" data-i18n="toolRewordify">Rewordify</div>
+            <div class="tn">Rewordify</div>
           </div>
         </div>
         <div style="font-size:12px;color:var(--gr);line-height:1.5;text-align:left;padding-left:44px" data-i18n="toolRewordifyDesc">説明を読み込み中...</div>
@@ -466,7 +466,7 @@ window._i18nJsLoaded = false;
         <div style="display:flex;align-items:center;gap:10px;width:100%">
           <div class="tiw" style="background:#dbeafe"><i class="ti ti-chart-pie" style="color:#1d4ed8"></i></div>
           <div style="flex:1">
-            <div class="tn" data-i18n="toolVocabProfile">VocabProfile</div>
+            <div class="tn">VocabProfile</div>
           </div>
         </div>
         <div style="font-size:12px;color:var(--gr);line-height:1.5;text-align:left;padding-left:44px" data-i18n="toolVocabProfileDesc">説明を読み込み中...</div>
@@ -475,7 +475,7 @@ window._i18nJsLoaded = false;
         <div style="display:flex;align-items:center;gap:10px;width:100%">
           <div class="tiw" style="background:#dcfce7"><i class="ti ti-school" style="color:#15803d"></i></div>
           <div style="flex:1">
-            <div class="tn" data-i18n="toolAWL">AWL Highlighter</div>
+            <div class="tn">AWL Highlighter</div>
           </div>
         </div>
         <div style="font-size:12px;color:var(--gr);line-height:1.5;text-align:left;padding-left:44px" data-i18n="toolAWLDesc">説明を読み込み中...</div>
@@ -484,7 +484,7 @@ window._i18nJsLoaded = false;
         <div style="display:flex;align-items:center;gap:10px;width:100%">
           <div class="tiw" style="background:#ede9fe"><i class="ti ti-writing" style="color:#6d28d9"></i></div>
           <div style="flex:1">
-            <div class="tn" data-i18n="toolAnalyzeMyWriting">Analyze My Writing</div>
+            <div class="tn">Analyze My Writing</div>
           </div>
         </div>
         <div style="font-size:12px;color:var(--gr);line-height:1.5;text-align:left;padding-left:44px" data-i18n="toolAnalyzeMyWritingDesc">説明を読み込み中...</div>
@@ -493,7 +493,7 @@ window._i18nJsLoaded = false;
         <div style="display:flex;align-items:center;gap:10px;width:100%">
           <div class="tiw" style="background:#fce7f3"><i class="ti ti-file-check" style="color:#9d174d"></i></div>
           <div style="flex:1">
-            <div class="tn" data-i18n="toolPaperRater">PaperRater</div>
+            <div class="tn">PaperRater</div>
           </div>
         </div>
         <div style="font-size:12px;color:var(--gr);line-height:1.5;text-align:left;padding-left:44px" data-i18n="toolPaperRaterDesc">説明を読み込み中...</div>
@@ -502,7 +502,7 @@ window._i18nJsLoaded = false;
         <div style="display:flex;align-items:center;gap:10px;width:100%">
           <div class="tiw" style="background:#f1f5f9"><i class="ti ti-shield-check" style="color:#374151"></i></div>
           <div style="flex:1">
-            <div class="tn" data-i18n="toolGPTZero">GPTZero</div>
+            <div class="tn">GPTZero</div>
           </div>
         </div>
         <div style="font-size:12px;color:var(--gr);line-height:1.5;text-align:left;padding-left:44px" data-i18n="toolGPTZeroDesc">説明を読み込み中...</div>
@@ -511,7 +511,7 @@ window._i18nJsLoaded = false;
         <div style="display:flex;align-items:center;gap:10px;width:100%">
           <div class="tiw" style="background:#fee2e2"><i class="ti ti-file-type-pdf" style="color:#991b1b"></i></div>
           <div style="flex:1">
-            <div class="tn" data-i18n="toolChatPDF">ChatPDF</div>
+            <div class="tn">ChatPDF</div>
           </div>
         </div>
         <div style="font-size:12px;color:var(--gr);line-height:1.5;text-align:left;padding-left:44px" data-i18n="toolChatPDFDesc">説明を読み込み中...</div>
@@ -2409,7 +2409,7 @@ function renderVL(){
   [...vDB].reverse().forEach((v,ri)=>{
     const i=vDB.length-1-ri;const isAWL=v.isAWL||AWL.has((v.word||"").toLowerCase());
     const el=document.createElement("div");el.className="vi";
-    el.innerHTML=`<div style="min-width:90px"><div class="vw">${v.word}${isAWL?'<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:1px 5px;border-radius:6px;margin-left:5px;font-weight:600">AWL</span>':""}</div><div class="vp" style="color:${RC[v.role]||"#6b7280"}">${getRJ()[v.role]||v.role}</div>${v.forgotten>0?`<div style="font-size:11px;color:#dc2626;margin-top:1px">${v.forgotten}${{"ja":"回間違い","en":"x wrong","zh":"次错误","es":"× error","ko":"회 틀림"}[currentLang]||"回間違い"}</div>`:""}</div><div class="vd"><div class="vd-j">${v.ja||"—"}</div><div class="vd-e">${v.en_def||""}</div></div><button class="vrm" onclick="rmV(${i})"><i class="ti ti-trash"></i></button>`;
+    el.innerHTML=`<div style="min-width:90px"><div class="vw">${v.word}${isAWL?'<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:1px 5px;border-radius:6px;margin-left:5px;font-weight:600">AWL</span>':""}</div><div class="vp" style="color:${(v.role==='M'?'#6b7280':RC[v.role])||'#6b7280'}">${v.role==='M'?(getPOS(v.word).label||(getRJ()['M']||'M')):getRJ()[v.role]||v.role}</div>${v.forgotten>0?`<div style="font-size:11px;color:#dc2626;margin-top:1px">${v.forgotten}${{"ja":"回間違い","en":"x wrong","zh":"次错误","es":"× error","ko":"회 틀림"}[currentLang]||"回間違い"}</div>`:""}</div><div class="vd"><div class="vd-j">${v.ja||"—"}</div><div class="vd-e">${v.en_def||""}</div></div><button class="vrm" onclick="rmV(${i})"><i class="ti ti-trash"></i></button>`;
     list.appendChild(el);
   });
 }
@@ -2602,7 +2602,7 @@ function showShareModal(url, text){
 
   // SNS grid
   const grid = document.createElement('div');
-  grid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.25rem';
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:1.25rem';
   const igCopied = {ja:'URLをコピーしました！ Instagramのプロフィール・ストーリーに貼り付けてください',en:'URL copied! Paste it in your Instagram profile or story',zh:'已复制URL！请粘贴到Instagram简介或故事中',es:'¡URL copiada! Pégala en tu perfil o historia de Instagram',ko:'URL이 복사되었습니다! Instagram 프로필 또는 스토리에 붙여넣기 하세요'};
   shareLinks.forEach(s => {
     const a = document.createElement('a');
