@@ -42,8 +42,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   .tab:hover:not(.active){background:#f3f4f6;color:var(--tx)}
   .tbadge{margin-left:auto}
   /* メインコンテンツ */
-  .panels-wrap{flex:1;overflow-y:auto;background:var(--bg);display:flex;flex-direction:column;align-items:stretch}
-  .body{padding:2rem 2.5rem 3rem;max-width:900px;margin:0 auto}
+  .panels-wrap{flex:1;overflow-y:auto;background:var(--bg)}
+  .body{padding:2rem 2.5rem 3rem;max-width:860px;width:100%;margin-left:auto;margin-right:auto}
   textarea{min-height:140px;font-size:16px;line-height:1.8}
   .stats{grid-template-columns:repeat(6,1fr)}
   .tg{grid-template-columns:repeat(4,1fr)}
@@ -2112,6 +2112,14 @@ function showPOSWithPrompt(sents, text){
     }
 
     block.appendChild(render);
+    // Translation for POS mode (when API available)
+    if(GEMINI_KEY && currentLang !== 'en'){
+      const transDiv2 = document.createElement('div');
+      transDiv2.style.cssText = 'font-size:12px;color:var(--gr);margin-top:4px;padding:4px 8px;background:var(--bg2,#f9fafb);border-radius:6px;border-left:3px solid #1D9E75;line-height:1.6';
+      transDiv2.textContent = '…';
+      block.appendChild(transDiv2);
+      translateSent(sent, transDiv2);
+    }
     container.appendChild(block);
   });
 }
@@ -2202,7 +2210,7 @@ async function analyzeWithAI(sents){
       // Fallback to rule-based for this batch
       batch.forEach((sent, j) => {
         const {phrases, sentenceType} = buildPhrases(sent);
-        addSent({phrases, sentenceType}, allResults.length + j);
+        addSent({phrases, sentenceType, _srcText: sent.trim()}, allResults.length + j);
         allResults.push({sentenceType});
       });
     }
@@ -2213,7 +2221,8 @@ function addSent(sent,si){
   const container = document.getElementById('sentences');
   const block = document.createElement('div'); block.className = 'sent-b';
   const meta = document.createElement('div'); meta.className = 'sent-m';
-  meta.innerHTML = `<span class="sent-n">文 ${si+1}</span><span class="stype">${STYPES[sent.sentenceType]||''}</span>`;
+  const sentWord = {ja:'文',en:'Sent.',zh:'句',es:'Or.',ko:'문'}[currentLang]||'文';
+  meta.innerHTML = `<span class="sent-n">${sentWord} ${si+1}</span><span class="stype">${STYPES[sent.sentenceType]||''}</span>`;
   block.appendChild(meta);
 
   // Render as a flex-wrap line of phrase chips
@@ -2287,6 +2296,30 @@ function addSent(sent,si){
     fb.textContent = tips[0];
     block.appendChild(fb);
   }
+
+  // Sentence translation (only when API key set and lang is not 'en')
+  if(GEMINI_KEY && currentLang !== 'en' && sent._srcText){
+    const transDiv = document.createElement('div');
+    transDiv.style.cssText = 'font-size:12px;color:var(--gr);margin-top:4px;padding:4px 8px;background:var(--bg2,#f9fafb);border-radius:6px;border-left:3px solid #1D9E75;line-height:1.6';
+    transDiv.textContent = '…';
+    block.appendChild(transDiv);
+    translateSent(sent._srcText, transDiv);
+  }
+}
+
+// Translation cache to avoid duplicate API calls
+const _transCache = {};
+async function translateSent(text, el){
+  if(_transCache[text]){ el.textContent = _transCache[text]; return; }
+  const targetLang = {ja:'日本語',zh:'中国語',es:'スペイン語',ko:'韓国語'}[currentLang]||'日本語';
+  try{
+    const result = await callGemini(
+      `Translate this English sentence to ${targetLang} naturally. Output ONLY the translation, no explanation:\n${text}`
+    );
+    const trans = result?.trim()||'';
+    if(trans){ _transCache[text]=trans; el.textContent=trans; }
+    else { el.remove(); }
+  }catch{ el.remove(); }
 }
 
 function getRC(r){
