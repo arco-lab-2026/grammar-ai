@@ -2556,19 +2556,19 @@ async function doCopy(){
 }
 function showMsg(txt){const m=document.getElementById("lsMsg");m.textContent=txt;m.style.display="block";setTimeout(()=>{m.style.display="none";},6000);}
 async function openTool(key){
-  const t=document.getElementById("inputText").value.trim();if(!t){alert("テキストを入力してください");return;}
-  await doCopy();window.open(TURLS[key](t),"_blank");
-  if(key!=="rewordify")showMsg("テキストをコピーしました — 開いたタブで ⌘V / Ctrl+V で貼り付けてください");
+  const t=document.getElementById("inputText").value.trim();
+  if(t){ await doCopy(); }
+  window.open(TURLS[key](t||''),"_blank");
+  if(t && key!=="rewordify") showMsg("テキストをコピーしました — 開いたタブで ⌘V / Ctrl+V で貼り付けてください");
 }
 async function launchAll(){
   const t=document.getElementById('inputText').value.trim();
-  if(!t){alert('テキストを入力してください');return;}
-  await doCopy();
+  if(t){ await doCopy(); }
   const keys=Object.keys(TURLS);
   let n=0;
   for(const k of keys){
     try{
-      const w=window.open(TURLS[k](t),'_blank');
+      const w=window.open(TURLS[k](t||''),'_blank');
       if(w)n++;
       await new Promise(r=>setTimeout(r,600));
     }catch(e){}
@@ -2578,7 +2578,7 @@ async function launchAll(){
   }else if(n<keys.length){
     showMsg(n+'個開きました（残りはポップアップブロック）。下の個別ボタンからも開けます');
   }else{
-    showMsg(n+'個のツールを開きました — 各タブで ⌘V / Ctrl+V で貼り付けてください');
+    showMsg(n+'個のツールを開きました'+(t?' — 各タブで ⌘V / Ctrl+V で貼り付けてください':''));
   }
 }
 
